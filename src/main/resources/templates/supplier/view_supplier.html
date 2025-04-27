@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Detalle del Proveedor - Agrow</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <div class="detail-container" th:if="${supplier != null}" th:object="${supplier}">
+            <div class="detail-header">
+                 <div class="detail-icon" style="background-color: var(--info-light); color: var(--info-text);">
+                    <span class="material-symbols-outlined">local_shipping</span>
+                </div>
+                <div>
+                    <h2 class="page-title" th:text="*{companyName}"></h2>
+                    <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{supplierIdentification}"></span></p>
+                </div>
+            </div>
+            <table class="detail-table">
+                <tr> <td>ID Proveedor:</td> <td th:text="*{supplierIdentification}"></td> </tr>
+                <tr> <td>Nombre Contacto:</td> <td th:text="*{supplierName}"></td> </tr>
+                <tr> <td>Nombre Empresa:</td> <td th:text="*{companyName}"></td> </tr>
+                <tr> <td>Teléfono:</td> <td th:text="*{getFormattedPhoneNumber()}"></td> </tr>
+                <tr> <td>Correo Electrónico:</td> <td th:text="*{email}"></td> </tr>
+                <tr> <td>Fecha de Registro:</td> <td th:text="*{getFormattedRegistrationDate()}"></td> </tr>
+                <tr> <td>Estado:</td> <td> <span class="status" th:classappend="*{isActive()} ? 'status-optimo' : 'status-bajo'" th:text="*{isActive()} ? 'Activo' : 'Inactivo'"></span> </td> </tr>
+                <!-- CORRECCIÓN: creditLimit SÍ es moneda, mantener price-display -->
+                <tr> <td>Límite de Crédito:</td> <td class="price-display" th:attr="data-value=*{creditLimit}"></td> </tr>
+            </table>
+
+            <div class="detail-actions">
+                <a th:href="@{/suppliers/edit(id=*{supplierIdentification})}" class="btn btn-warning"> <span class="material-symbols-outlined icon">edit</span> Editar </a>
+                <a th:href="@{/supplies/list(supplierId=*{supplierIdentification})}" class="btn btn-info"> <span class="material-symbols-outlined icon">inventory_2</span> Ver Suministros </a>
+                 <form th:action="@{/suppliers/delete}" method="post" class="confirm-action" data-message="¿Eliminar este proveedor?" data-title="Confirmar Eliminación">
+                       <input type="hidden" name="id" th:value="*{supplierIdentification}" />
+                       <button type="submit" class="btn btn-danger"> <span class="material-symbols-outlined icon">delete</span> Eliminar </button>
+                 </form>
+                <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+            </div>
+        </div>
+
+        <div th:if="${supplier == null}" class="info-card">
+            <span class="material-symbols-outlined icon">person_off</span>
+            <h2>Proveedor no encontrado</h2>
+            <p>El proveedor solicitado no existe o fue eliminado.</p>
+            <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/app.js}"></script> <!-- Asegúrate que app.js aplique formatPrices -->
+</body>
+</html>

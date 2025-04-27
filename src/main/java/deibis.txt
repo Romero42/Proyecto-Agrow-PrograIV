@@ -1,0 +1,3201 @@
+package cr.ac.una.agrow;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AgrowApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AgrowApplication.class, args);
+	}
+
+}
+
+----- FIN DE cr\ac\una\agrow\AgrowApplication.java -----
+
+package cr.ac.una.agrow.config;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnection {
+    private static final String DATABASE = "db_agrow";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
+    private static final int PORT = 3306;
+    private static final String HOST = "localhost";
+
+    private static Connection connection;
+
+    public static Connection getConnection() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE;
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error al cargar el driver: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Error de conexión: " + e.getMessage());
+        }
+        return connection;
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\config\DBConnection.java -----
+
+package cr.ac.una.Agrow.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/")
+public class HomeController {
+
+    @GetMapping({"", "home"})
+    public String home(Model model) {
+        model.addAttribute("activeModule", "home"); // Necesario para el sidebar
+        return "index";
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\controller\HomeController.java -----
+
+package cr.ac.una.agrow.controller.producer;
+
+import cr.ac.una.agrow.data.producer.DataProducer;
+import cr.ac.una.agrow.service.producer.ProducerService;
+import cr.ac.una.agrow.domain.producer.Producer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedList;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/producers")
+public class ProducerController {
+
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    @PostMapping("/save")
+    public String saveProducer(
+            @RequestParam("producerName") String name,
+            @RequestParam("contactNumber") String contact,
+            @RequestParam("registrationDate") String registrationDateStr,
+            @RequestParam("producerType") String type,
+            @RequestParam("email") String email,
+            @RequestParam("address") String address,
+            @RequestParam("city") String city,
+            RedirectAttributes redirectAttributes) {
+
+        if (name == null || name.trim().isEmpty() || contact == null || contact.trim().isEmpty() ||
+            registrationDateStr == null || registrationDateStr.isEmpty() || type == null || type.isEmpty() ||
+            email == null || email.trim().isEmpty() || city == null || city.isEmpty() ||
+            address == null || address.trim().isEmpty()) {
+             redirectAttributes.addFlashAttribute("error", "Todos los campos son obligatorios.");
+             return "redirect:/producers/form";
+        }
+
+        LocalDate registrationDate;
+        try {
+            registrationDate = LocalDate.parse(registrationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+             redirectAttributes.addFlashAttribute("error", "Formato de fecha de registro inválido. Use dd/MM/yyyy.");
+             return "redirect:/producers/form";
+        }
+        if (registrationDate.isAfter(LocalDate.now())) {
+             redirectAttributes.addFlashAttribute("error", "La fecha de registro no puede ser futura.");
+             return "redirect:/producers/form";
+        }
+
+        // ID 0 indica nuevo, isActive por defecto es true
+        Producer p = new Producer(0, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), true);
+
+        String resultMessage = DataProducer.saveProducer(p);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/form")
+    public String showSaveForm(Model model) {
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("producer", new Producer());
+        model.addAttribute("isEdit", false);
+        model.addAttribute("activeModule", "producer");
+        model.addAttribute("activePage", "add");
+        return "save_producer";
+    }
+
+
+    @PostMapping("/update")
+    public String updateProducer(
+            @RequestParam("id_producer") int id,
+            @RequestParam("producerName") String name,
+            @RequestParam("contactNumber") String contact,
+            @RequestParam("registrationDate") String registrationDateStr,
+            @RequestParam("producerType") String type,
+            @RequestParam("email") String email,
+            @RequestParam("city") String city,
+            @RequestParam("address") String address,
+            @RequestParam(value = "isActive", defaultValue = "false") boolean active,
+            RedirectAttributes redirectAttributes) {
+
+         if (name == null || name.trim().isEmpty() || contact == null || contact.trim().isEmpty() ||
+             registrationDateStr == null || registrationDateStr.isEmpty() || type == null || type.isEmpty() ||
+             email == null || email.trim().isEmpty() || city == null || city.isEmpty() ||
+             address == null || address.trim().isEmpty()) {
+              redirectAttributes.addFlashAttribute("error", "Todos los campos son obligatorios.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+
+         LocalDate registrationDate;
+         try {
+             registrationDate = LocalDate.parse(registrationDateStr, DATE_FORMAT_DD_MM_YYYY);
+         } catch (DateTimeParseException e) {
+              redirectAttributes.addFlashAttribute("error", "Formato de fecha de registro inválido. Use dd/MM/yyyy.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+         if (registrationDate.isAfter(LocalDate.now())) {
+              redirectAttributes.addFlashAttribute("error", "La fecha de registro no puede ser futura.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+
+        Producer p = new Producer(id, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), active);
+
+        String resultMessage = DataProducer.updateProducer(p);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/edit")
+    public String showUpdateForm(
+            @RequestParam("id_producer") int id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        Producer producer = DataProducer.getProducer(id);
+
+        if (producer == null) {
+            redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
+            return "redirect:/producers/list";
+        }
+
+        model.addAttribute("producer", producer);
+        model.addAttribute("isEdit", true);
+        model.addAttribute("activeModule", "producer");
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("registrationDateForInput", producer.getRegistrationDateForInput());
+
+
+        return "update_producer";
+    }
+
+    @GetMapping("/list")
+    public String listProducers(
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam(value = "id_producer", required = false) Integer id,
+            Model model) {
+
+        LinkedList<Producer> producers;
+        String validationMessage = null;
+
+        if (id != null) {
+            Producer producer = DataProducer.getProducer(id);
+            producers = new LinkedList<>();
+            if (producer != null) {
+                producers.add(producer);
+            } else {
+                validationMessage = "El productor con Código/ID " + id + " no existe.";
+            }
+            model.addAttribute("searchId", id);
+        } else if (city != null && !city.trim().isEmpty()) {
+            producers = DataProducer.getProducersByCity(city.trim()); 
+            if (producers == null || producers.isEmpty()) {
+                validationMessage = "No hay productores registrados en la ciudad seleccionada: " + city;
+            }
+            model.addAttribute("selectedCity", city);
+        } else {
+            producers = DataProducer.getAllProducers(); 
+             if (producers == null || producers.isEmpty()) {
+                validationMessage = "No hay productores registrados.";
+            }
+        }
+
+        model.addAttribute("listP", producers);
+        model.addAttribute("validate", validationMessage);
+        model.addAttribute("activeModule", "producer");
+        model.addAttribute("activePage", "list");
+        return "producers_list";
+    }
+
+
+    @PostMapping("/delete")
+    public String deleteProducerButton(
+            @RequestParam("id_producer") int id,
+            RedirectAttributes redirectAttributes) {
+        String resultMessage = DataProducer.deleteProducer(id);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/information")
+    public String information(
+            @RequestParam("id_producer") int id,
+             Model model, RedirectAttributes redirectAttributes) {
+        Producer producer = DataProducer.getProducer(id);
+        if (producer == null) {
+            redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
+            return "redirect:/producers/list";
+        }
+        model.addAttribute("producer", producer);
+        model.addAttribute("activeModule", "producer");
+        return "information_producer";
+    }
+
+}
+
+----- FIN DE cr\ac\una\agrow\controller\producer\ProducerController.java -----
+
+package cr.ac.una.agrow.controller.supply;
+
+import cr.ac.una.agrow.data.supply.DataSupply;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/supplies")
+public class SupplyController {
+
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    @GetMapping("/list")
+    public String listadoSupplies(
+            @RequestParam(value = "searchTerm", required = false) String searchTerm,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "supplierId", required = false) Integer supplierId,
+            Model model) {
+
+        List<Supply> listaSupplies;
+        if ((searchTerm != null && !searchTerm.trim().isEmpty()) || 
+            (category != null && !category.trim().isEmpty()) || 
+            supplierId != null) {
+            listaSupplies = DataSupply.getFilteredSupplies(searchTerm, category, supplierId);
+        } else {
+            listaSupplies = DataSupply.getSupplies();
+        }
+
+        model.addAttribute("titulo", "Listado de Suministros");
+        model.addAttribute("cantidad", listaSupplies != null ? listaSupplies.size() : 0); 
+        model.addAttribute("supplies", listaSupplies);
+        model.addAttribute("searchTerm", searchTerm);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedSupplierId", supplierId);
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("activePage", "list");
+        return "list_supply";
+    }
+
+    @GetMapping("/form")
+    public String mostrarFormularioSupply(Model model) {
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("activePage", "add");
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("supply", new Supply()); 
+        model.addAttribute("isEdit", false); //
+        return "form_supply"; 
+    }
+
+    @PostMapping("/save")
+    public String guardarSupply(
+            @RequestParam("name") String name,
+            @RequestParam("category") String category,
+            @RequestParam("stock") double stock,
+            @RequestParam("stockMinimo") double stockMinimo,
+            @RequestParam("unitType") String unitType,
+            @RequestParam("pricePerUnit") double pricePerUnit,
+            @RequestParam(value = "expirationDate", required = true) String expirationDateStr,
+            @RequestParam("supplierId") int supplierId,
+            RedirectAttributes redirectAttributes) {
+
+        String error = validateSupplyFields(name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDateStr, supplierId);
+        if (error != null) {
+            redirectAttributes.addFlashAttribute("error", error);
+            // Reenviar datos ingresados al formulario en caso de error
+            redirectAttributes.addFlashAttribute("supply", new Supply(name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId)); // Enviar sin fecha parseada
+            redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+            return "redirect:/supplies/form";
+        }
+
+        LocalDate expDate;
+        try {
+             expDate = LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+             redirectAttributes.addFlashAttribute("error", "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.");
+             // Reenviar datos ingresados al formulario en caso de error
+             redirectAttributes.addFlashAttribute("supply", new Supply(name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+             redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+             return "redirect:/supplies/form";
+        }
+
+        Supply supply = new Supply(name.trim(), category.trim(), stock, stockMinimo, unitType.trim(), pricePerUnit, expDate, supplierId);
+        Supply savedSupply = null;
+        try {
+
+            savedSupply = DataSupply.saveSupply(supply); 
+             if (savedSupply != null || true) {
+                 redirectAttributes.addFlashAttribute("mensaje", "Suministro guardado exitosamente.");
+                 return "redirect:/supplies/list";
+             } else {
+                 // Este caso es si saveSupply devuelve null indicando error
+                 redirectAttributes.addFlashAttribute("error", "Error desconocido al guardar el suministro.");
+                 redirectAttributes.addFlashAttribute("supply", supply);
+                 redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+                 return "redirect:/supplies/form";
+             }
+        } catch (Exception e) {
+             redirectAttributes.addFlashAttribute("error", "Error al guardar el suministro: " + e.getMessage());
+             redirectAttributes.addFlashAttribute("supply", supply);
+             redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+             return "redirect:/supplies/form"; // Volver al formulario en caso de error
+        }
+    }
+
+    @GetMapping("/edit")
+    public String editarSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes) {
+        Supply supply = DataSupply.getSupply(idSupply);
+        if (supply == null) {
+            redirectAttributes.addFlashAttribute("error", "El suministro seleccionado (ID: " + idSupply + ") no existe.");
+            return "redirect:/supplies/list";
+        }
+        model.addAttribute("supply", supply);
+        model.addAttribute("isEdit", true); // Indicar que es formulario de edición
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("expirationDateForInput", supply.getExpirationDateForInput()); // Formato YYYY-MM-DD
+        return "edit_supply"; 
+    }
+
+    @PostMapping("/update")
+    public String actualizarSupply(
+            @RequestParam("idSupply") int idSupply,
+            @RequestParam("name") String name,
+            @RequestParam("category") String category,
+            @RequestParam("stock") double stock,
+            @RequestParam("stockMinimo") double stockMinimo,
+            @RequestParam("unitType") String unitType,
+            @RequestParam("pricePerUnit") double pricePerUnit,
+            @RequestParam(value = "expirationDate", required = true) String expirationDateStr,
+            @RequestParam("supplierId") int supplierId,
+            RedirectAttributes redirectAttributes) {
+
+        String error = validateSupplyFields(name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDateStr, supplierId);
+        if (error != null) {
+            redirectAttributes.addFlashAttribute("error", error);
+            // Reenviar datos para repoblar el form
+            redirectAttributes.addFlashAttribute("supply", new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+            redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+            return "redirect:/supplies/edit?idSupply=" + idSupply;
+        }
+
+         LocalDate expDate;
+         try {
+             expDate = LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+         } catch (DateTimeParseException e) {
+              redirectAttributes.addFlashAttribute("error", "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.");
+              // Reenviar datos para repoblar el form
+              redirectAttributes.addFlashAttribute("supply", new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+              redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+              return "redirect:/supplies/edit?idSupply=" + idSupply;
+         }
+
+        Supply supply = new Supply(idSupply, name.trim(), category.trim(), stock, stockMinimo, unitType.trim(), pricePerUnit, expDate, supplierId);
+        boolean actualizado = false;
+         try {
+             actualizado = DataSupply.updateSupply(supply);
+             if (!actualizado) {
+                 redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro. Es posible que no se encontrara el ID.");
+                 redirectAttributes.addFlashAttribute("supply", supply);
+                 redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+                 return "redirect:/supplies/edit?idSupply=" + idSupply;
+             } else {
+                 redirectAttributes.addFlashAttribute("mensaje", "Suministro actualizado exitosamente.");
+                 return "redirect:/supplies/list";
+             }
+         } catch (Exception e) {
+              redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro: " + e.getMessage());
+              redirectAttributes.addFlashAttribute("supply", supply);
+              redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+              return "redirect:/supplies/edit?idSupply=" + idSupply;
+         }
+    }
+
+    @PostMapping("/delete")
+    public String eliminarSupply(@RequestParam("idSupply") int idSupply, RedirectAttributes redirectAttributes) {
+        boolean eliminado = false;
+        try {
+            eliminado = DataSupply.deleteSupply(idSupply);
+            if (!eliminado) {
+                redirectAttributes.addFlashAttribute("error", "Error al eliminar el suministro (ID: " + idSupply + "). Puede estar en uso o no existir.");
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje", "Suministro eliminado exitosamente.");
+            }
+        } catch (Exception e) {
+             redirectAttributes.addFlashAttribute("error", "Error al eliminar el suministro (ID: " + idSupply + "): " + e.getMessage());
+        }
+        return "redirect:/supplies/list";
+    }
+
+    @GetMapping("/view")
+    public String verSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes) {
+        Supply supply = DataSupply.getSupply(idSupply);
+        if (supply == null) {
+            redirectAttributes.addFlashAttribute("error", "El suministro solicitado (ID: " + idSupply + ") no se encuentra.");
+            return "redirect:/supplies/list";
+        }
+        model.addAttribute("supply", supply);
+        model.addAttribute("activeModule", "supply");
+        return "view_supply";
+    }
+
+
+    private String validateSupplyFields(String name, String category, double stock, double stockMinimo,
+                                        String unitType, double pricePerUnit, String expirationDateStr, int supplierId) {
+        if (name == null || name.trim().isEmpty()) return "El nombre es obligatorio.";
+        if (category == null || category.trim().isEmpty()) return "La categoría es obligatoria.";
+        if (unitType == null || unitType.trim().isEmpty()) return "El tipo de unidad es obligatorio.";
+        if (supplierId <= 0) return "El ID del proveedor no es válido."; // Validación básica de ID
+        if (stock < 0) return "El stock debe ser un número no negativo.";
+        if (stockMinimo < 0) return "El stock mínimo debe ser un número no negativo.";
+        if (pricePerUnit <= 0) return "El precio por unidad debe ser mayor que cero.";
+        if (expirationDateStr == null || expirationDateStr.trim().isEmpty()) return "La fecha de vencimiento es obligatoria.";
+
+        try {
+            LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+            return "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.";
+        }
+
+        return null; 
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\controller\supply\SupplyController.java -----
+
+
+package cr.ac.una.agrow.data.producer;
+
+import cr.ac.una.agrow.domain.producer.Producer;
+// Importar el servicio que contiene la lógica
+import cr.ac.una.agrow.service.producer.ProducerService;
+import java.util.LinkedList;
+
+/**
+ * Capa de Datos (Facade) para Productores.
+ * Delega las llamadas al ProducerService que contiene la lógica de acceso a BD.
+ */
+public class DataProducer {
+
+    // Instancia del servicio real
+    private static final ProducerService producerService = new ProducerService();
+
+    /**
+     * Obtiene una lista de todos los productores.
+     * @return LinkedList de Producer.
+     */
+    public static LinkedList<Producer> getAllProducers() {
+        return producerService.getAllProducers();
+    }
+
+     /**
+     * Obtiene una lista de productores filtrados por ciudad.
+     * @param city La ciudad por la cual filtrar.
+     * @return LinkedList de Producer.
+     */
+    public static LinkedList<Producer> getProducersByCity(String city) {
+        return producerService.getProducersByCity(city);
+    }
+
+
+    /**
+     * Obtiene un productor específico por su ID.
+     * @param id_producer ID del productor a buscar.
+     * @return Objeto Producer o null si no se encuentra.
+     */
+    public static Producer getProducer(int id_producer) {
+        return producerService.getProducerById(id_producer);
+    }
+
+    /**
+     * Guarda un nuevo productor. El ID debe ser generado por el servicio.
+     * @param p Productor a guardar (ID usualmente 0 o ignorado).
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String saveProducer(Producer p) {
+        return producerService.saveProducer(p);
+    }
+
+    /**
+     * Actualiza un productor existente.
+     * @param p Productor con los datos actualizados (incluyendo el ID).
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String updateProducer(Producer p) {
+        return producerService.updateProducer(p);
+    }
+
+    /**
+     * Elimina un productor por su ID.
+     * @param id_producer ID del productor a eliminar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String deleteProducer(int id_producer) {
+        return producerService.deleteProducer(id_producer);
+    }
+
+    // NOTA: Los métodos que antes estaban en ProducerData y contenían la lógica SQL
+    // ahora están movidos a ProducerService. Esta clase es solo un punto de entrada.
+}
+
+----- FIN DE cr\ac\una\agrow\data\producer\DataProducer.java -----
+
+
+package cr.ac.una.agrow.data.supply;
+
+import cr.ac.una.agrow.service.supply.SupplyService;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.util.List;
+
+/**
+ * Capa de Datos (Facade) para Suministros.
+ * Delega las llamadas al SupplyService que contiene la lógica de acceso a BD.
+ */
+public class DataSupply {
+
+    // Instancia del servicio real
+    private static final SupplyService supplyService = new SupplyService();
+
+    /**
+     * Obtiene todos los suministros.
+     * @return Lista de Supply.
+     */
+    public static List<Supply> getSupplies() {
+        return supplyService.getAllSupplies();
+    }
+
+    /**
+     * Obtiene un suministro por su ID.
+     * @param idSupply ID del suministro.
+     * @return Objeto Supply o null si no se encuentra.
+     */
+    public static Supply getSupply(int idSupply) {
+        return supplyService.getSupplyById(idSupply);
+    }
+
+    /**
+     * Guarda un nuevo suministro.
+     * @param supply Suministro a guardar.
+     * @return El suministro guardado (puede incluir ID generado) o null/excepción en error.
+     *         (Ajustar según la firma real de insertSupply en SupplyService)
+     */
+    public static Supply saveSupply(Supply supply) {
+         // La implementación original era void, se cambia para seguir el patrón
+         // de devolver el objeto guardado o indicar éxito/error de forma más clara.
+         // Si SupplyService.insertSupply devuelve el objeto, está bien.
+         // Si era void, hay que decidir si se cambia o se maneja con excepciones.
+         // Asumimos que insertSupply devuelve el objeto con ID o null/excepción.
+        return supplyService.insertSupply(supply);
+    }
+
+    /**
+     * Actualiza un suministro existente.
+     * @param supply Suministro con datos actualizados.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     */
+    public static boolean updateSupply(Supply supply) {
+        return supplyService.updateSupply(supply);
+    }
+
+    /**
+     * Elimina un suministro por su ID.
+     * @param idSupply ID del suministro a eliminar.
+     * @return true si la eliminación fue exitosa, false en caso contrario.
+     */
+    public static boolean deleteSupply(int idSupply) {
+        return supplyService.deleteSupply(idSupply);
+    }
+
+    /**
+     * Obtiene suministros filtrados por término, categoría o ID de proveedor.
+     * @param searchTerm Término de búsqueda (nombre).
+     * @param category Categoría.
+     * @param supplierId ID del proveedor.
+     * @return Lista de Supply filtrados.
+     */
+    public static List<Supply> getFilteredSupplies(String searchTerm, String category, Integer supplierId) {
+        return supplyService.getFilteredSupplies(searchTerm, category, supplierId);
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\data\supply\DataSupply.java -----
+
+package cr.ac.una.agrow.domain.producer;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class Producer {
+
+    private int id_producer;
+    private String producerName;
+    private String contactNumber;
+    private LocalDate registrationDate;
+    private String producerType;
+    private String email;
+    private String city;
+    private String address;
+    private boolean isActive;
+
+    public Producer() {
+    }
+
+    public Producer(int id_producer, String producerName, String contactNumber, LocalDate registrationDate, String producerType, String email, String city, String address, boolean isActive) {
+        this.id_producer = id_producer;
+        this.producerName = producerName;
+        this.contactNumber = contactNumber;
+        this.registrationDate = registrationDate;
+        this.producerType = producerType;
+        this.email = email;
+        this.city = city;
+        this.address = address;
+        this.isActive = isActive;
+    }
+
+    // --- Getters y Setters ---
+
+    public int getId_producer() {
+        return id_producer;
+    }
+
+    public void setId_producer(int id_producer) {
+        this.id_producer = id_producer;
+    }
+
+    public String getProducerName() {
+        return producerName;
+    }
+
+    public void setProducerName(String producerName) {
+        this.producerName = producerName;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
+    }
+
+     public String getFormattedRegistrationDate() {
+          if (registrationDate == null) return "-";
+          return registrationDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+     }
+
+     public String getRegistrationDateForInput() {
+        if (registrationDate == null) return "";
+        return registrationDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+     }
+
+    public void setRegistrationDate(LocalDate registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public String getProducerType() {
+        return producerType;
+    }
+
+    public void setProducerType(String producerType) {
+        this.producerType = producerType;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public boolean isIsActive() { return isActive; }
+    public void setIsActive(boolean active) { this.isActive = active; }
+
+
+    @Override
+    public String toString() {
+        return "Producer{" +
+               "id_producer=" + id_producer +
+               ", producerName='" + producerName + '\'' +
+               ", contactNumber='" + contactNumber + '\'' +
+               ", registrationDate=" + (registrationDate != null ? getFormattedRegistrationDate() : "null") +
+               ", producerType='" + producerType + '\'' +
+               ", email='" + email + '\'' +
+               ", city='" + city + '\'' +
+               ", address='" + address + '\'' +
+               ", isActive=" + isActive +
+               '}';
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\domain\producer\Producer.java -----
+
+
+package cr.ac.una.agrow.domain.supply;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class Supply {
+    private int idSupply;
+    private String name;
+    private String category;
+    private double stock;
+    private double stockMinimo;
+    private String unitType;
+    private double pricePerUnit;
+    private LocalDate expirationDate;
+    private int supplierId;
+    private String estado; // Calculado por SP
+
+    // Formateadores estáticos
+    private static final DateTimeFormatter FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter FORMAT_YYYY_MM_DD = DateTimeFormatter.ISO_LOCAL_DATE; // YYYY-MM-DD
+
+
+    public Supply() { }
+
+    // Constructor para inserción (sin ID, sin estado)
+    public Supply(String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId) {
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+    }
+
+    // Constructor para actualización o uso interno (con ID, sin estado)
+    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId) {
+        this.idSupply = idSupply;
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+    }
+
+    // Constructor completo usado al mapear desde ResultSet (con ID y estado del SP)
+    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId, String estado) {
+        this.idSupply = idSupply;
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+        this.estado = estado;
+    }
+
+    // --- Getters y Setters ---
+
+    public int getIdSupply() { return idSupply; }
+    public void setIdSupply(int idSupply) { this.idSupply = idSupply; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public double getStock() { return stock; }
+    public void setStock(double stock) {
+        this.stock = Math.max(0, stock); // Asegurar no negativo
+    }
+
+    public double getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(double stockMinimo) {
+        this.stockMinimo = Math.max(0, stockMinimo); // Asegurar no negativo
+    }
+
+    public String getUnitType() { return unitType; }
+    public void setUnitType(String unitType) { this.unitType = unitType; }
+
+    public double getPricePerUnit() { return pricePerUnit; }
+    public void setPricePerUnit(double pricePerUnit) {
+        this.pricePerUnit = Math.max(0.01, pricePerUnit); // Evitar precios <= 0
+    }
+
+    public LocalDate getExpirationDate() { return expirationDate; }
+    public void setExpirationDate(LocalDate expirationDate) { this.expirationDate = expirationDate; }
+
+    // Devuelve fecha formateada para mostrar (dd/MM/yyyy)
+    public String getFormattedExpirationDate() {
+        if (expirationDate == null) return "-";
+        return expirationDate.format(FORMAT_DD_MM_YYYY);
+    }
+
+    // Devuelve fecha formateada para input date (yyyy-MM-dd)
+    public String getExpirationDateForInput() {
+        if (expirationDate == null) return "";
+        return expirationDate.format(FORMAT_YYYY_MM_DD);
+    }
+
+
+    public int getSupplierId() { return supplierId; }
+    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+
+    public String getEstado() {
+         // Si el estado no vino de la BD, calcula uno básico.
+         if (this.estado == null || this.estado.trim().isEmpty()) {
+              if (this.stock <= 0) return "Agotado";
+              if (this.stock <= this.stockMinimo) return "Bajo";
+              return "Óptimo";
+         }
+        return estado;
+    }
+    // Setter para estado (aunque usualmente viene de BD)
+    public void setEstado(String estado) { this.estado = estado; }
+
+
+    @Override
+    public String toString() {
+        return "Supply{" +
+                "idSupply=" + idSupply +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", stock=" + stock +
+                ", stockMinimo=" + stockMinimo +
+                ", unitType='" + unitType + '\'' +
+                ", pricePerUnit=" + pricePerUnit +
+                ", expirationDate=" + (expirationDate != null ? getFormattedExpirationDate() : "null") +
+                ", supplierId=" + supplierId +
+                ", estado='" + getEstado() + '\'' +
+                '}';
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\domain\supply\Supply.java -----
+
+package cr.ac.una.agrow.service.producer;
+
+import cr.ac.una.agrow.config.DBConnection;
+import cr.ac.una.agrow.domain.producer.Producer;
+
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Capa de Servicio para Productores.
+ * Contiene la lógica de negocio y acceso a datos para los productores.
+ */
+public class ProducerService {
+
+    private static final Logger LOG = Logger.getLogger(ProducerService.class.getName());
+
+    /**
+     * Obtiene una lista de todos los productores.
+     * @return LinkedList de Producer.
+     */
+    public LinkedList<Producer> getAllProducers() {
+        return executeListProcedure("{call spListProducer()}", null);
+    }
+
+    /**
+     * Obtiene una lista de productores filtrados por ciudad.
+     * @param city La ciudad por la cual filtrar.
+     * @return LinkedList de Producer.
+     */
+    public LinkedList<Producer> getProducersByCity(String city) {
+        return executeListProcedure("{call spListCity(?)}", city);
+    }
+
+    /**
+     * Ejecuta un Stored Procedure para obtener una lista de productores.
+     * @param sqlCall El comando SQL para llamar al SP (puede incluir '?').
+     * @param parameter El parámetro para el SP (puede ser null si no aplica).
+     * @return LinkedList de Producer.
+     */
+    private LinkedList<Producer> executeListProcedure(String sqlCall, String parameter) {
+        LinkedList<Producer> producers = new LinkedList<>();
+        Connection cn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            cn = DBConnection.getConnection();
+            if (cn == null) {
+                LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en executeListProcedure.");
+                return producers; // Retorna lista vacía
+            }
+
+            stmt = cn.prepareCall(sqlCall);
+
+            if (parameter != null) {
+                stmt.setString(1, parameter);
+            }
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                producers.add(mapResultSetToProducer(rs));
+            }
+             LOG.log(Level.INFO, "Ejecutado SP: {0} con parámetro: {1}. Productores encontrados: {2}", new Object[]{sqlCall, parameter, producers.size()});
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL ejecutando SP: " + sqlCall + " con parámetro: " + parameter, e);
+        }
+        return producers;
+    }
+
+
+    /**
+     * Obtiene un productor específico por su ID.
+     * @param id_producer ID del productor a buscar.
+     * @return Objeto Producer o null si no se encuentra.
+     */
+    public Producer getProducerById(int id_producer) {
+        Producer p = null;
+        Connection cn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        String sqlCall = "{call spGetProducer(?)}";
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getProducerById.");
+                 return null;
+             }
+            stmt = cn.prepareCall(sqlCall);
+            stmt.setInt(1, id_producer);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                p = mapResultSetToProducer(rs);
+                LOG.log(Level.INFO, "Productor encontrado con ID: {0}", id_producer);
+            } else {
+                 LOG.log(Level.WARNING, "No se encontró productor con ID: {0}", id_producer);
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getProducerById con ID: " + id_producer, e);
+        }
+        return p;
+    }
+
+    /**
+     * Guarda un nuevo productor en la base de datos.
+     * Genera un ID único antes de guardar.
+     * @param p Productor a guardar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String saveProducer(Producer p) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spAddProducer(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        boolean success = false;
+
+        // Asigna un ID único generado localmente ANTES de intentar guardar
+        p.setId_producer(generarCodigoUnico());
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en saveProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+
+            stmt.setInt(1, p.getId_producer()); // Usar el ID generado
+            stmt.setString(2, p.getProducerName());
+            stmt.setString(3, p.getContactNumber());
+            if (p.getRegistrationDate() != null) {
+                stmt.setDate(4, Date.valueOf(p.getRegistrationDate()));
+            } else {
+                stmt.setNull(4, Types.DATE);
+            }
+            stmt.setString(5, p.getProducerType());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getCity());
+            stmt.setString(8, p.getAddress());
+            stmt.setBoolean(9, p.isActive());
+
+            // executeUpdate devuelve el número de filas afectadas, útil para verificar éxito
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                LOG.log(Level.INFO, "Productor guardado exitosamente con ID: {0}", p.getId_producer());
+            } else {
+                 LOG.log(Level.WARNING, "SP spAddProducer ejecutado pero no afectó filas para ID: {0}", p.getId_producer());
+            }
+
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en saveProducer para ID: " + p.getId_producer(), e);
+             return "2,Error de base de datos al guardar: " + e.getMessage();
+        }
+
+        return success ? "1,El productor se ha guardado exitosamente." : "2,Error al guardar el productor. No se afectaron filas.";
+    }
+
+    /**
+     * Actualiza un productor existente en la base de datos.
+     * @param p Productor con los datos actualizados.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String updateProducer(Producer p) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spUpdateProducer(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        boolean success = false;
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                  LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en updateProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+
+            stmt.setInt(1, p.getId_producer());
+            stmt.setString(2, p.getProducerName());
+            stmt.setString(3, p.getContactNumber());
+            if (p.getRegistrationDate() != null) {
+                stmt.setDate(4, Date.valueOf(p.getRegistrationDate()));
+            } else {
+                stmt.setNull(4, Types.DATE);
+            }
+            stmt.setString(5, p.getProducerType());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getCity());
+            stmt.setString(8, p.getAddress());
+            stmt.setBoolean(9, p.isActive());
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                 LOG.log(Level.INFO, "Productor actualizado exitosamente con ID: {0}", p.getId_producer());
+            } else {
+                 LOG.log(Level.WARNING, "SP spUpdateProducer ejecutado pero no afectó filas para ID: {0}. ¿Existe el productor?", p.getId_producer());
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en updateProducer para ID: " + p.getId_producer(), e);
+            return "2,Error de base de datos al actualizar: " + e.getMessage();
+        }
+         return success ? "1,El productor se ha actualizado exitosamente." : "2,Error al actualizar el productor. Verifique si el ID existe.";
+    }
+
+    /**
+     * Elimina un productor de la base de datos por su ID.
+     * @param id_producer ID del productor a eliminar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String deleteProducer(int id_producer) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spDeleteProducer(?)}";
+        boolean success = false;
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en deleteProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+            stmt.setInt(1, id_producer);
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+             if (success) {
+                 LOG.log(Level.INFO, "Productor eliminado exitosamente con ID: {0}", id_producer);
+            } else {
+                 LOG.log(Level.WARNING, "SP spDeleteProducer ejecutado pero no afectó filas para ID: {0}. ¿Existe el productor?", id_producer);
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en deleteProducer para ID: " + id_producer, e);
+             // Revisar código de error para FK constraint violation
+             if (e.getSQLState().startsWith("23")) { // Códigos de error de integridad
+                 return "2,Error al eliminar: El productor tiene registros asociados y no puede ser eliminado.";
+             }
+            return "2,Error de base de datos al eliminar: " + e.getMessage();
+        }
+        return success ? "1,El productor se ha eliminado exitosamente." : "2,Error al eliminar el productor. Verifique si el ID existe o si tiene registros asociados.";
+    }
+
+    /**
+     * Mapea una fila de un ResultSet a un objeto Producer.
+     * @param rs ResultSet posicionado en la fila a mapear.
+     * @return Objeto Producer.
+     * @throws SQLException Si ocurre un error al leer el ResultSet.
+     */
+    private Producer mapResultSetToProducer(ResultSet rs) throws SQLException {
+        Date registrationDateSql = rs.getDate("registrationDate");
+        LocalDate registrationDate = (registrationDateSql != null) ? registrationDateSql.toLocalDate() : null;
+
+        return new Producer(
+            rs.getInt("id_producer"),
+            rs.getString("producerName"),
+            rs.getString("contactNumber"),
+            registrationDate,
+            rs.getString("producerType"),
+            rs.getString("email"),
+            rs.getString("city"),
+            rs.getString("address"),
+            rs.getBoolean("isActive")
+        );
+    }
+
+
+    /**
+     * Genera un número aleatorio simple de 5 dígitos.
+     * @return int número aleatorio entre 10000 y 99999.
+     */
+    private static int generarCodigo() {
+        return ThreadLocalRandom.current().nextInt(10000, 100000);
+    }
+
+     /**
+      * Intenta generar un código único verificando si ya existe en la BD.
+      * Realiza un número limitado de intentos.
+      * @return int código generado (posiblemente no único si fallan los intentos).
+      */
+     private static int generarCodigoUnico() {
+         int attempts = 0;
+         final int MAX_ATTEMPTS = 10;
+         ProducerService tempService = new ProducerService(); // Necesita instancia para llamar a getProducerById
+
+         while (attempts < MAX_ATTEMPTS) {
+             int codigo = generarCodigo();
+             // Verifica si el código generado ya existe en la BD
+             // Considerar secuencias de BD o UUIDs para una solución robusta.
+             if (tempService.getProducerById(codigo) == null) {
+                 LOG.log(Level.INFO, "Código único generado: {0}", codigo);
+                 return codigo; // Código disponible encontrado
+             }
+             attempts++;
+             LOG.log(Level.FINE, "Intento {0}: Código {1} ya existe.", new Object[]{attempts, codigo});
+         }
+          // Si falla después de varios intentos, informa y devuelve uno aleatorio igualmente.
+          int fallbackCodigo = generarCodigo();
+          LOG.log(Level.WARNING, "No se pudo generar un ID de productor único después de {0} intentos. Usando código aleatorio: {1}", new Object[]{MAX_ATTEMPTS, fallbackCodigo});
+          return fallbackCodigo;
+     }
+
+
+    /**
+     * Helper simple para dividir el mensaje de resultado ("tipo,mensaje").
+     * Este método es público y estático para que el Controller pueda usarlo.
+     * @param datos String en formato "tipo,mensaje".
+     * @return String[] con [tipo, mensaje] o un array de error si el formato es inválido.
+     */
+    public static String[] arraySplit(String datos) {
+        if (datos == null) {
+             LOG.log(Level.WARNING, "arraySplit recibió datos nulos.");
+            return new String[]{"2", "Error interno: Mensaje nulo."}; // Manejo de nulos
+        }
+        // Divide solo por la primera coma para separar tipo y mensaje
+        String[] parts = datos.split(",", 2);
+        if (parts.length == 2) {
+            return parts;
+        } else {
+             LOG.log(Level.WARNING, "arraySplit recibió formato inesperado: {0}", datos);
+            return new String[]{"2", "Error interno: Formato de mensaje inesperado (" + datos + ")."};
+        }
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\service\producer\ProducerService.java -----
+
+
+package cr.ac.una.agrow.service.supply;
+
+import cr.ac.una.agrow.config.DBConnection;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Capa de Servicio para Suministros.
+ * Contiene la lógica de negocio y acceso a datos para los suministros.
+ */
+public class SupplyService {
+
+    private static final Logger LOG = Logger.getLogger(SupplyService.class.getName());
+
+    /**
+     * Mapea una fila del ResultSet a un objeto Supply.
+     * @param rs ResultSet posicionado en la fila a mapear.
+     * @return Objeto Supply mapeado.
+     * @throws SQLException Si ocurre un error al leer el ResultSet.
+     */
+    private Supply mapResultSetToSupply(ResultSet rs) throws SQLException {
+        int idSupply = rs.getInt("idSupply");
+        String name = rs.getString("name");
+        String category = rs.getString("category");
+        double stock = rs.getDouble("stock");
+        double stockMinimo = rs.getDouble("stockMinimo");
+        String unitType = rs.getString("unitType");
+        double pricePerUnit = rs.getDouble("pricePerUnit");
+        Date expDateSQL = rs.getDate("expirationDate");
+        LocalDate expirationDate = (expDateSQL != null) ? expDateSQL.toLocalDate() : null;
+        int supplierId = rs.getInt("supplierId");
+        String estado = rs.getString("estado"); // Estado calculado por el SP
+
+        return new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDate, supplierId, estado);
+    }
+
+    /**
+     * Inserta un suministro usando un Stored Procedure.
+     * @param supply Objeto Supply a insertar (sin ID o ID 0).
+     * @return El objeto Supply insertado con su ID asignado, o null si falla la inserción.
+     */
+    public Supply insertSupply(Supply supply) {
+        String storedProc = "{CALL sp_InsertSupply(?, ?, ?, ?, ?, ?, ?, ?)}"; // Ajustar si el SP es diferente
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en insertSupply.");
+                 return null;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            stmt.setString(1, supply.getName());
+            stmt.setString(2, supply.getCategory());
+            stmt.setDouble(3, supply.getStock());
+            stmt.setDouble(4, supply.getStockMinimo());
+            stmt.setString(5, supply.getUnitType());
+            stmt.setDouble(6, supply.getPricePerUnit());
+            stmt.setDate(7, supply.getExpirationDate() != null ? Date.valueOf(supply.getExpirationDate()) : null);
+            stmt.setInt(8, supply.getSupplierId());
+
+            // Ejecutar y verificar si devuelve un ResultSet (con el ID)
+            boolean hasResultSet = stmt.execute();
+            if (hasResultSet) {
+                rs = stmt.getResultSet();
+                if (rs != null && rs.next()) {
+                    int generatedId = rs.getInt(1); 
+                    supply.setIdSupply(generatedId);
+                    LOG.log(Level.INFO, "Suministro insertado exitosamente con ID: {0}", generatedId);
+                    return supply; // Devuelve el objeto con el ID
+                } else {
+                     LOG.log(Level.WARNING, "SP sp_InsertSupply ejecutado pero no devolvió el ID generado.");
+                     return null; // Falló la obtención del ID
+                }
+            } else {
+                 // Si el SP no devuelve ResultSet pero se ejecutó (quizás devuelve filas afectadas?)
+                 int updateCount = stmt.getUpdateCount();
+                 if (updateCount > 0) {
+                      LOG.log(Level.WARNING, "SP sp_InsertSupply ejecutado (filas afectadas: {0}) pero no se configuró para devolver ID. No se puede confirmar ID.", updateCount);
+
+                      return null;
+                 } else {
+                      LOG.log(Level.SEVERE, "SP sp_InsertSupply ejecutado pero no afectó filas ni devolvió ID.");
+                      return null; // Falló la inserción
+                 }
+            }
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en insertSupply", e);
+            return null; // Fallo por excepción SQL
+        } 
+    }
+
+    /**
+     * Obtiene un suministro por su ID usando un Stored Procedure.
+     * @param idSupply ID del suministro a buscar.
+     * @return Objeto Supply si se encuentra, null en caso contrario.
+     */
+    public Supply getSupplyById(int idSupply) {
+        String storedProc = "{CALL sp_GetSupplyById(?)}";
+         Connection conn = null;
+         CallableStatement stmt = null;
+         ResultSet rs = null;
+         Supply supply = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getSupplyById.");
+                 return null;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            stmt.setInt(1, idSupply);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                supply = mapResultSetToSupply(rs);
+                 LOG.log(Level.INFO, "Suministro encontrado con ID: {0}", idSupply);
+            } else {
+                 LOG.log(Level.WARNING, "No se encontró suministro con ID: {0}", idSupply);
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getSupplyById con ID: " + idSupply, e);
+        }
+        return supply;
+    }
+
+    /**
+     * Actualiza un suministro existente usando un Stored Procedure.
+     * @param supply Objeto Supply con los datos actualizados (incluyendo ID).
+     * @return true si la actualización afectó al menos una fila, false en caso contrario.
+     */
+    public boolean updateSupply(Supply supply) {
+        String storedProc = "{CALL sp_UpdateSupply(?, ?, ?, ?, ?, ?, ?, ?, ?)}"; 
+         Connection conn = null;
+         CallableStatement stmt = null;
+         boolean success = false;
+        try {
+            conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en updateSupply.");
+                 return false;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            stmt.setInt(1, supply.getIdSupply());
+            stmt.setString(2, supply.getName());
+            stmt.setString(3, supply.getCategory());
+            stmt.setDouble(4, supply.getStock());
+            stmt.setDouble(5, supply.getStockMinimo());
+            stmt.setString(6, supply.getUnitType());
+            stmt.setDouble(7, supply.getPricePerUnit());
+            stmt.setDate(8, supply.getExpirationDate() != null ? Date.valueOf(supply.getExpirationDate()) : null);
+            stmt.setInt(9, supply.getSupplierId());
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                 LOG.log(Level.INFO, "Suministro actualizado exitosamente con ID: {0}", supply.getIdSupply());
+            } else {
+                 LOG.log(Level.WARNING, "SP sp_UpdateSupply ejecutado pero no afectó filas para ID: {0}. ¿Existe el suministro?", supply.getIdSupply());
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en updateSupply para ID: " + supply.getIdSupply(), e);
+            return false; // Fallo por excepción
+        }
+        return success;
+    }
+
+    /**
+     * Elimina un suministro usando un Stored Procedure.
+     * @param idSupply ID del suministro a eliminar.
+     * @return true si la eliminación afectó al menos una fila, false en caso contrario.
+     */
+    public boolean deleteSupply(int idSupply) {
+        String storedProc = "{CALL sp_DeleteSupply(?)}";
+        Connection conn = null;
+        CallableStatement stmt = null;
+        boolean success = false;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en deleteSupply.");
+                 return false;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            stmt.setInt(1, idSupply);
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+             if (success) {
+                 LOG.log(Level.INFO, "Suministro eliminado exitosamente con ID: {0}", idSupply);
+            } else {
+                 LOG.log(Level.WARNING, "SP sp_DeleteSupply ejecutado pero no afectó filas para ID: {0}. ¿Existe el suministro?", idSupply);
+            }
+
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en deleteSupply para ID: " + idSupply, e);
+            return false; // Fallo por excepción
+        }
+        return success;
+    }
+
+    /**
+     * Obtiene todos los suministros usando un Stored Procedure.
+     * @return Lista de objetos Supply. Puede estar vacía si no hay suministros o si ocurre un error.
+     */
+    public List<Supply> getAllSupplies() {
+        String storedProc = "{CALL sp_GetAllSupplies()}";
+        List<Supply> supplies = new ArrayList<>();
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getAllSupplies.");
+                 return supplies; // Devuelve lista vacía
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            rs = stmt.executeQuery();
+            while(rs.next()){
+                supplies.add(mapResultSetToSupply(rs));
+            }
+             LOG.log(Level.INFO, "Obtenidos {0} suministros.", supplies.size());
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getAllSupplies", e);
+            // Devuelve la lista parcialmente llena o vacía en caso de error
+        }
+         return supplies;
+    }
+
+    /**
+     * Obtiene suministros filtrados usando un Stored Procedure.
+     * Maneja parámetros nulos/vacíos adecuadamente pasándolos como NULL al SP.
+     * @param searchTerm Término de búsqueda (puede ser null o vacío).
+     * @param category Categoría (puede ser null o vacía).
+     * @param supplierId ID del proveedor (puede ser null).
+     * @return Lista de objetos Supply filtrados.
+     */
+    public List<Supply> getFilteredSupplies(String searchTerm, String category, Integer supplierId) {
+        String storedProc = "{CALL sp_GetFilteredSupplies(?, ?, ?)}"; // Ajustar si el SP es diferente
+        List<Supply> supplies = new ArrayList<>();
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                  LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getFilteredSupplies.");
+                 return supplies; // Devuelve lista vacía
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            // Pasar NULL si el parámetro es nulo o vacío
+            if (searchTerm != null && !searchTerm.trim().isEmpty()){
+                // Añadir comodines si el SP espera un LIKE
+                stmt.setString(1, "%" + searchTerm.trim() + "%");
+            } else {
+                stmt.setNull(1, Types.VARCHAR);
+            }
+
+            if (category != null && !category.trim().isEmpty()){
+                stmt.setString(2, category.trim());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
+
+            if (supplierId != null && supplierId > 0){
+                stmt.setInt(3, supplierId);
+            } else {
+                stmt.setNull(3, Types.INTEGER);
+            }
+
+            rs = stmt.executeQuery();
+            while(rs.next()){
+                supplies.add(mapResultSetToSupply(rs));
+            }
+             LOG.log(Level.INFO, "Obtenidos {0} suministros filtrados.", supplies.size());
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en getFilteredSupplies", e);
+        }
+         return supplies;
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\service\supply\SupplyService.java -----
+
+package cr.ac.una.agrow;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AgrowApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AgrowApplication.class, args);
+	}
+
+}
+
+----- FIN DE cr\ac\una\agrow\AgrowApplication.java -----
+
+package cr.ac.una.agrow.config;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnection {
+    private static final String DATABASE = "db_agrow";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
+    private static final int PORT = 3306;
+    private static final String HOST = "localhost";
+
+    private static Connection connection;
+
+    public static Connection getConnection() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE;
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error al cargar el driver: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Error de conexión: " + e.getMessage());
+        }
+        return connection;
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\config\DBConnection.java -----
+
+package cr.ac.una.Agrow.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/")
+public class HomeController {
+
+    @GetMapping({"", "home"})
+    public String home(Model model) {
+        model.addAttribute("activeModule", "home"); // Necesario para el sidebar
+        return "index";
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\controller\HomeController.java -----
+
+package cr.ac.una.agrow.controller.producer;
+
+import cr.ac.una.agrow.data.producer.DataProducer;
+import cr.ac.una.agrow.service.producer.ProducerService;
+import cr.ac.una.agrow.domain.producer.Producer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedList;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/producers")
+public class ProducerController {
+
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    @PostMapping("/save")
+    public String saveProducer(
+            @RequestParam("producerName") String name,
+            @RequestParam("contactNumber") String contact,
+            @RequestParam("registrationDate") String registrationDateStr,
+            @RequestParam("producerType") String type,
+            @RequestParam("email") String email,
+            @RequestParam("address") String address,
+            @RequestParam("city") String city,
+            RedirectAttributes redirectAttributes) {
+
+        if (name == null || name.trim().isEmpty() || contact == null || contact.trim().isEmpty() ||
+            registrationDateStr == null || registrationDateStr.isEmpty() || type == null || type.isEmpty() ||
+            email == null || email.trim().isEmpty() || city == null || city.isEmpty() ||
+            address == null || address.trim().isEmpty()) {
+             redirectAttributes.addFlashAttribute("error", "Todos los campos son obligatorios.");
+             return "redirect:/producers/form";
+        }
+
+        LocalDate registrationDate;
+        try {
+            registrationDate = LocalDate.parse(registrationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+             redirectAttributes.addFlashAttribute("error", "Formato de fecha de registro inválido. Use dd/MM/yyyy.");
+             return "redirect:/producers/form";
+        }
+        if (registrationDate.isAfter(LocalDate.now())) {
+             redirectAttributes.addFlashAttribute("error", "La fecha de registro no puede ser futura.");
+             return "redirect:/producers/form";
+        }
+
+        // ID 0 indica nuevo, isActive por defecto es true
+        Producer p = new Producer(0, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), true);
+
+        String resultMessage = DataProducer.saveProducer(p);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/form")
+    public String showSaveForm(Model model) {
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("producer", new Producer());
+        model.addAttribute("isEdit", false);
+        model.addAttribute("activeModule", "producer");
+        model.addAttribute("activePage", "add");
+        return "save_producer";
+    }
+
+
+    @PostMapping("/update")
+    public String updateProducer(
+            @RequestParam("id_producer") int id,
+            @RequestParam("producerName") String name,
+            @RequestParam("contactNumber") String contact,
+            @RequestParam("registrationDate") String registrationDateStr,
+            @RequestParam("producerType") String type,
+            @RequestParam("email") String email,
+            @RequestParam("city") String city,
+            @RequestParam("address") String address,
+            @RequestParam(value = "isActive", defaultValue = "false") boolean active,
+            RedirectAttributes redirectAttributes) {
+
+         if (name == null || name.trim().isEmpty() || contact == null || contact.trim().isEmpty() ||
+             registrationDateStr == null || registrationDateStr.isEmpty() || type == null || type.isEmpty() ||
+             email == null || email.trim().isEmpty() || city == null || city.isEmpty() ||
+             address == null || address.trim().isEmpty()) {
+              redirectAttributes.addFlashAttribute("error", "Todos los campos son obligatorios.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+
+         LocalDate registrationDate;
+         try {
+             registrationDate = LocalDate.parse(registrationDateStr, DATE_FORMAT_DD_MM_YYYY);
+         } catch (DateTimeParseException e) {
+              redirectAttributes.addFlashAttribute("error", "Formato de fecha de registro inválido. Use dd/MM/yyyy.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+         if (registrationDate.isAfter(LocalDate.now())) {
+              redirectAttributes.addFlashAttribute("error", "La fecha de registro no puede ser futura.");
+              return "redirect:/producers/edit?id_producer=" + id;
+         }
+
+        Producer p = new Producer(id, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), active);
+
+        String resultMessage = DataProducer.updateProducer(p);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/edit")
+    public String showUpdateForm(
+            @RequestParam("id_producer") int id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        Producer producer = DataProducer.getProducer(id);
+
+        if (producer == null) {
+            redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
+            return "redirect:/producers/list";
+        }
+
+        model.addAttribute("producer", producer);
+        model.addAttribute("isEdit", true);
+        model.addAttribute("activeModule", "producer");
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("registrationDateForInput", producer.getRegistrationDateForInput());
+
+
+        return "update_producer";
+    }
+
+    @GetMapping("/list")
+    public String listProducers(
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam(value = "id_producer", required = false) Integer id,
+            Model model) {
+
+        LinkedList<Producer> producers;
+        String validationMessage = null;
+
+        if (id != null) {
+            Producer producer = DataProducer.getProducer(id);
+            producers = new LinkedList<>();
+            if (producer != null) {
+                producers.add(producer);
+            } else {
+                validationMessage = "El productor con Código/ID " + id + " no existe.";
+            }
+            model.addAttribute("searchId", id);
+        } else if (city != null && !city.trim().isEmpty()) {
+            producers = DataProducer.getProducersByCity(city.trim()); 
+            if (producers == null || producers.isEmpty()) {
+                validationMessage = "No hay productores registrados en la ciudad seleccionada: " + city;
+            }
+            model.addAttribute("selectedCity", city);
+        } else {
+            producers = DataProducer.getAllProducers(); 
+             if (producers == null || producers.isEmpty()) {
+                validationMessage = "No hay productores registrados.";
+            }
+        }
+
+        model.addAttribute("listP", producers);
+        model.addAttribute("validate", validationMessage);
+        model.addAttribute("activeModule", "producer");
+        model.addAttribute("activePage", "list");
+        return "producers_list";
+    }
+
+
+    @PostMapping("/delete")
+    public String deleteProducerButton(
+            @RequestParam("id_producer") int id,
+            RedirectAttributes redirectAttributes) {
+        String resultMessage = DataProducer.deleteProducer(id);
+        String[] parts = ProducerService.arraySplit(resultMessage);
+        int typeMsg = Integer.parseInt(parts[0]);
+        String message = parts[1];
+
+        if (typeMsg == 1) {
+            redirectAttributes.addFlashAttribute("mensaje", message);
+        } else {
+            redirectAttributes.addFlashAttribute("error", message);
+        }
+
+        return "redirect:/producers/list";
+    }
+
+    @GetMapping("/information")
+    public String information(
+            @RequestParam("id_producer") int id,
+             Model model, RedirectAttributes redirectAttributes) {
+        Producer producer = DataProducer.getProducer(id);
+        if (producer == null) {
+            redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
+            return "redirect:/producers/list";
+        }
+        model.addAttribute("producer", producer);
+        model.addAttribute("activeModule", "producer");
+        return "information_producer";
+    }
+
+}
+
+----- FIN DE cr\ac\una\agrow\controller\producer\ProducerController.java -----
+
+package cr.ac.una.agrow.controller.supply;
+
+import cr.ac.una.agrow.data.supply.DataSupply;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/supplies")
+public class SupplyController {
+
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    @GetMapping("/list")
+    public String listadoSupplies(
+            @RequestParam(value = "searchTerm", required = false) String searchTerm,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "supplierId", required = false) Integer supplierId,
+            Model model) {
+
+        List<Supply> listaSupplies;
+        if ((searchTerm != null && !searchTerm.trim().isEmpty()) || 
+            (category != null && !category.trim().isEmpty()) || 
+            supplierId != null) {
+            listaSupplies = DataSupply.getFilteredSupplies(searchTerm, category, supplierId);
+        } else {
+            listaSupplies = DataSupply.getSupplies();
+        }
+
+        model.addAttribute("titulo", "Listado de Suministros");
+        model.addAttribute("cantidad", listaSupplies != null ? listaSupplies.size() : 0); 
+        model.addAttribute("supplies", listaSupplies);
+        model.addAttribute("searchTerm", searchTerm);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedSupplierId", supplierId);
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("activePage", "list");
+        return "list_supply";
+    }
+
+    @GetMapping("/form")
+    public String mostrarFormularioSupply(Model model) {
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("activePage", "add");
+        String todayFormatted = LocalDate.now().format(DATE_FORMAT_DD_MM_YYYY);
+        model.addAttribute("today", todayFormatted);
+        model.addAttribute("supply", new Supply()); 
+        model.addAttribute("isEdit", false); //
+        return "form_supply"; 
+    }
+
+    @PostMapping("/save")
+    public String guardarSupply(
+            @RequestParam("name") String name,
+            @RequestParam("category") String category,
+            @RequestParam("stock") double stock,
+            @RequestParam("stockMinimo") double stockMinimo,
+            @RequestParam("unitType") String unitType,
+            @RequestParam("pricePerUnit") double pricePerUnit,
+            @RequestParam(value = "expirationDate", required = true) String expirationDateStr,
+            @RequestParam("supplierId") int supplierId,
+            RedirectAttributes redirectAttributes) {
+
+        String error = validateSupplyFields(name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDateStr, supplierId);
+        if (error != null) {
+            redirectAttributes.addFlashAttribute("error", error);
+            // Reenviar datos ingresados al formulario en caso de error
+            redirectAttributes.addFlashAttribute("supply", new Supply(name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId)); // Enviar sin fecha parseada
+            redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+            return "redirect:/supplies/form";
+        }
+
+        LocalDate expDate;
+        try {
+             expDate = LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+             redirectAttributes.addFlashAttribute("error", "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.");
+             // Reenviar datos ingresados al formulario en caso de error
+             redirectAttributes.addFlashAttribute("supply", new Supply(name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+             redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+             return "redirect:/supplies/form";
+        }
+
+        Supply supply = new Supply(name.trim(), category.trim(), stock, stockMinimo, unitType.trim(), pricePerUnit, expDate, supplierId);
+        Supply savedSupply = null;
+        try {
+
+            savedSupply = DataSupply.saveSupply(supply); 
+             if (savedSupply != null || true) {
+                 redirectAttributes.addFlashAttribute("mensaje", "Suministro guardado exitosamente.");
+                 return "redirect:/supplies/list";
+             } else {
+                 // Este caso es si saveSupply devuelve null indicando error
+                 redirectAttributes.addFlashAttribute("error", "Error desconocido al guardar el suministro.");
+                 redirectAttributes.addFlashAttribute("supply", supply);
+                 redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+                 return "redirect:/supplies/form";
+             }
+        } catch (Exception e) {
+             redirectAttributes.addFlashAttribute("error", "Error al guardar el suministro: " + e.getMessage());
+             redirectAttributes.addFlashAttribute("supply", supply);
+             redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+             return "redirect:/supplies/form"; // Volver al formulario en caso de error
+        }
+    }
+
+    @GetMapping("/edit")
+    public String editarSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes) {
+        Supply supply = DataSupply.getSupply(idSupply);
+        if (supply == null) {
+            redirectAttributes.addFlashAttribute("error", "El suministro seleccionado (ID: " + idSupply + ") no existe.");
+            return "redirect:/supplies/list";
+        }
+        model.addAttribute("supply", supply);
+        model.addAttribute("isEdit", true); // Indicar que es formulario de edición
+        model.addAttribute("activeModule", "supply");
+        model.addAttribute("expirationDateForInput", supply.getExpirationDateForInput()); // Formato YYYY-MM-DD
+        return "edit_supply"; 
+    }
+
+    @PostMapping("/update")
+    public String actualizarSupply(
+            @RequestParam("idSupply") int idSupply,
+            @RequestParam("name") String name,
+            @RequestParam("category") String category,
+            @RequestParam("stock") double stock,
+            @RequestParam("stockMinimo") double stockMinimo,
+            @RequestParam("unitType") String unitType,
+            @RequestParam("pricePerUnit") double pricePerUnit,
+            @RequestParam(value = "expirationDate", required = true) String expirationDateStr,
+            @RequestParam("supplierId") int supplierId,
+            RedirectAttributes redirectAttributes) {
+
+        String error = validateSupplyFields(name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDateStr, supplierId);
+        if (error != null) {
+            redirectAttributes.addFlashAttribute("error", error);
+            // Reenviar datos para repoblar el form
+            redirectAttributes.addFlashAttribute("supply", new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+            redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+            return "redirect:/supplies/edit?idSupply=" + idSupply;
+        }
+
+         LocalDate expDate;
+         try {
+             expDate = LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+         } catch (DateTimeParseException e) {
+              redirectAttributes.addFlashAttribute("error", "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.");
+              // Reenviar datos para repoblar el form
+              redirectAttributes.addFlashAttribute("supply", new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, null, supplierId));
+              redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+              return "redirect:/supplies/edit?idSupply=" + idSupply;
+         }
+
+        Supply supply = new Supply(idSupply, name.trim(), category.trim(), stock, stockMinimo, unitType.trim(), pricePerUnit, expDate, supplierId);
+        boolean actualizado = false;
+         try {
+             actualizado = DataSupply.updateSupply(supply);
+             if (!actualizado) {
+                 redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro. Es posible que no se encontrara el ID.");
+                 redirectAttributes.addFlashAttribute("supply", supply);
+                 redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+                 return "redirect:/supplies/edit?idSupply=" + idSupply;
+             } else {
+                 redirectAttributes.addFlashAttribute("mensaje", "Suministro actualizado exitosamente.");
+                 return "redirect:/supplies/list";
+             }
+         } catch (Exception e) {
+              redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro: " + e.getMessage());
+              redirectAttributes.addFlashAttribute("supply", supply);
+              redirectAttributes.addFlashAttribute("expirationDateStr", expirationDateStr);
+              return "redirect:/supplies/edit?idSupply=" + idSupply;
+         }
+    }
+
+    @PostMapping("/delete")
+    public String eliminarSupply(@RequestParam("idSupply") int idSupply, RedirectAttributes redirectAttributes) {
+        boolean eliminado = false;
+        try {
+            eliminado = DataSupply.deleteSupply(idSupply);
+            if (!eliminado) {
+                redirectAttributes.addFlashAttribute("error", "Error al eliminar el suministro (ID: " + idSupply + "). Puede estar en uso o no existir.");
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje", "Suministro eliminado exitosamente.");
+            }
+        } catch (Exception e) {
+             redirectAttributes.addFlashAttribute("error", "Error al eliminar el suministro (ID: " + idSupply + "): " + e.getMessage());
+        }
+        return "redirect:/supplies/list";
+    }
+
+    @GetMapping("/view")
+    public String verSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes) {
+        Supply supply = DataSupply.getSupply(idSupply);
+        if (supply == null) {
+            redirectAttributes.addFlashAttribute("error", "El suministro solicitado (ID: " + idSupply + ") no se encuentra.");
+            return "redirect:/supplies/list";
+        }
+        model.addAttribute("supply", supply);
+        model.addAttribute("activeModule", "supply");
+        return "view_supply";
+    }
+
+
+    private String validateSupplyFields(String name, String category, double stock, double stockMinimo,
+                                        String unitType, double pricePerUnit, String expirationDateStr, int supplierId) {
+        if (name == null || name.trim().isEmpty()) return "El nombre es obligatorio.";
+        if (category == null || category.trim().isEmpty()) return "La categoría es obligatoria.";
+        if (unitType == null || unitType.trim().isEmpty()) return "El tipo de unidad es obligatorio.";
+        if (supplierId <= 0) return "El ID del proveedor no es válido."; // Validación básica de ID
+        if (stock < 0) return "El stock debe ser un número no negativo.";
+        if (stockMinimo < 0) return "El stock mínimo debe ser un número no negativo.";
+        if (pricePerUnit <= 0) return "El precio por unidad debe ser mayor que cero.";
+        if (expirationDateStr == null || expirationDateStr.trim().isEmpty()) return "La fecha de vencimiento es obligatoria.";
+
+        try {
+            LocalDate.parse(expirationDateStr, DATE_FORMAT_DD_MM_YYYY);
+        } catch (DateTimeParseException e) {
+            return "Formato de fecha de vencimiento inválido. Use dd/MM/yyyy.";
+        }
+
+        return null; 
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\controller\supply\SupplyController.java -----
+
+
+package cr.ac.una.agrow.data.producer;
+
+import cr.ac.una.agrow.domain.producer.Producer;
+// Importar el servicio que contiene la lógica
+import cr.ac.una.agrow.service.producer.ProducerService;
+import java.util.LinkedList;
+
+/**
+ * Capa de Datos (Facade) para Productores.
+ * Delega las llamadas al ProducerService que contiene la lógica de acceso a BD.
+ */
+public class DataProducer {
+
+    // Instancia del servicio real
+    private static final ProducerService producerService = new ProducerService();
+
+    /**
+     * Obtiene una lista de todos los productores.
+     * @return LinkedList de Producer.
+     */
+    public static LinkedList<Producer> getAllProducers() {
+        return producerService.getAllProducers();
+    }
+
+     /**
+     * Obtiene una lista de productores filtrados por ciudad.
+     * @param city La ciudad por la cual filtrar.
+     * @return LinkedList de Producer.
+     */
+    public static LinkedList<Producer> getProducersByCity(String city) {
+        return producerService.getProducersByCity(city);
+    }
+
+
+    /**
+     * Obtiene un productor específico por su ID.
+     * @param id_producer ID del productor a buscar.
+     * @return Objeto Producer o null si no se encuentra.
+     */
+    public static Producer getProducer(int id_producer) {
+        return producerService.getProducerById(id_producer);
+    }
+
+    /**
+     * Guarda un nuevo productor. El ID debe ser generado por el servicio.
+     * @param p Productor a guardar (ID usualmente 0 o ignorado).
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String saveProducer(Producer p) {
+        return producerService.saveProducer(p);
+    }
+
+    /**
+     * Actualiza un productor existente.
+     * @param p Productor con los datos actualizados (incluyendo el ID).
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String updateProducer(Producer p) {
+        return producerService.updateProducer(p);
+    }
+
+    /**
+     * Elimina un productor por su ID.
+     * @param id_producer ID del productor a eliminar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public static String deleteProducer(int id_producer) {
+        return producerService.deleteProducer(id_producer);
+    }
+
+    // NOTA: Los métodos que antes estaban en ProducerData y contenían la lógica SQL
+    // ahora están movidos a ProducerService. Esta clase es solo un punto de entrada.
+}
+
+----- FIN DE cr\ac\una\agrow\data\producer\DataProducer.java -----
+
+
+package cr.ac.una.agrow.data.supply;
+
+import cr.ac.una.agrow.service.supply.SupplyService;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.util.List;
+
+/**
+ * Capa de Datos (Facade) para Suministros.
+ * Delega las llamadas al SupplyService que contiene la lógica de acceso a BD.
+ */
+public class DataSupply {
+
+    // Instancia del servicio real
+    private static final SupplyService supplyService = new SupplyService();
+
+    /**
+     * Obtiene todos los suministros.
+     * @return Lista de Supply.
+     */
+    public static List<Supply> getSupplies() {
+        return supplyService.getAllSupplies();
+    }
+
+    /**
+     * Obtiene un suministro por su ID.
+     * @param idSupply ID del suministro.
+     * @return Objeto Supply o null si no se encuentra.
+     */
+    public static Supply getSupply(int idSupply) {
+        return supplyService.getSupplyById(idSupply);
+    }
+
+    /**
+     * Guarda un nuevo suministro.
+     * @param supply Suministro a guardar.
+     * @return El suministro guardado (puede incluir ID generado) o null/excepción en error.
+     *         (Ajustar según la firma real de insertSupply en SupplyService)
+     */
+    public static Supply saveSupply(Supply supply) {
+         // La implementación original era void, se cambia para seguir el patrón
+         // de devolver el objeto guardado o indicar éxito/error de forma más clara.
+         // Si SupplyService.insertSupply devuelve el objeto, está bien.
+         // Si era void, hay que decidir si se cambia o se maneja con excepciones.
+         // Asumimos que insertSupply devuelve el objeto con ID o null/excepción.
+        return supplyService.insertSupply(supply);
+    }
+
+    /**
+     * Actualiza un suministro existente.
+     * @param supply Suministro con datos actualizados.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     */
+    public static boolean updateSupply(Supply supply) {
+        return supplyService.updateSupply(supply);
+    }
+
+    /**
+     * Elimina un suministro por su ID.
+     * @param idSupply ID del suministro a eliminar.
+     * @return true si la eliminación fue exitosa, false en caso contrario.
+     */
+    public static boolean deleteSupply(int idSupply) {
+        return supplyService.deleteSupply(idSupply);
+    }
+
+    /**
+     * Obtiene suministros filtrados por término, categoría o ID de proveedor.
+     * @param searchTerm Término de búsqueda (nombre).
+     * @param category Categoría.
+     * @param supplierId ID del proveedor.
+     * @return Lista de Supply filtrados.
+     */
+    public static List<Supply> getFilteredSupplies(String searchTerm, String category, Integer supplierId) {
+        return supplyService.getFilteredSupplies(searchTerm, category, supplierId);
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\data\supply\DataSupply.java -----
+
+package cr.ac.una.agrow.domain.producer;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class Producer {
+
+    private int id_producer;
+    private String producerName;
+    private String contactNumber;
+    private LocalDate registrationDate;
+    private String producerType;
+    private String email;
+    private String city;
+    private String address;
+    private boolean isActive;
+
+    public Producer() {
+    }
+
+    public Producer(int id_producer, String producerName, String contactNumber, LocalDate registrationDate, String producerType, String email, String city, String address, boolean isActive) {
+        this.id_producer = id_producer;
+        this.producerName = producerName;
+        this.contactNumber = contactNumber;
+        this.registrationDate = registrationDate;
+        this.producerType = producerType;
+        this.email = email;
+        this.city = city;
+        this.address = address;
+        this.isActive = isActive;
+    }
+
+    // --- Getters y Setters ---
+
+    public int getId_producer() {
+        return id_producer;
+    }
+
+    public void setId_producer(int id_producer) {
+        this.id_producer = id_producer;
+    }
+
+    public String getProducerName() {
+        return producerName;
+    }
+
+    public void setProducerName(String producerName) {
+        this.producerName = producerName;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
+    }
+
+     public String getFormattedRegistrationDate() {
+          if (registrationDate == null) return "-";
+          return registrationDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+     }
+
+     public String getRegistrationDateForInput() {
+        if (registrationDate == null) return "";
+        return registrationDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+     }
+
+    public void setRegistrationDate(LocalDate registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public String getProducerType() {
+        return producerType;
+    }
+
+    public void setProducerType(String producerType) {
+        this.producerType = producerType;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public boolean isIsActive() { return isActive; }
+    public void setIsActive(boolean active) { this.isActive = active; }
+
+
+    @Override
+    public String toString() {
+        return "Producer{" +
+               "id_producer=" + id_producer +
+               ", producerName='" + producerName + '\'' +
+               ", contactNumber='" + contactNumber + '\'' +
+               ", registrationDate=" + (registrationDate != null ? getFormattedRegistrationDate() : "null") +
+               ", producerType='" + producerType + '\'' +
+               ", email='" + email + '\'' +
+               ", city='" + city + '\'' +
+               ", address='" + address + '\'' +
+               ", isActive=" + isActive +
+               '}';
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\domain\producer\Producer.java -----
+
+
+package cr.ac.una.agrow.domain.supply;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class Supply {
+    private int idSupply;
+    private String name;
+    private String category;
+    private double stock;
+    private double stockMinimo;
+    private String unitType;
+    private double pricePerUnit;
+    private LocalDate expirationDate;
+    private int supplierId;
+    private String estado; // Calculado por SP
+
+    // Formateadores estáticos
+    private static final DateTimeFormatter FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter FORMAT_YYYY_MM_DD = DateTimeFormatter.ISO_LOCAL_DATE; // YYYY-MM-DD
+
+
+    public Supply() { }
+
+    // Constructor para inserción (sin ID, sin estado)
+    public Supply(String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId) {
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+    }
+
+    // Constructor para actualización o uso interno (con ID, sin estado)
+    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId) {
+        this.idSupply = idSupply;
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+    }
+
+    // Constructor completo usado al mapear desde ResultSet (con ID y estado del SP)
+    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
+                  String unitType, double pricePerUnit, LocalDate expirationDate, int supplierId, String estado) {
+        this.idSupply = idSupply;
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+        this.stockMinimo = stockMinimo;
+        this.unitType = unitType;
+        this.pricePerUnit = pricePerUnit;
+        this.expirationDate = expirationDate;
+        this.supplierId = supplierId;
+        this.estado = estado;
+    }
+
+    // --- Getters y Setters ---
+
+    public int getIdSupply() { return idSupply; }
+    public void setIdSupply(int idSupply) { this.idSupply = idSupply; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public double getStock() { return stock; }
+    public void setStock(double stock) {
+        this.stock = Math.max(0, stock); // Asegurar no negativo
+    }
+
+    public double getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(double stockMinimo) {
+        this.stockMinimo = Math.max(0, stockMinimo); // Asegurar no negativo
+    }
+
+    public String getUnitType() { return unitType; }
+    public void setUnitType(String unitType) { this.unitType = unitType; }
+
+    public double getPricePerUnit() { return pricePerUnit; }
+    public void setPricePerUnit(double pricePerUnit) {
+        this.pricePerUnit = Math.max(0.01, pricePerUnit); // Evitar precios <= 0
+    }
+
+    public LocalDate getExpirationDate() { return expirationDate; }
+    public void setExpirationDate(LocalDate expirationDate) { this.expirationDate = expirationDate; }
+
+    // Devuelve fecha formateada para mostrar (dd/MM/yyyy)
+    public String getFormattedExpirationDate() {
+        if (expirationDate == null) return "-";
+        return expirationDate.format(FORMAT_DD_MM_YYYY);
+    }
+
+    // Devuelve fecha formateada para input date (yyyy-MM-dd)
+    public String getExpirationDateForInput() {
+        if (expirationDate == null) return "";
+        return expirationDate.format(FORMAT_YYYY_MM_DD);
+    }
+
+
+    public int getSupplierId() { return supplierId; }
+    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+
+    public String getEstado() {
+         // Si el estado no vino de la BD, calcula uno básico.
+         if (this.estado == null || this.estado.trim().isEmpty()) {
+              if (this.stock <= 0) return "Agotado";
+              if (this.stock <= this.stockMinimo) return "Bajo";
+              return "Óptimo";
+         }
+        return estado;
+    }
+    // Setter para estado (aunque usualmente viene de BD)
+    public void setEstado(String estado) { this.estado = estado; }
+
+
+    @Override
+    public String toString() {
+        return "Supply{" +
+                "idSupply=" + idSupply +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", stock=" + stock +
+                ", stockMinimo=" + stockMinimo +
+                ", unitType='" + unitType + '\'' +
+                ", pricePerUnit=" + pricePerUnit +
+                ", expirationDate=" + (expirationDate != null ? getFormattedExpirationDate() : "null") +
+                ", supplierId=" + supplierId +
+                ", estado='" + getEstado() + '\'' +
+                '}';
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\domain\supply\Supply.java -----
+
+package cr.ac.una.agrow.service.producer;
+
+import cr.ac.una.agrow.config.DBConnection;
+import cr.ac.una.agrow.domain.producer.Producer;
+
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Capa de Servicio para Productores.
+ * Contiene la lógica de negocio y acceso a datos para los productores.
+ */
+public class ProducerService {
+
+    private static final Logger LOG = Logger.getLogger(ProducerService.class.getName());
+
+    /**
+     * Obtiene una lista de todos los productores.
+     * @return LinkedList de Producer.
+     */
+    public LinkedList<Producer> getAllProducers() {
+        return executeListProcedure("{call spListProducer()}", null);
+    }
+
+    /**
+     * Obtiene una lista de productores filtrados por ciudad.
+     * @param city La ciudad por la cual filtrar.
+     * @return LinkedList de Producer.
+     */
+    public LinkedList<Producer> getProducersByCity(String city) {
+        return executeListProcedure("{call spListCity(?)}", city);
+    }
+
+    /**
+     * Ejecuta un Stored Procedure para obtener una lista de productores.
+     * @param sqlCall El comando SQL para llamar al SP (puede incluir '?').
+     * @param parameter El parámetro para el SP (puede ser null si no aplica).
+     * @return LinkedList de Producer.
+     */
+    private LinkedList<Producer> executeListProcedure(String sqlCall, String parameter) {
+        LinkedList<Producer> producers = new LinkedList<>();
+        Connection cn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            cn = DBConnection.getConnection();
+            if (cn == null) {
+                LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en executeListProcedure.");
+                return producers; // Retorna lista vacía
+            }
+
+            stmt = cn.prepareCall(sqlCall);
+
+            if (parameter != null) {
+                stmt.setString(1, parameter);
+            }
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                producers.add(mapResultSetToProducer(rs));
+            }
+             LOG.log(Level.INFO, "Ejecutado SP: {0} con parámetro: {1}. Productores encontrados: {2}", new Object[]{sqlCall, parameter, producers.size()});
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL ejecutando SP: " + sqlCall + " con parámetro: " + parameter, e);
+        }
+        return producers;
+    }
+
+
+    /**
+     * Obtiene un productor específico por su ID.
+     * @param id_producer ID del productor a buscar.
+     * @return Objeto Producer o null si no se encuentra.
+     */
+    public Producer getProducerById(int id_producer) {
+        Producer p = null;
+        Connection cn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        String sqlCall = "{call spGetProducer(?)}";
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getProducerById.");
+                 return null;
+             }
+            stmt = cn.prepareCall(sqlCall);
+            stmt.setInt(1, id_producer);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                p = mapResultSetToProducer(rs);
+                LOG.log(Level.INFO, "Productor encontrado con ID: {0}", id_producer);
+            } else {
+                 LOG.log(Level.WARNING, "No se encontró productor con ID: {0}", id_producer);
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getProducerById con ID: " + id_producer, e);
+        }
+        return p;
+    }
+
+    /**
+     * Guarda un nuevo productor en la base de datos.
+     * Genera un ID único antes de guardar.
+     * @param p Productor a guardar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String saveProducer(Producer p) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spAddProducer(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        boolean success = false;
+
+        // Asigna un ID único generado localmente ANTES de intentar guardar
+        p.setId_producer(generarCodigoUnico());
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en saveProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+
+            stmt.setInt(1, p.getId_producer()); // Usar el ID generado
+            stmt.setString(2, p.getProducerName());
+            stmt.setString(3, p.getContactNumber());
+            if (p.getRegistrationDate() != null) {
+                stmt.setDate(4, Date.valueOf(p.getRegistrationDate()));
+            } else {
+                stmt.setNull(4, Types.DATE);
+            }
+            stmt.setString(5, p.getProducerType());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getCity());
+            stmt.setString(8, p.getAddress());
+            stmt.setBoolean(9, p.isActive());
+
+            // executeUpdate devuelve el número de filas afectadas, útil para verificar éxito
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                LOG.log(Level.INFO, "Productor guardado exitosamente con ID: {0}", p.getId_producer());
+            } else {
+                 LOG.log(Level.WARNING, "SP spAddProducer ejecutado pero no afectó filas para ID: {0}", p.getId_producer());
+            }
+
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en saveProducer para ID: " + p.getId_producer(), e);
+             return "2,Error de base de datos al guardar: " + e.getMessage();
+        }
+
+        return success ? "1,El productor se ha guardado exitosamente." : "2,Error al guardar el productor. No se afectaron filas.";
+    }
+
+    /**
+     * Actualiza un productor existente en la base de datos.
+     * @param p Productor con los datos actualizados.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String updateProducer(Producer p) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spUpdateProducer(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        boolean success = false;
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                  LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en updateProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+
+            stmt.setInt(1, p.getId_producer());
+            stmt.setString(2, p.getProducerName());
+            stmt.setString(3, p.getContactNumber());
+            if (p.getRegistrationDate() != null) {
+                stmt.setDate(4, Date.valueOf(p.getRegistrationDate()));
+            } else {
+                stmt.setNull(4, Types.DATE);
+            }
+            stmt.setString(5, p.getProducerType());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getCity());
+            stmt.setString(8, p.getAddress());
+            stmt.setBoolean(9, p.isActive());
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                 LOG.log(Level.INFO, "Productor actualizado exitosamente con ID: {0}", p.getId_producer());
+            } else {
+                 LOG.log(Level.WARNING, "SP spUpdateProducer ejecutado pero no afectó filas para ID: {0}. ¿Existe el productor?", p.getId_producer());
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en updateProducer para ID: " + p.getId_producer(), e);
+            return "2,Error de base de datos al actualizar: " + e.getMessage();
+        }
+         return success ? "1,El productor se ha actualizado exitosamente." : "2,Error al actualizar el productor. Verifique si el ID existe.";
+    }
+
+    /**
+     * Elimina un productor de la base de datos por su ID.
+     * @param id_producer ID del productor a eliminar.
+     * @return String con formato "tipo,mensaje" indicando éxito o error.
+     */
+    public String deleteProducer(int id_producer) {
+        Connection cn = null;
+        CallableStatement stmt = null;
+        String sqlCall = "{call spDeleteProducer(?)}";
+        boolean success = false;
+
+        try {
+            cn = DBConnection.getConnection();
+             if (cn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en deleteProducer.");
+                 return "2,Error interno: No se pudo conectar a la base de datos.";
+             }
+            stmt = cn.prepareCall(sqlCall);
+            stmt.setInt(1, id_producer);
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+             if (success) {
+                 LOG.log(Level.INFO, "Productor eliminado exitosamente con ID: {0}", id_producer);
+            } else {
+                 LOG.log(Level.WARNING, "SP spDeleteProducer ejecutado pero no afectó filas para ID: {0}. ¿Existe el productor?", id_producer);
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en deleteProducer para ID: " + id_producer, e);
+             // Revisar código de error para FK constraint violation
+             if (e.getSQLState().startsWith("23")) { // Códigos de error de integridad
+                 return "2,Error al eliminar: El productor tiene registros asociados y no puede ser eliminado.";
+             }
+            return "2,Error de base de datos al eliminar: " + e.getMessage();
+        }
+        return success ? "1,El productor se ha eliminado exitosamente." : "2,Error al eliminar el productor. Verifique si el ID existe o si tiene registros asociados.";
+    }
+
+    /**
+     * Mapea una fila de un ResultSet a un objeto Producer.
+     * @param rs ResultSet posicionado en la fila a mapear.
+     * @return Objeto Producer.
+     * @throws SQLException Si ocurre un error al leer el ResultSet.
+     */
+    private Producer mapResultSetToProducer(ResultSet rs) throws SQLException {
+        Date registrationDateSql = rs.getDate("registrationDate");
+        LocalDate registrationDate = (registrationDateSql != null) ? registrationDateSql.toLocalDate() : null;
+
+        return new Producer(
+            rs.getInt("id_producer"),
+            rs.getString("producerName"),
+            rs.getString("contactNumber"),
+            registrationDate,
+            rs.getString("producerType"),
+            rs.getString("email"),
+            rs.getString("city"),
+            rs.getString("address"),
+            rs.getBoolean("isActive")
+        );
+    }
+
+
+    /**
+     * Genera un número aleatorio simple de 5 dígitos.
+     * @return int número aleatorio entre 10000 y 99999.
+     */
+    private static int generarCodigo() {
+        return ThreadLocalRandom.current().nextInt(10000, 100000);
+    }
+
+     /**
+      * Intenta generar un código único verificando si ya existe en la BD.
+      * Realiza un número limitado de intentos.
+      * @return int código generado (posiblemente no único si fallan los intentos).
+      */
+     private static int generarCodigoUnico() {
+         int attempts = 0;
+         final int MAX_ATTEMPTS = 10;
+         ProducerService tempService = new ProducerService(); // Necesita instancia para llamar a getProducerById
+
+         while (attempts < MAX_ATTEMPTS) {
+             int codigo = generarCodigo();
+             // Verifica si el código generado ya existe en la BD
+             // Considerar secuencias de BD o UUIDs para una solución robusta.
+             if (tempService.getProducerById(codigo) == null) {
+                 LOG.log(Level.INFO, "Código único generado: {0}", codigo);
+                 return codigo; // Código disponible encontrado
+             }
+             attempts++;
+             LOG.log(Level.FINE, "Intento {0}: Código {1} ya existe.", new Object[]{attempts, codigo});
+         }
+          // Si falla después de varios intentos, informa y devuelve uno aleatorio igualmente.
+          int fallbackCodigo = generarCodigo();
+          LOG.log(Level.WARNING, "No se pudo generar un ID de productor único después de {0} intentos. Usando código aleatorio: {1}", new Object[]{MAX_ATTEMPTS, fallbackCodigo});
+          return fallbackCodigo;
+     }
+
+
+    /**
+     * Helper simple para dividir el mensaje de resultado ("tipo,mensaje").
+     * Este método es público y estático para que el Controller pueda usarlo.
+     * @param datos String en formato "tipo,mensaje".
+     * @return String[] con [tipo, mensaje] o un array de error si el formato es inválido.
+     */
+    public static String[] arraySplit(String datos) {
+        if (datos == null) {
+             LOG.log(Level.WARNING, "arraySplit recibió datos nulos.");
+            return new String[]{"2", "Error interno: Mensaje nulo."}; // Manejo de nulos
+        }
+        // Divide solo por la primera coma para separar tipo y mensaje
+        String[] parts = datos.split(",", 2);
+        if (parts.length == 2) {
+            return parts;
+        } else {
+             LOG.log(Level.WARNING, "arraySplit recibió formato inesperado: {0}", datos);
+            return new String[]{"2", "Error interno: Formato de mensaje inesperado (" + datos + ")."};
+        }
+    }
+}
+
+----- FIN DE cr\ac\una\agrow\service\producer\ProducerService.java -----
+
+
+package cr.ac.una.agrow.service.supply;
+
+import cr.ac.una.agrow.config.DBConnection;
+import cr.ac.una.agrow.domain.supply.Supply;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Capa de Servicio para Suministros.
+ * Contiene la lógica de negocio y acceso a datos para los suministros.
+ */
+public class SupplyService {
+
+    private static final Logger LOG = Logger.getLogger(SupplyService.class.getName());
+
+    /**
+     * Mapea una fila del ResultSet a un objeto Supply.
+     * @param rs ResultSet posicionado en la fila a mapear.
+     * @return Objeto Supply mapeado.
+     * @throws SQLException Si ocurre un error al leer el ResultSet.
+     */
+    private Supply mapResultSetToSupply(ResultSet rs) throws SQLException {
+        int idSupply = rs.getInt("idSupply");
+        String name = rs.getString("name");
+        String category = rs.getString("category");
+        double stock = rs.getDouble("stock");
+        double stockMinimo = rs.getDouble("stockMinimo");
+        String unitType = rs.getString("unitType");
+        double pricePerUnit = rs.getDouble("pricePerUnit");
+        Date expDateSQL = rs.getDate("expirationDate");
+        LocalDate expirationDate = (expDateSQL != null) ? expDateSQL.toLocalDate() : null;
+        int supplierId = rs.getInt("supplierId");
+        String estado = rs.getString("estado"); // Estado calculado por el SP
+
+        return new Supply(idSupply, name, category, stock, stockMinimo, unitType, pricePerUnit, expirationDate, supplierId, estado);
+    }
+
+    /**
+     * Inserta un suministro usando un Stored Procedure.
+     * @param supply Objeto Supply a insertar (sin ID o ID 0).
+     * @return El objeto Supply insertado con su ID asignado, o null si falla la inserción.
+     */
+    public Supply insertSupply(Supply supply) {
+        String storedProc = "{CALL sp_InsertSupply(?, ?, ?, ?, ?, ?, ?, ?)}"; // Ajustar si el SP es diferente
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en insertSupply.");
+                 return null;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            stmt.setString(1, supply.getName());
+            stmt.setString(2, supply.getCategory());
+            stmt.setDouble(3, supply.getStock());
+            stmt.setDouble(4, supply.getStockMinimo());
+            stmt.setString(5, supply.getUnitType());
+            stmt.setDouble(6, supply.getPricePerUnit());
+            stmt.setDate(7, supply.getExpirationDate() != null ? Date.valueOf(supply.getExpirationDate()) : null);
+            stmt.setInt(8, supply.getSupplierId());
+
+            // Ejecutar y verificar si devuelve un ResultSet (con el ID)
+            boolean hasResultSet = stmt.execute();
+            if (hasResultSet) {
+                rs = stmt.getResultSet();
+                if (rs != null && rs.next()) {
+                    int generatedId = rs.getInt(1); 
+                    supply.setIdSupply(generatedId);
+                    LOG.log(Level.INFO, "Suministro insertado exitosamente con ID: {0}", generatedId);
+                    return supply; // Devuelve el objeto con el ID
+                } else {
+                     LOG.log(Level.WARNING, "SP sp_InsertSupply ejecutado pero no devolvió el ID generado.");
+                     return null; // Falló la obtención del ID
+                }
+            } else {
+                 // Si el SP no devuelve ResultSet pero se ejecutó (quizás devuelve filas afectadas?)
+                 int updateCount = stmt.getUpdateCount();
+                 if (updateCount > 0) {
+                      LOG.log(Level.WARNING, "SP sp_InsertSupply ejecutado (filas afectadas: {0}) pero no se configuró para devolver ID. No se puede confirmar ID.", updateCount);
+
+                      return null;
+                 } else {
+                      LOG.log(Level.SEVERE, "SP sp_InsertSupply ejecutado pero no afectó filas ni devolvió ID.");
+                      return null; // Falló la inserción
+                 }
+            }
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en insertSupply", e);
+            return null; // Fallo por excepción SQL
+        } 
+    }
+
+    /**
+     * Obtiene un suministro por su ID usando un Stored Procedure.
+     * @param idSupply ID del suministro a buscar.
+     * @return Objeto Supply si se encuentra, null en caso contrario.
+     */
+    public Supply getSupplyById(int idSupply) {
+        String storedProc = "{CALL sp_GetSupplyById(?)}";
+         Connection conn = null;
+         CallableStatement stmt = null;
+         ResultSet rs = null;
+         Supply supply = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getSupplyById.");
+                 return null;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            stmt.setInt(1, idSupply);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                supply = mapResultSetToSupply(rs);
+                 LOG.log(Level.INFO, "Suministro encontrado con ID: {0}", idSupply);
+            } else {
+                 LOG.log(Level.WARNING, "No se encontró suministro con ID: {0}", idSupply);
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getSupplyById con ID: " + idSupply, e);
+        }
+        return supply;
+    }
+
+    /**
+     * Actualiza un suministro existente usando un Stored Procedure.
+     * @param supply Objeto Supply con los datos actualizados (incluyendo ID).
+     * @return true si la actualización afectó al menos una fila, false en caso contrario.
+     */
+    public boolean updateSupply(Supply supply) {
+        String storedProc = "{CALL sp_UpdateSupply(?, ?, ?, ?, ?, ?, ?, ?, ?)}"; 
+         Connection conn = null;
+         CallableStatement stmt = null;
+         boolean success = false;
+        try {
+            conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en updateSupply.");
+                 return false;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            stmt.setInt(1, supply.getIdSupply());
+            stmt.setString(2, supply.getName());
+            stmt.setString(3, supply.getCategory());
+            stmt.setDouble(4, supply.getStock());
+            stmt.setDouble(5, supply.getStockMinimo());
+            stmt.setString(6, supply.getUnitType());
+            stmt.setDouble(7, supply.getPricePerUnit());
+            stmt.setDate(8, supply.getExpirationDate() != null ? Date.valueOf(supply.getExpirationDate()) : null);
+            stmt.setInt(9, supply.getSupplierId());
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+            if (success) {
+                 LOG.log(Level.INFO, "Suministro actualizado exitosamente con ID: {0}", supply.getIdSupply());
+            } else {
+                 LOG.log(Level.WARNING, "SP sp_UpdateSupply ejecutado pero no afectó filas para ID: {0}. ¿Existe el suministro?", supply.getIdSupply());
+            }
+
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en updateSupply para ID: " + supply.getIdSupply(), e);
+            return false; // Fallo por excepción
+        }
+        return success;
+    }
+
+    /**
+     * Elimina un suministro usando un Stored Procedure.
+     * @param idSupply ID del suministro a eliminar.
+     * @return true si la eliminación afectó al menos una fila, false en caso contrario.
+     */
+    public boolean deleteSupply(int idSupply) {
+        String storedProc = "{CALL sp_DeleteSupply(?)}";
+        Connection conn = null;
+        CallableStatement stmt = null;
+        boolean success = false;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en deleteSupply.");
+                 return false;
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            stmt.setInt(1, idSupply);
+
+            int rowsAffected = stmt.executeUpdate();
+            success = (rowsAffected > 0);
+
+             if (success) {
+                 LOG.log(Level.INFO, "Suministro eliminado exitosamente con ID: {0}", idSupply);
+            } else {
+                 LOG.log(Level.WARNING, "SP sp_DeleteSupply ejecutado pero no afectó filas para ID: {0}. ¿Existe el suministro?", idSupply);
+            }
+
+        } catch (SQLException e) {
+             LOG.log(Level.SEVERE, "Error SQL en deleteSupply para ID: " + idSupply, e);
+            return false; // Fallo por excepción
+        }
+        return success;
+    }
+
+    /**
+     * Obtiene todos los suministros usando un Stored Procedure.
+     * @return Lista de objetos Supply. Puede estar vacía si no hay suministros o si ocurre un error.
+     */
+    public List<Supply> getAllSupplies() {
+        String storedProc = "{CALL sp_GetAllSupplies()}";
+        List<Supply> supplies = new ArrayList<>();
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+             if (conn == null) {
+                 LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getAllSupplies.");
+                 return supplies; // Devuelve lista vacía
+             }
+
+            stmt = conn.prepareCall(storedProc);
+            rs = stmt.executeQuery();
+            while(rs.next()){
+                supplies.add(mapResultSetToSupply(rs));
+            }
+             LOG.log(Level.INFO, "Obtenidos {0} suministros.", supplies.size());
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Error SQL en getAllSupplies", e);
+            // Devuelve la lista parcialmente llena o vacía en caso de error
+        }
+         return supplies;
+    }
+
+    /**
+     * Obtiene suministros filtrados usando un Stored Procedure.
+     * Maneja parámetros nulos/vacíos adecuadamente pasándolos como NULL al SP.
+     * @param searchTerm Término de búsqueda (puede ser null o vacío).
+     * @param category Categoría (puede ser null o vacía).
+     * @param supplierId ID del proveedor (puede ser null).
+     * @return Lista de objetos Supply filtrados.
+     */
+    public List<Supply> getFilteredSupplies(String searchTerm, String category, Integer supplierId) {
+        String storedProc = "{CALL sp_GetFilteredSupplies(?, ?, ?)}"; // Ajustar si el SP es diferente
+        List<Supply> supplies = new ArrayList<>();
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        try {
+             conn = DBConnection.getConnection();
+             if (conn == null) {
+                  LOG.log(Level.SEVERE, "No se pudo obtener conexión a la BD en getFilteredSupplies.");
+                 return supplies; // Devuelve lista vacía
+             }
+
+            stmt = conn.prepareCall(storedProc);
+
+            // Pasar NULL si el parámetro es nulo o vacío
+            if (searchTerm != null 
+
+----- FIN DE deibis.txt -----
+

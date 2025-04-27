@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Listado de Suministros - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title" th:text="${titulo}">Gestión de Suministros</h1>
+                    <p class="page-subtitle">Visualiza, filtra y administra tus insumos. Total: <span th:text="${cantidad != null ? cantidad : 0}">0</span></p>
+                </div>
+                <a th:href="@{/supplies/form}" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">add_box</span> Agregar Suministro
+                </a>
+            </div>
+
+            <form id="filter-form-supply" th:action="@{/supplies/list}" method="get" class="filter-section">
+                <!-- ... (contenido del formulario de filtro sin cambios) ... -->
+                 <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label" for="searchTerm">Buscar por Nombre</label>
+                        <input type="text" id="searchTerm" name="searchTerm" th:value="${searchTerm}" class="filter-input" placeholder="Ej: Semillas..." maxlength="100" />
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label" for="category">Categoría</label>
+                        <select id="category" name="category" class="filter-input">
+                            <option value="" th:selected="${selectedCategory == null or selectedCategory == ''}">Todas</option>
+                            <option value="Semillas" th:selected="${#strings.equals(selectedCategory,'Semillas')}">Semillas</option>
+                            <option value="Fertilizantes" th:selected="${#strings.equals(selectedCategory,'Fertilizantes')}">Fertilizantes</option>
+                            <option value="Plaguicidas" th:selected="${#strings.equals(selectedCategory,'Plaguicidas')}">Plaguicidas</option>
+                            <option value="Herramientas" th:selected="${#strings.equals(selectedCategory,'Herramientas')}">Herramientas</option>
+                            <option value="Accesorios de riego" th:selected="${#strings.equals(selectedCategory,'Accesorios de riego')}">Accesorios de riego</option>
+                            <option value="Insumos orgánicos" th:selected="${#strings.equals(selectedCategory,'Insumos orgánicos')}">Insumos orgánicos</option>
+                            <option value="Otros" th:selected="${#strings.equals(selectedCategory,'Otros')}">Otros</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label" for="supplierId">Proveedor</label>
+                        <select id="supplierId" name="supplierId" class="filter-input">
+                             <option value="" th:selected="${selectedSupplierId == null}">Todos</option>
+                             <option th:each="supplier : ${suppliers}"
+                                     th:value="${supplier.supplierIdentification}"
+                                     th:text="${supplier.companyName + ' (' + supplier.supplierIdentification + ')'}"
+                                     th:selected="${selectedSupplierId != null and selectedSupplierId == supplier.supplierIdentification}">
+                             </option>
+                        </select>
+                    </div>
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">search</span> Filtrar </button>
+                        <a th:href="@{/supplies/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">refresh</span> Restablecer </a>
+                    </div>
+                </div>
+            </form>
+
+            <div id="supply-list-content">
+                 <div class="info-card" th:if="${validate != null}">
+                     <span class="material-symbols-outlined icon">info</span>
+                     <h2 th:text="${validate}">No se encontraron suministros</h2>
+                     <p>Intenta con otros filtros o <a th:href="@{/supplies/form}">agrega nuevos suministros</a>.</p>
+                </div>
+
+                <div class="table-container" th:unless="${validate != null or supplies == null or supplies.isEmpty()}">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th> <th>Categoría</th> <th>Stock</th> <th>Mínimo</th> <th>Estado</th> <th>Unidad</th> <th>Precio Unit.</th> <th>Vencimiento</th> <th>Proveedor</th> <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="supply : ${supplies}">
+                                    <td th:text="${supply.name}"></td>
+                                    <td th:text="${supply.category}"></td>
+                                    <!-- CORRECCIÓN: Usar numeric-display para stock y minimo -->
+                                    <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stock, 1, 2, 'POINT')}"></td>
+                                    <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stockMinimo, 1, 2, 'POINT')}"></td>
+                                    <td> <span class="status" th:classappend="${#strings.equalsIgnoreCase(supply.estado, 'Bajo')} ? ' status-bajo' : (${#strings.equalsIgnoreCase(supply.estado, 'Agotado')} ? ' status-danger' : ' status-optimo')" th:text="${supply.estado}"></span> </td>
+                                    <td th:text="${supply.unitType}"></td>
+                                     <!-- CORRECCIÓN: Mantener price-display para precio -->
+                                    <td class="price-display" th:attr="data-value=${supply.pricePerUnit}"></td>
+                                    <td th:text="${supply.getFormattedExpirationDate()}"></td>
+                                    <td th:text="${supply.getSupplierName()}"></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a th:href="@{/supplies/view(idSupply=${supply.idSupply})}" class="btns view-btns" title="Ver Detalles"> <span class="material-symbols-outlined icon">visibility</span> </a>
+                                            <a th:href="@{/supplies/edit(idSupply=${supply.idSupply})}" class="btns edit-btns" title="Editar"> <span class="material-symbols-outlined icon">edit</span> </a>
+                                            <form th:action="@{/supplies/delete}" method="post" class="confirm-action" data-message="¿Eliminar este suministro?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
+                                                <input type="hidden" name="idSupply" th:value="${supply.idSupply}" />
+                                                <button type="submit" class="btns delete-btns" title="Eliminar"> <span class="material-symbols-outlined icon">delete</span> </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a th:href="@{/home}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/app.js}"></script>
+    </body>
+</html>
