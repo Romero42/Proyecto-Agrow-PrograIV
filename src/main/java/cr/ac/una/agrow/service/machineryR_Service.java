@@ -24,6 +24,19 @@ public class machineryR_Service implements CRUD<machineryRental>{
 
     }
 
+    public boolean deleteById(int id) {
+        if (!repo.existsById(id)) {
+            return false;
+        }
+        try {
+            repo.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            // loguealo si querés: e.printStackTrace();
+            return false;
+        }
+    }
+
     @Override
     public List<machineryRental> getAll() {
         return repo.findAll();

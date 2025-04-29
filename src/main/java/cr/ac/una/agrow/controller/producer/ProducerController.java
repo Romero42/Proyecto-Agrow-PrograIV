@@ -22,9 +22,7 @@ public class ProducerController {
     private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @GetMapping("/list")
-    public String listProducers(
-            @RequestParam(value = "city", required = false) String city,
-            @RequestParam(value = "id_producer", required = false) Integer id,
+    public String listProducers( @RequestParam(value = "city", required = false) String city, @RequestParam(value = "id_producer", required = false) Integer id,
             Model model) {
 
         List<Producer> producers;
@@ -184,9 +182,7 @@ public class ProducerController {
     }
 
     @PostMapping("/delete")
-    public String deleteProducerButton(
-            @RequestParam("id_producer") int id,
-            RedirectAttributes redirectAttributes) {
+    public String deleteProducerButton(@RequestParam("id_producer") int id, RedirectAttributes redirectAttributes) {
 
         String resultMessage = DataProducer.deleteProducer(id);
         String[] parts = Util.arraySplit(resultMessage);
@@ -203,9 +199,7 @@ public class ProducerController {
     }
 
     @GetMapping("/information")
-    public String information(
-            @RequestParam("id_producer") int id,
-            Model model, RedirectAttributes redirectAttributes) {
+    public String information(@RequestParam("id_producer") int id, Model model, RedirectAttributes redirectAttributes) {
 
         Producer producer = DataProducer.getProducer(id);
         if (producer == null) {

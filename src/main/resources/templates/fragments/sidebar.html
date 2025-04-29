@@ -5,7 +5,7 @@
 <div th:fragment="sidebar" class="sidebar">
 
     <div class="sidebar-header">
-        <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow" />
+        <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow"/>
         <p>Crecimiento Agrícola</p>
     </div>
 
@@ -41,9 +41,16 @@
             </a>
             <!-- Enlace Maquinaria -->
             <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
-    <span class="material-symbols-outlined icon">engineering</span>
-    Maquinaria
-</a>
+                <span class="material-symbols-outlined icon">engineering</span>
+                Maquinaria
+            </a>
+
+            <!-- Enlace AlquilerMaquinaria -->
+            <a th:href="@{/rent/list}" th:classappend="${activeModule == 'machineryRental'} ? ' active' : ''">
+                <span class="material-symbols-outlined icon">key</span>
+                Alquiler Maquinaria
+            </a>
+
         </div>
     </div>
 

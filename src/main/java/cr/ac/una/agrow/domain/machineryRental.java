@@ -11,20 +11,11 @@ public class machineryRental {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id_machinaryrental;
 
-    @Column(name="renterName")
     private String renterName;
-
     private String address;
-
-    @Column(name="contactNumber")
     private String contactNumber;
-
-    @Column(name="contactNumber")
-    private LocalDate rentStartDay
-            ;
-    @Column(name="contactNumber")
+    private LocalDate rentStartDay;
     private LocalDate rentFinalDay;
-
     private int id_maquina;
 
     public machineryRental() {}

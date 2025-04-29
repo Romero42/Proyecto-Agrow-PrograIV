@@ -92,4 +92,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (flash.dataset.error) swalAgrow.fire({ title:'Error', text: flash.dataset.error, icon:'error' });
 
   }
+
+  // inicializá el picker de inicio
+  const startPicker = flatpickr("#rentStar", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
+
+// inicializá el picker de fin
+  const endPicker = flatpickr("#rentFinal", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
+
+// cada vez que el user elija rentStar, actualizá el minDate de rentFinal
+  startPicker.config.onChange.push(function(selectedDates) {
+    if (selectedDates.length) {
+      endPicker.set("minDate", selectedDates[0]);
+    }
+  });
+
+  //ventana de mensaje del tipo que se obtiene
+  function mostrarAlerta(tipo, mensaje) {
+    Swal.fire({
+      icon: tipo, // success, error, warning, info, question
+      title: mensaje,
+      confirmButtonText: 'OK'
+    });
+  }
+
+//notificacion dependiendo de los valores recibidos
+  function confirmarAction(element, mensaje, accion) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: mensaje,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        accion(element); // Ejecuta la función pasada
+      }
+    });
+  }
 });
