@@ -56,7 +56,7 @@ public class ProducerController {
         model.addAttribute("validate", validationMessage);
         model.addAttribute("activeModule", "producer");
         model.addAttribute("activePage", "list");
-        return "producers_list";
+        return "producer/producers_list";
     }
 
     @GetMapping("/form")
@@ -67,7 +67,7 @@ public class ProducerController {
         model.addAttribute("isEdit", false);
         model.addAttribute("activeModule", "producer");
         model.addAttribute("activePage", "add");
-        return "save_producer";
+        return "producer/save_producer";
     }
 
     @PostMapping("/save")
@@ -136,7 +136,7 @@ public class ProducerController {
         model.addAttribute("producer", producer);
         model.addAttribute("isEdit", true);
         model.addAttribute("activeModule", "producer");
-        return "update_producer";
+        return "producer/update_producer";
     }
 
     @PostMapping("/update")
@@ -214,7 +214,7 @@ public class ProducerController {
         }
         model.addAttribute("producer", producer);
         model.addAttribute("activeModule", "producer");
-        return "information_producer";
+        return "producer/information_producer";
     }
 
     private String validateProducerData(String name, String contact, String registrationDateStr, String type, String email, String city, String address) {
