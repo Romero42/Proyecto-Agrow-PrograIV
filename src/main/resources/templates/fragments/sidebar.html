@@ -1,52 +1,58 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<body>
+    <body>
 
-<div th:fragment="sidebar" class="sidebar">
+        <div th:fragment="sidebar" class="sidebar">
 
-    <div class="sidebar-header">
-        <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow" />
-        <p>Crecimiento Agrícola</p>
-    </div>
+            <div class="sidebar-header">
+                <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow" />
+                <p>Crecimiento Agrícola</p>
+            </div>
 
-    <!-- Sección Principal -->
-    <div class="sidebar-section">
-        <div class="sidebar-section-title">PRINCIPAL</div>
-        <div class="sidebar-menu">
-            <a th:href="@{/home}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">home</span>
-                Inicio
-            </a>
+            <!-- Sección Principal -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">PRINCIPAL</div>
+                <div class="sidebar-menu">
+                    <a th:href="@{/home}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">home</span>
+                        Inicio
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sección de Gestión -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">GESTIÓN</div>
+                <div class="sidebar-menu">
+                    <!-- Enlace Suministros -->
+                    <a th:href="@{/supplies/list}" th:classappend="${activeModule == 'supply'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">inventory_2</span>
+                        Suministros
+                    </a>
+                    <!-- Enlace Productores -->
+                    <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">agriculture</span>
+                        Productores
+                    </a>
+                    <!-- Enlace Proveedores -->
+                    <a th:href="@{/suppliers/list}" th:classappend="${activeModule == 'supplier'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">local_shipping</span>
+                        Proveedores
+                    </a>
+                    <!-- Enlace Maquinaria -->
+                    <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">engineering</span>
+                        Maquinaria
+                    </a>
+
+                    <!-- Enlace Cosechas -->
+                    <a th:href="@{/harvests/list}" th:classappend="${activeModule == 'harvests'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">agriculture</span>
+                        Cosechas
+                    </a>
+                </div>
+            </div>
+
         </div>
-    </div>
-
-    <!-- Sección de Gestión -->
-    <div class="sidebar-section">
-        <div class="sidebar-section-title">GESTIÓN</div>
-        <div class="sidebar-menu">
-            <!-- Enlace Suministros -->
-            <a th:href="@{/supplies/list}" th:classappend="${activeModule == 'supply'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">inventory_2</span>
-                Suministros
-            </a>
-            <!-- Enlace Productores -->
-            <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">agriculture</span>
-                Productores
-            </a>
-            <!-- Enlace Proveedores -->
-            <a th:href="@{/suppliers/list}" th:classappend="${activeModule == 'supplier'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">local_shipping</span>
-                Proveedores
-            </a>
-            <!-- Enlace Maquinaria -->
-            <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
-    <span class="material-symbols-outlined icon">engineering</span>
-    Maquinaria
-</a>
-        </div>
-    </div>
-
-</div>
-</body>
+    </body>
 </html>

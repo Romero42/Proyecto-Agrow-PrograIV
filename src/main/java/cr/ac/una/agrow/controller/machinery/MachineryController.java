@@ -21,8 +21,6 @@ public class MachineryController {
    
     private final MachineryDB machineryDB = new MachineryDB();
     
-    
-    
     @GetMapping("/lista")
     public String listado(Model model) {
         LinkedList<Machinery> maquinas = machineryDB.listarMachinery();

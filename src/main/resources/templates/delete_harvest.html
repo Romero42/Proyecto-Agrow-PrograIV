@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Eliminar Cosecha - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Eliminar Cosecha</h1>
+                    <p class="page-subtitle">Seleccione la cosecha que desea eliminar del sistema</p>
+                </div>
+                <a th:href="@{/harvests/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+                </a>
+            </div>
+
+            <div class="info-card" th:if="${harvestList == null || harvestList.isEmpty()}">
+                <span class="material-symbols-outlined icon">eco</span>
+                <h2>No existen Cosechas Registradas</h2>
+                <p>Para eliminar una cosecha, primero debe <a th:href="@{/harvests/form}">registrar una nueva cosecha</a>.</p>
+            </div>
+
+            <div class="table-container" th:unless="${harvestList == null || harvestList.isEmpty()}">
+                <div class="table-responsive">
+                    <table id="harvestTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Tipo</th>
+                                <th>Fecha de Cosechado</th>
+                                <th>Total (kg)</th>
+                                <th>Calidad</th>
+                                <th>Destino</th>
+                                <th>Registrado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="harvest : ${harvestList}">
+                                <td th:text="${harvest.idHarvest}"></td>
+                                <td th:text="${harvest.typeHarvest}"></td>
+                                <td th:text="${harvest.dateHarvested}"></td>
+                                <td class="numeric-display" th:text="${#numbers.formatDecimal(harvest.quantityHarvested, 1, 2, 'POINT')}"></td>
+                                <td>
+                                    <span class="status" 
+                                          th:classappend="${#strings.equals(harvest.quality, 'Premium')} ? 'status-optimo' : 
+                                                         (${#strings.equals(harvest.quality, 'Estándar')} ? '' : 'status-bajo')" 
+                                          th:text="${harvest.quality}">
+                                    </span>
+                                </td>
+                                <td th:text="${harvest.destiny}"></td>
+                                <td>
+                                    <span class="status" 
+                                          th:classappend="${harvest.registeredHarvest} ? 'status-optimo' : 'status-bajo'" 
+                                          th:text="${harvest.registeredHarvest ? 'Sí' : 'No'}">
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <form th:action="@{/harvests/delete}" method="post" class="confirm-action" data-message="¿Está seguro que desea eliminar la cosecha seleccionada?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
+                                            <input type="hidden" name="idHarvest" th:value="${harvest.idHarvest}" />
+                                            <button type="submit" class="btns delete-btns" title="Eliminar esta cosecha">
+                                                <span class="material-symbols-outlined icon">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a th:href="@{/harvests/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+                </a>
+                <a th:href="@{/home}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">home</span> Ir a Inicio
+                </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/app.js}"></script>
+    </body>
+</html>
