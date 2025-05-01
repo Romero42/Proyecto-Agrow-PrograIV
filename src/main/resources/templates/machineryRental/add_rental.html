@@ -30,45 +30,46 @@
     </div>
 
     <div th:unless="${list.isEmpty()}">
-        <form method="get" class="form-container confirm-action">
+        <form method="get" th:action="@{/rent/save}" class="form-container confirm-action" data-message="¿Confirmar y guardar nuevo productor?"
+              data-title="Confirmar Registro">
 
             <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
                 <h1 class="page-title">Registrar un alquiler</h1>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="rentName">Nombre Completo:</label>
-                <input type="text" id="rentName" class="form-input" pattern="^[a-zA-ZáéíóúÁÉÍÓÚ. ]+$"
+                <label class="form-label" for="renterName">Nombre Completo:</label>
+                <input type="text" id="renterName" name="renterName" class="form-input" pattern="^[a-zA-ZáéíóúÁÉÍÓÚ. ]+$"
                        title="Solo letras, puntos y espacios" required maxlength="50"
                        placeholder="Ej: Juan Pérez"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="address">Dirección:</label>
-                <input type="text" id="address" class="form-input" required maxlength="45"
+                <input type="text" id="address" name="address" class="form-input" required maxlength="45"
                        placeholder="Ej: Heredia, Sarapiqui, Puerto viejo"/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="contactNumber">Número de Teléfono:</label>
-                <input type="tel" id="contactNumber" class="form-input" required pattern="^[24678]\d{7}$"
+                <input type="tel" id="contactNumber" name="contactNumber" class="form-input" required pattern="^[24678]\d{7}$"
                        title="Debe iniciar en 2,4,6,7 u 8 y tener 8 dígitos numéricos" placeholder="Ej: 87654321"
                        maxlength="8"/>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="rentStar">Fecha de alquiler:</label>
-                <input type="text" id="rentStar" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
+                <label class="form-label" for="rentStartDay">Fecha de alquiler:</label>
+                <input type="text" id="rentStartDay" name="rentStartDay" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="rentFinal">Fecha final de alquiler:</label>
-                <input type="text" id="rentFinal" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
+                <label class="form-label" for="rentFinalDay">Fecha final de alquiler:</label>
+                <input type="text" id="rentFinalDay" name="rentFinalDay" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="machinery">Maquina:</label>
-                <select id="machinery" class="form-select" required>
+                <select id="machinery" name="machinery" class="form-select" required>
                     <option th:each="tempMachi : ${list}"
                             th:value="${tempMachi.id}"
                             th:text="${tempMachi.nombre}">
@@ -77,13 +78,10 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit"
-                        onclick="confirmarAction(this, '¿Desea guardar este alquiler?', validateInfo); return false;"
-                        class="btn btn-primary"><span class="material-symbols-outlined icon">save</span> Guardar
-                    alquiler
-                </button>
-                <a th:href="@{/rent/list}" class="btn btn-secondary"> <span
-                        class="material-symbols-outlined icon">cancel</span> Cancelar </a>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Guardar Alquiler </button>
+                    <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span> Cancelar </a>
+                </div>
             </div>
 
         </form>

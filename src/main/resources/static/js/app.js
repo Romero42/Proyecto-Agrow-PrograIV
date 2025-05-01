@@ -94,13 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // inicializá el picker de inicio
-  const startPicker = flatpickr("#rentStar", {
+  const startPicker = flatpickr("#rentStartDay", {
     dateFormat: "Y-m-d",
     allowInput: true
   });
 
 // inicializá el picker de fin
-  const endPicker = flatpickr("#rentFinal", {
+  const endPicker = flatpickr("#rentFinalDay", {
     dateFormat: "Y-m-d",
     allowInput: true
   });

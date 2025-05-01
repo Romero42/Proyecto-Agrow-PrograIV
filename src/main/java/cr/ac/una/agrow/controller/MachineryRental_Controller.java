@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,6 +42,21 @@ public class MachineryRental_Controller {
         return "machineryRental/list_machineryR";
     }
 
+    @GetMapping("save")
+    public String saveR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
+                       @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
+                       @RequestParam int machinery){
+
+        if(service.save(new machineryRental(renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
+
+            redirectAttributes.addFlashAttribute("mensaje", "Se agrego el alquiler");
+        }else{
+            redirectAttributes.addFlashAttribute("error", "No se pudo agregar el alquiler");
+        }
+
+        return "redirect:/rent/list";
+    }
+
     @GetMapping("saveView")
     public String saveView(Model model){
 
@@ -52,7 +68,7 @@ public class MachineryRental_Controller {
     }
 
     @GetMapping("delete")
-    public String delete(@RequestParam int id_machinaryrental, RedirectAttributes redirectAttributes){
+    public String deleteR(@RequestParam int id_machinaryrental, RedirectAttributes redirectAttributes){
 
         if(service.deleteById(id_machinaryrental)) {
 
@@ -65,4 +81,39 @@ public class MachineryRental_Controller {
         return "redirect:/rent/list";
     }
 
+    @GetMapping("view")
+    public String view(@RequestParam int id_machinaryrental, Model model){
+
+        model.addAttribute("activeModule", "machineryRental");
+        model.addAttribute("machinery", service.getById(id_machinaryrental));
+
+        return "machineryRental/view_machineryR";
+    }
+
+    @GetMapping("edit")
+    public String editR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
+                       @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
+                       @RequestParam int machinery, @RequestParam int id_machinaryrental, @RequestParam int id_maquina){
+
+        if(service.update(new machineryRental(id_machinaryrental, renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
+
+            redirectAttributes.addFlashAttribute("mensaje", "Se actualizo el alquiler");
+        }else{
+            redirectAttributes.addFlashAttribute("error", "No se pudo actualizar el alquiler");
+        }
+
+        return "redirect:/rent/list";
+    }
+
+    @GetMapping("editView")
+    public String editView(Model model, int id_machinaryrental){
+
+        LinkedList<Machinery> maquinas = machineryDB.listarMachinery();
+
+        model.addAttribute("machinery", service.getById(id_machinaryrental));
+        model.addAttribute("activeModule", "machineryRental");
+        model.addAttribute("list", maquinas);
+
+        return "machineryRental/update_machineryR";
+    }
 }

@@ -94,4 +94,17 @@ public class machineryRental {
     public void setId_maquina(int id_maquina) {
         this.id_maquina = id_maquina;
     }
+
+    @Override
+    public String toString() {
+        return "machineryRental{" +
+                "id_machinaryrental=" + id_machinaryrental +
+                ", renterName='" + renterName + '\'' +
+                ", address='" + address + '\'' +
+                ", contactNumber='" + contactNumber + '\'' +
+                ", rentStartDay=" + rentStartDay +
+                ", rentFinalDay=" + rentFinalDay +
+                ", id_maquina=" + id_maquina +
+                '}';
+    }
 }

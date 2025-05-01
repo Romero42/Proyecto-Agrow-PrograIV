@@ -3,6 +3,7 @@ package cr.ac.una.agrow.service;
 import cr.ac.una.agrow.domain.machineryRental;
 import cr.ac.una.agrow.jpa.machineryR_repository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,13 @@ public class machineryR_Service implements CRUD<machineryRental>{
 
 
     @Override
-    public void save(machineryRental machineryRental) {
+    public boolean save(machineryRental machineryRental) {
+        try {
+            repo.save(machineryRental);
+            return true;
+        } catch (DataAccessException ex) {
+            return false;
+        }
 
     }
 
@@ -32,7 +39,7 @@ public class machineryR_Service implements CRUD<machineryRental>{
             repo.deleteById(id);
             return true;
         } catch (Exception e) {
-            // loguealo si querés: e.printStackTrace();
+
             return false;
         }
     }
@@ -43,7 +50,13 @@ public class machineryR_Service implements CRUD<machineryRental>{
     }
 
     @Override
-    public machineryRental getById(int i) {
-        return null;
+    public machineryRental getById(int id) {
+        return repo.findById(id).orElse(null);
     }
+
+    public boolean update(machineryRental machineryRental){
+
+        return save(machineryRental);
+    }
+
 }
