@@ -1,46 +1,38 @@
 package cr.ac.una.agrow.controller.harvest;
 
-import cr.ac.una.agrow.data.harvest.HarvestData;
 import cr.ac.una.agrow.domain.harvest.Harvest;
-import java.time.LocalDate;
-import java.util.LinkedList;
+import cr.ac.una.agrow.service.harvest.HarvestService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.time.LocalDate;
+import java.util.List;
 
 @Controller
+@RequestMapping("/harvests")
 public class HarvestController {
 
-    private HarvestData data;
+    @Autowired
+    private HarvestService service;
+
     private int currentId;
 
-    public HarvestController() {
-        this.data = new HarvestData();
-    }
-
-    @GetMapping("/harvests/form")
-    public String formHarvest(Model model) {
+    @GetMapping("/form")
+    public String formHarvest() {
         return "form_harvest";
     }
 
-    @GetMapping("/harvests/edit")
+    @GetMapping("/edit")
     public String editHarvest(@RequestParam("idHarvest") int id, Model model) {
-        setCurrentId(id);
+        this.currentId = id;
+        Harvest harvest = service.getById(id);
+        model.addAttribute("harvest", harvest);
         return "edit_harvest";
     }
 
-    public void setCurrentId(int currentId) {
-        this.currentId = currentId;
-    }
-
-    public int getCurrentId() {
-        return this.currentId;
-    }
-
-    @PostMapping("/harvests/update")
+    @PostMapping("/update")
     public String updateHarvest(
             @RequestParam("typeC") String type,
             @RequestParam("dateC") LocalDate date,
@@ -52,69 +44,60 @@ public class HarvestController {
 
         if (!totalStr.matches("\\d+")) {
             redirectAttributes.addFlashAttribute("error", "El campo 'Total' debe contener solo números.");
-            return "redirect:/harvests/edit?idHarvest=" + getCurrentId();
+            return "redirect:/harvests/edit?idHarvest=" + currentId;
         }
-
-        int total = Integer.parseInt(totalStr);
 
         if (date.isAfter(LocalDate.now())) {
             redirectAttributes.addFlashAttribute("error", "La fecha no puede ser en el futuro.");
-            return "redirect:/harvests/edit?idHarvest=" + getCurrentId();
+            return "redirect:/harvests/edit?idHarvest=" + currentId;
         }
 
         if (type.length() > 50 || description.length() > 250) {
-            redirectAttributes.addFlashAttribute("error", "El tipo de cultivo no debe superar 50 caracteres y la descripción 250 caracteres.");
-            return "redirect:/harvests/edit?idHarvest=" + getCurrentId();
+            redirectAttributes.addFlashAttribute("error", "Tipo máx. 50 caracteres y descripción máx. 250.");
+            return "redirect:/harvests/edit?idHarvest=" + currentId;
         }
 
-        data.updateHarvest(currentId, type, date, total, quality, destiny, true, description);
+        Harvest harvest = service.getById(currentId);
+        harvest.setTypeHarvest(type);
+        harvest.setDateHarvested(date);
+        harvest.setQuantityHarvested(Integer.parseInt(totalStr));
+        harvest.setDescription(description);
+        harvest.setQuality(quality);
+        harvest.setDestiny(destiny);
+        harvest.setRegisteredHarvest(true);
+
+        service.save(harvest);
 
         return "redirect:/harvests/list";
     }
 
-    @GetMapping("/harvests/list")
+    @GetMapping("/list")
     public String listHarvests(Model model,
             @RequestParam(value = "stateC", required = false) String state,
             @RequestParam(value = "destinyC", required = false) String destiny) {
 
-        LinkedList<Harvest> harvestList = data.getHarvested();
+        List<Harvest> harvestList = service.getAll();
 
         if (state != null && !state.isEmpty()) {
-            harvestList = data.getHarvestedByQuality(state);
-        }
-
-        if (destiny != null && !destiny.isEmpty()) {
-            harvestList = data.getHarvestedByDestiny(destiny);
+            harvestList = service.getHarvestByQuality(state);
+        } else if (destiny != null && !destiny.isEmpty()) {
+            harvestList = service.getHarvestByDestiny(destiny);
+        } else {
+            harvestList = service.getAll();
         }
 
         model.addAttribute("harvestList", harvestList);
-        model.addAttribute("activeModule", "harvests");
-
         return "list_harvest";
     }
 
-    @PostMapping("/harvests/delete")
+    @PostMapping("/delete")
     public String deleteHarvest(@RequestParam("idHarvest") int idHarvest, RedirectAttributes redirectAttributes) {
-        boolean deleted = data.deleteHarvestById(idHarvest);
-
-        if (deleted) {
-            redirectAttributes.addFlashAttribute("mensaje", "Cosecha eliminada exitosamente.");
-        } else {
-            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar la cosecha.");
-        }
-
+        service.delete(idHarvest);
+        redirectAttributes.addFlashAttribute("mensaje", "Cosecha eliminada exitosamente.");
         return "redirect:/harvests/list";
     }
 
-    /*
-    @GetMapping("/harvests/view")
-    public String viewHarvest(@RequestParam("idHarvest") int idHarvest, Model model) {
-        Harvest harvest = data.getHarvestById(idHarvest);
-        model.addAttribute("harvest", harvest);
-        return "view_harvest";
-    }*/
-
-    @PostMapping("/harvests/save")
+    @PostMapping("/save")
     public String saveHarvest(
             @RequestParam("typeC") String type,
             @RequestParam("dateC") LocalDate date,
@@ -135,13 +118,20 @@ public class HarvestController {
         }
 
         if (type.length() > 50 || description.length() > 250 || destiny.length() > 100) {
-            redirectAttributes.addFlashAttribute("error", "Tipo máximo 50 caracteres, Descripción 250, Destino 100.");
+            redirectAttributes.addFlashAttribute("error", "Tipo máx. 50, descripción máx. 250, destino máx. 100.");
             return "redirect:/harvests/form";
         }
 
-        int total = Integer.parseInt(totalStr);
+        Harvest harvest = new Harvest();
+        harvest.setTypeHarvest(type);
+        harvest.setDateHarvested(date);
+        harvest.setQuantityHarvested(Integer.parseInt(totalStr));
+        harvest.setDescription(description);
+        harvest.setQuality(quality);
+        harvest.setDestiny(destiny);
+        harvest.setRegisteredHarvest(true);
 
-        data.saveHarvestInDb(type, date, total, quality, destiny, true, description);
+        service.save(harvest);
 
         redirectAttributes.addFlashAttribute("mensaje", "Cosecha registrada correctamente.");
         return "redirect:/harvests/form";

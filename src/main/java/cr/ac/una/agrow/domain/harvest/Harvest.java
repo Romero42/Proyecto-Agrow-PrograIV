@@ -5,14 +5,39 @@
 package cr.ac.una.agrow.domain.harvest;
 
 import java.time.LocalDate;
-
+import jakarta.persistence.*;
 /**
  *
  * @author miste
  */
+
+@Entity
+@NamedStoredProcedureQueries({
+    @NamedStoredProcedureQuery(
+        name = "Harvest.getByQuality",
+        procedureName = "sp_getHarvestByQuality",
+        resultClasses = Harvest.class,
+        parameters = {
+            @StoredProcedureParameter(mode = ParameterMode.IN, name = "harvestQuality", type = String.class)
+        }
+    ),
+    @NamedStoredProcedureQuery(
+        name = "Harvest.getByDestiny",
+        procedureName = "sp_getHarvestByDestiny",
+        resultClasses = Harvest.class,
+        parameters = {
+            @StoredProcedureParameter(mode = ParameterMode.IN, name = "destiny", type = String.class)
+        }
+    )
+})
+@Table(name = "tb_harvest")
 public class Harvest {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int idHarvest;
+
     private String typeHarvest;
     private LocalDate dateHarvested;
     private int quantityHarvested;
@@ -39,7 +64,7 @@ public class Harvest {
         return idHarvest;
     }
 
-    public void setIdHarvest(int idHarvest) {
+    public void setIdHarvest(int id) {
         this.idHarvest = idHarvest;
     }
 

@@ -27,10 +27,12 @@
             <div class="form-container">
                 <form th:action="@{/harvests/update}" method="post" id="editHarvestForm">
                     <input type="hidden" id="idHarvest" name="idHarvest" th:value="${harvest != null ? harvest.idHarvest : ''}" />
-                    
+
                     <div class="form-group">
                         <label for="typeC" class="form-label">Tipo Cosecha</label>
-                        <input type="text" class="form-input" id="totalC" name="typeC" min="0" max="20" required>
+                        <input type="text" class="form-input" id="typeC" name="typeC"
+                               th:value="${harvest != null ? harvest.typeHarvest : ''}" 
+                               maxlength="20" required>
                     </div>
 
                     <div class="form-group">

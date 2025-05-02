@@ -68,6 +68,7 @@
                     </div>
                 </form>
             </div>
+            <!-- FIN NUEVOS FILTROS -->
 
             <div id="harvest-list-content">
                 <div class="info-card" th:if="${harvestList == null or harvestList.isEmpty()}">
@@ -113,6 +114,7 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons">
+                                            
                                             <a th:href="@{/harvests/edit(idHarvest=${tempList.idHarvest})}" class="btns edit-btns" title="Editar">
                                                 <span class="material-symbols-outlined icon">edit</span>
                                             </a>
