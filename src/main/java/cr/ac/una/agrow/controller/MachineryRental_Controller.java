@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,6 +50,7 @@ public class MachineryRental_Controller {
 
         if(service.save(new machineryRental(renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
 
+            updateStatusMachine(machinery, false);
             redirectAttributes.addFlashAttribute("mensaje", "Se agrego el alquiler");
         }else{
             redirectAttributes.addFlashAttribute("error", "No se pudo agregar el alquiler");
@@ -60,7 +62,8 @@ public class MachineryRental_Controller {
     @GetMapping("saveView")
     public String saveView(Model model){
 
-        LinkedList<Machinery> maquinas = machineryDB.listarMachinery();
+        LinkedList<Machinery> maquinas = machineryDB.filtrarPorDisponibilidad(true);
+
 
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("list", maquinas);
@@ -68,14 +71,15 @@ public class MachineryRental_Controller {
     }
 
     @GetMapping("delete")
-    public String deleteR(@RequestParam int id_machinaryrental, RedirectAttributes redirectAttributes){
+    public String deleteR(@RequestParam int id_machinaryrental, @RequestParam int id_maquina, RedirectAttributes redirectAttributes){
 
         if(service.deleteById(id_machinaryrental)) {
 
+            updateStatusMachine(id_maquina, true);
             redirectAttributes.addFlashAttribute("mensaje", "El proceso fue exitoso");
         }else {
 
-            redirectAttributes.addFlashAttribute("mensaje", "El proceso no fallo");
+            redirectAttributes.addFlashAttribute("error", "El proceso fallo");
         }
 
         return "redirect:/rent/list";
@@ -97,6 +101,12 @@ public class MachineryRental_Controller {
 
         if(service.update(new machineryRental(id_machinaryrental, renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
 
+            if(id_maquina != machinery){
+                System.out.println("updateMa "+id_maquina);
+                updateStatusMachine(id_maquina, true);
+                updateStatusMachine(machinery, false);
+            }
+
             redirectAttributes.addFlashAttribute("mensaje", "Se actualizo el alquiler");
         }else{
             redirectAttributes.addFlashAttribute("error", "No se pudo actualizar el alquiler");
@@ -106,14 +116,69 @@ public class MachineryRental_Controller {
     }
 
     @GetMapping("editView")
-    public String editView(Model model, int id_machinaryrental){
+    public String editView(Model model, int id_machinaryrental, int id_maquina){
 
-        LinkedList<Machinery> maquinas = machineryDB.listarMachinery();
+        LinkedList<Machinery> maquinas = machineryDB.filtrarPorDisponibilidad(true);
+        maquinas.add(machineryDB.obtenerMachineryPorId(id_maquina));
 
         model.addAttribute("machinery", service.getById(id_machinaryrental));
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("list", maquinas);
 
         return "machineryRental/update_machineryR";
+    }
+
+    @GetMapping("tableFilter")
+    public String tableFilters(Model model, @RequestParam(required = false) LocalDate rentStartDay,
+                               @RequestParam(required = false) LocalDate rentFinalDay, @RequestParam(required = false) Integer id_maquina){
+
+        List<machineryRental> list = new ArrayList<>();
+        String message = null;
+
+        if(rentStartDay != null && rentFinalDay == null){
+
+            list = service.dateRangeByStart(rentStartDay);
+
+        }else if(rentStartDay != null && rentFinalDay != null){
+
+            list = service.dateRange(rentStartDay, rentFinalDay);
+        }else if(rentStartDay == null && rentFinalDay != null){
+
+            list = service.dateRangeByFinal(rentFinalDay);
+        }
+
+        if(id_maquina != null){
+
+            list.add(service.findByIdMaquina(id_maquina));
+        }
+
+        if(list.get(0) == null){
+            list.clear();
+            message = "No se puede listar alquileres";
+        }
+
+        model.addAttribute("activeModule", "machineryRental");
+        model.addAttribute("validate", message);
+        model.addAttribute("rents", list);
+
+        return "machineryRental/table_machineryR";
+    }
+
+    @GetMapping("viewMaquina")
+    public String viewMaquinaA(Model model, @RequestParam int id_maquina){
+        Machinery m = machineryDB.obtenerMachineryPorId(id_maquina);
+
+        model.addAttribute("maquina", m);
+        model.addAttribute("rental", true);
+        model.addAttribute("titulo", "Detalles de la Máquina: " + m.getNombre());
+
+        return "machinery/detail_machinery";
+    }
+
+    public void updateStatusMachine(int id_machinery, boolean status){
+
+        Machinery m = machineryDB.obtenerMachineryPorId(id_machinery);
+        m.setDisponibilidad(status);
+        machineryDB.actualizarMachinery(m);
     }
 }

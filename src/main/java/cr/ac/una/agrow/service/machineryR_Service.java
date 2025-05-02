@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -58,5 +59,25 @@ public class machineryR_Service implements CRUD<machineryRental>{
 
         return save(machineryRental);
     }
+
+    public List<machineryRental> dateRange(LocalDate start, LocalDate end) {
+
+        return repo.findByRentStartDayBetween(start, end);
+    }
+
+    public List<machineryRental> dateRangeByStart(LocalDate start) {
+
+        return repo.findByRentStartDayGreaterThanEqual(start);
+    }
+
+    public List<machineryRental> dateRangeByFinal(LocalDate end) {
+
+        return repo.findByRentFinalDayLessThanEqual(end);
+    }
+
+    public machineryRental findByIdMaquina(Integer id_maquina) {
+        return repo.findFirstByIdMaquina(id_maquina).orElse(null);
+    }
+
 
 }

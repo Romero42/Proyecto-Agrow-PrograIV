@@ -36,7 +36,6 @@
             <tr><td>Inicio alquiler:</td><td th:text="*{rentStartDay}"></td></tr>
             <tr><td>Final del alquiler:</td><td th:text="*{rentFinalDay}"></td></tr>
             <tr><td>Maquina:</td><td th:text="*{id_maquina}"></td></tr>
-
         </table>
 
         <div class="detail-actions">
@@ -45,6 +44,7 @@
             </a>
             <form th:action="@{/rent/delete}" method="get" class="confirm-action" data-message="¿Eliminar el alquiler?" data-title="Confirmar Eliminación">
                 <input type="hidden" name="id_machinaryrental" th:value="*{id_machinaryrental}" />
+                <input type="hidden" name="id_maquina" th:value="*{id_maquina}"/>
                 <button type="submit" class="btn btn-danger">
                     <span class="material-symbols-outlined icon">delete</span> Eliminar
                 </button>
