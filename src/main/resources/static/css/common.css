@@ -437,3 +437,41 @@ body {
 .detail-table td:last-child {
     text-align: left !important; /* Forzar que esté siempre alineado a la izquierda */
 }
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination ul {
+    list-style: none;
+    display: inline-flex;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.pagination ul li a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #007bff;
+    border-right: 1px solid #ddd;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pagination ul li:last-child a {
+    border-right: none;
+}
+
+.pagination ul li a:hover {
+    background-color: #e6f4ea;
+    color: #2e7d32; /* verde oscuro */
+}
+
+.pagination ul li a.active {
+    background-color: #4CAF50; /* verde */
+    color: white;
+    font-weight: bold;
+}

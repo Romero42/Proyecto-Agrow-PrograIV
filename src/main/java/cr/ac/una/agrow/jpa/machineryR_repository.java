@@ -1,6 +1,8 @@
 package cr.ac.una.agrow.jpa;
 
 import cr.ac.una.agrow.domain.machineryRental;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,7 @@ public interface machineryR_repository extends JpaRepository<machineryRental, In
     List<machineryRental> findByRentStartDayBetween(LocalDate start, LocalDate end);
     List<machineryRental> findByRentStartDayGreaterThanEqual(LocalDate start);
     List<machineryRental> findByRentFinalDayLessThanEqual(LocalDate end);
+    Page<machineryRental> findAll(Pageable pageable);
 
     @Query(
             value       = "SELECT * FROM machinaryrental WHERE id_maquina = :idMaquina",

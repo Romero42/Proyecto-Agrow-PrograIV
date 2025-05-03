@@ -5,6 +5,9 @@ import cr.ac.una.agrow.domain.machineryRental;
 import cr.ac.una.agrow.service.machinery.MachineryDB;
 import cr.ac.una.agrow.service.machineryR_Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,18 +32,44 @@ public class MachineryRental_Controller {
     @GetMapping("list")
     public String listadoAlquiler(Model model){
 
-        List<machineryRental> rents = service.getAll();
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<machineryRental> rentsPage = service.getAllPaginated(pageable);
+
         String message = null;
 
-        if(rents.isEmpty()){
+        if(rentsPage.isEmpty()){
             message = "No se puede listar alquileres";
         }
 
         model.addAttribute("validate", message);
         model.addAttribute("activeModule", "machineryRental");
-        model.addAttribute("rents",rents);
+       // model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", rentsPage.getTotalPages());
+        model.addAttribute("rents",rentsPage.getContent());
 
         return "machineryRental/list_machineryR";
+    }
+
+    @GetMapping("pageCurrent")
+    public String pageCurrent(Model model, @RequestParam(defaultValue = "0") int page){
+
+        System.out.println("pageC  "+ page);
+        Pageable pageable = PageRequest.of(page, 5);
+        Page<machineryRental> rentsPage = service.getAllPaginated(pageable);
+
+        String message = null;
+
+        if(rentsPage.isEmpty()){
+            message = "No se puede listar alquileres";
+        }
+
+        model.addAttribute("validate", message);
+        model.addAttribute("activeModule", "machineryRental");
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", rentsPage.getTotalPages());
+        model.addAttribute("rents",rentsPage.getContent());
+
+        return "machineryRental/table_machineryR";
     }
 
     @GetMapping("save")

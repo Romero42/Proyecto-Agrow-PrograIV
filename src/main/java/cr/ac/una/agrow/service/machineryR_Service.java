@@ -4,6 +4,8 @@ import cr.ac.una.agrow.domain.machineryRental;
 import cr.ac.una.agrow.jpa.machineryR_repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -77,6 +79,10 @@ public class machineryR_Service implements CRUD<machineryRental>{
 
     public machineryRental findByIdMaquina(Integer id_maquina) {
         return repo.findFirstByIdMaquina(id_maquina).orElse(null);
+    }
+
+    public Page<machineryRental> getAllPaginated(Pageable pageable) {
+        return repo.findAll(pageable);
     }
 
 

@@ -216,7 +216,6 @@ function filterRent() {
 }
 
 //ver informacion de una maquina en alquiler
-
 function viewMaquina(element){
 
     var maquinaInfo = document.getElementById("infoMaquina");
@@ -232,6 +231,29 @@ function viewMaquina(element){
     };
 
     xhttp.open("GET", "/rent/viewMaquina?id_maquina=" + id_maquina, true);
+    xhttp.send();
+}
+
+function cerrarInfoMaquina() {
+    document.getElementById("infoMaquina").innerHTML = "";
+}
+
+//actualizar paginacion en listAlquiler
+function pageRent(element){
+
+    var tableCurrent = document.getElementById("tableData");
+    var currentPage = element.getAttribute('data-page');
+
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+            tableCurrent.innerHTML = this.responseText;
+        }
+    };
+
+    xhttp.open("GET", "/rent/pageCurrent?page=" + currentPage, true);
     xhttp.send();
 }
 
