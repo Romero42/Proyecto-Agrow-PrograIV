@@ -1,7 +1,9 @@
 package cr.ac.una.agrow.controller.harvest;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
+import cr.ac.una.agrow.domain.producer.Producer;
 import cr.ac.una.agrow.service.harvest.HarvestService;
+import cr.ac.una.agrow.service.producer.ProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +19,18 @@ public class HarvestController {
     @Autowired
     private HarvestService service;
 
+    private ProducerService producerService;
     private int currentId;
+    
+    public HarvestController(){
+        this.producerService = new ProducerService();
+    }
 
     @GetMapping("/form")
-    public String formHarvest() {
+    public String formHarvest(Model model) {
+        List<Producer> prodList = producerService.getAllProducers();
+
+        model.addAttribute("producers", prodList);
         return "form_harvest";
     }
 
@@ -28,6 +38,9 @@ public class HarvestController {
     public String editHarvest(@RequestParam("idHarvest") int id, Model model) {
         this.currentId = id;
         Harvest harvest = service.getById(id);
+        List<Producer> prodList = producerService.getAllProducers();
+
+        model.addAttribute("producers", prodList);
         model.addAttribute("harvest", harvest);
         return "edit_harvest";
     }
@@ -40,6 +53,7 @@ public class HarvestController {
             @RequestParam("descriptionC") String description,
             @RequestParam("stateC") String quality,
             @RequestParam("destinyC") String destiny,
+            @RequestParam("producerId") int codeProd,
             RedirectAttributes redirectAttributes) {
 
         if (!totalStr.matches("\\d+")) {
@@ -65,6 +79,7 @@ public class HarvestController {
         harvest.setQuality(quality);
         harvest.setDestiny(destiny);
         harvest.setRegisteredHarvest(true);
+        harvest.setId_producer(codeProd);
 
         service.save(harvest);
 
@@ -105,6 +120,7 @@ public class HarvestController {
             @RequestParam("descriptionC") String description,
             @RequestParam("stateC") String quality,
             @RequestParam("destinyC") String destiny,
+            @RequestParam("producerId") String codeProd,
             RedirectAttributes redirectAttributes) {
 
         if (!totalStr.matches("\\d+")) {
@@ -130,7 +146,8 @@ public class HarvestController {
         harvest.setQuality(quality);
         harvest.setDestiny(destiny);
         harvest.setRegisteredHarvest(true);
-
+        harvest.setId_producer(Integer.parseInt(codeProd));
+        
         service.save(harvest);
 
         redirectAttributes.addFlashAttribute("mensaje", "Cosecha registrada correctamente.");

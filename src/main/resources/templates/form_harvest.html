@@ -19,14 +19,11 @@
                     <h1 class="page-title">Registrar Cosecha</h1>
                     <p class="page-subtitle">Ingresa los detalles de la nueva cosecha</p>
                 </div>
-                <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
-                </a>
             </div>
 
             <div class="form-container">
                 <form th:action="@{/harvests/save}" method="post" id="registerHarvestForm">
-                    
+
                     <div class="form-group">
                         <label for="typeC" class="form-label">Tipo Cosecha</label>
                         <input type="text" class="form-input" id="totalC" name="typeC" min="0" max="20" required>
@@ -53,6 +50,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="producerId" class="form-label">Productor</label>
+                        <select class="form-select" id="producerId" name="producerId" required>
+                            <option value="" selected disabled>Seleccione un productor</option>
+                            <th:block th:each="prod : ${producers}">
+                                <option th:value="${prod.id_producer}" th:text="${prod.producerName}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="destinyC" class="form-label">Destino</label>
                         <input type="text" class="form-input" id="destinyC" name="destinyC" maxlength="100" required>
                     </div>
@@ -71,12 +78,6 @@
                         </a>
                     </div>
                 </form>
-            </div>
-
-            <div style="margin-top: 20px;">
-                <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
-                </a>
             </div>
         </div>
 

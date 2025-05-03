@@ -4,6 +4,7 @@
  */
 package cr.ac.una.agrow.domain.harvest;
 
+import cr.ac.una.agrow.domain.producer.Producer;
 import java.time.LocalDate;
 import jakarta.persistence.*;
 /**
@@ -45,11 +46,12 @@ public class Harvest {
     private String destiny;
     private boolean registeredHarvest;
     private String description;
+    private int id_producer;
 
     public Harvest() {
     }
 
-    public Harvest(int idHarvest, String typeHarvest, LocalDate dateHarvested, int quantityHarvested, String quality, String destiny, Boolean registeredHarvest, String description) {
+    public Harvest(int idHarvest, String typeHarvest, LocalDate dateHarvested, int quantityHarvested, String quality, String destiny, boolean registeredHarvest, String description, int id_producer) {
         this.idHarvest = idHarvest;
         this.typeHarvest = typeHarvest;
         this.dateHarvested = dateHarvested;
@@ -58,6 +60,15 @@ public class Harvest {
         this.destiny = destiny;
         this.registeredHarvest = registeredHarvest;
         this.description = description;
+        this.id_producer = id_producer;
+    }
+
+    public int getId_producer() {
+        return id_producer;
+    }
+
+    public void setId_producer(int id_producer) {
+        this.id_producer = id_producer;
     }
 
     public int getIdHarvest() {
