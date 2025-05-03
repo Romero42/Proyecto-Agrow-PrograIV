@@ -13,9 +13,9 @@ import java.util.Optional;
 
 public interface machineryR_repository extends JpaRepository<machineryRental, Integer> {
 
-    List<machineryRental> findByRentStartDayBetween(LocalDate start, LocalDate end);
-    List<machineryRental> findByRentStartDayGreaterThanEqual(LocalDate start);
-    List<machineryRental> findByRentFinalDayLessThanEqual(LocalDate end);
+    Page<machineryRental> findByRentStartDayBetween(LocalDate start, LocalDate end, Pageable pageable);
+    Page<machineryRental> findByRentStartDayGreaterThanEqual(LocalDate start, Pageable pageable);
+    Page<machineryRental> findByRentFinalDayLessThanEqual(LocalDate end, Pageable pageable);
     Page<machineryRental> findAll(Pageable pageable);
 
     @Query(

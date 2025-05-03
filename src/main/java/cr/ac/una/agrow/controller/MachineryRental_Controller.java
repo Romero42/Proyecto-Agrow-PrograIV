@@ -29,6 +29,7 @@ public class MachineryRental_Controller {
     @Autowired
     private machineryR_Service service;
 
+    //manda la pagina con los datos de la base de datos a la vista
     @GetMapping("list")
     public String listadoAlquiler(Model model){
 
@@ -43,17 +44,16 @@ public class MachineryRental_Controller {
 
         model.addAttribute("validate", message);
         model.addAttribute("activeModule", "machineryRental");
-       // model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", rentsPage.getTotalPages());
         model.addAttribute("rents",rentsPage.getContent());
 
         return "machineryRental/list_machineryR";
     }
 
+    //actualiza la pagina con los nuevos datos de la pagina seleccionada
     @GetMapping("pageCurrent")
     public String pageCurrent(Model model, @RequestParam(defaultValue = "0") int page){
 
-        System.out.println("pageC  "+ page);
         Pageable pageable = PageRequest.of(page, 5);
         Page<machineryRental> rentsPage = service.getAllPaginated(pageable);
 
@@ -64,6 +64,7 @@ public class MachineryRental_Controller {
         }
 
         model.addAttribute("validate", message);
+        model.addAttribute("useFilter", false);
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", rentsPage.getTotalPages());
@@ -72,6 +73,7 @@ public class MachineryRental_Controller {
         return "machineryRental/table_machineryR";
     }
 
+    //guarda un alquiler y actualiza el estado de la maquina que se eligio
     @GetMapping("save")
     public String saveR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
                        @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
@@ -88,6 +90,7 @@ public class MachineryRental_Controller {
         return "redirect:/rent/list";
     }
 
+    //envia los datos de las maquinas disponibles a la vista de agregar
     @GetMapping("saveView")
     public String saveView(Model model){
 
@@ -99,6 +102,7 @@ public class MachineryRental_Controller {
         return "machineryRental/add_rental";
     }
 
+    //borra un aluiler y actualiza el estado de la maquina
     @GetMapping("delete")
     public String deleteR(@RequestParam int id_machinaryrental, @RequestParam int id_maquina, RedirectAttributes redirectAttributes){
 
@@ -114,6 +118,7 @@ public class MachineryRental_Controller {
         return "redirect:/rent/list";
     }
 
+    //envia a la vista de informacion de un alquiler
     @GetMapping("view")
     public String view(@RequestParam int id_machinaryrental, Model model){
 
@@ -123,6 +128,7 @@ public class MachineryRental_Controller {
         return "machineryRental/view_machineryR";
     }
 
+    //edita un alquiler en la bd y se actualiza el estado de la maquina si se elige otra
     @GetMapping("edit")
     public String editR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
                        @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
@@ -144,6 +150,7 @@ public class MachineryRental_Controller {
         return "redirect:/rent/list";
     }
 
+    //envia y carga las maquinas disponible en la vista de actualizar
     @GetMapping("editView")
     public String editView(Model model, int id_machinaryrental, int id_maquina){
 
@@ -157,42 +164,62 @@ public class MachineryRental_Controller {
         return "machineryRental/update_machineryR";
     }
 
+    //se envia una pagina dependiendo de el filtro solicitado
     @GetMapping("tableFilter")
     public String tableFilters(Model model, @RequestParam(required = false) LocalDate rentStartDay,
-                               @RequestParam(required = false) LocalDate rentFinalDay, @RequestParam(required = false) Integer id_maquina){
+                               @RequestParam(required = false) LocalDate rentFinalDay,
+                               @RequestParam(required = false) Integer id_maquina, @RequestParam(defaultValue = "0") int page){
 
-        List<machineryRental> list = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page, 5);
+        Page<machineryRental> rentsPage = null;
         String message = null;
+        List<machineryRental> machinery = new ArrayList<>();
 
         if(rentStartDay != null && rentFinalDay == null){
 
-            list = service.dateRangeByStart(rentStartDay);
+            rentsPage = service.dateRangeByStart(rentStartDay, pageable);
 
         }else if(rentStartDay != null && rentFinalDay != null){
 
-            list = service.dateRange(rentStartDay, rentFinalDay);
+            rentsPage = service.dateRange(rentStartDay, rentFinalDay, pageable);
         }else if(rentStartDay == null && rentFinalDay != null){
 
-            list = service.dateRangeByFinal(rentFinalDay);
+            rentsPage = service.dateRangeByFinal(rentFinalDay, pageable);
         }
 
-        if(id_maquina != null){
+        if (id_maquina != null) {
+            machineryRental rent = service.findByIdMaquina(id_maquina);
 
-            list.add(service.findByIdMaquina(id_maquina));
-        }
+            if (rent == null) {
 
-        if(list.get(0) == null){
-            list.clear();
-            message = "No se puede listar alquileres";
+                message = "No se encontró alquiler con ese código";
+                model.addAttribute("rents", null);
+            } else {
+
+                machinery.add(rent);
+                model.addAttribute("rents", machinery);
+            }
+
+        } else if (rentsPage == null || rentsPage.isEmpty()) {
+
+            message = "No se encontraron alquileres con los filtros aplicados";
+            model.addAttribute("rents", null);
+        } else {
+
+            model.addAttribute("rents", rentsPage.getContent());
+            model.addAttribute("totalPages", rentsPage.getTotalPages());
+            model.addAttribute("useFilter", true);
+            model.addAttribute("pag", true);
         }
 
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("validate", message);
-        model.addAttribute("rents", list);
+        model.addAttribute("currentPage", page);
 
         return "machineryRental/table_machineryR";
     }
 
+    //envia los datos de la maquina solicitada
     @GetMapping("viewMaquina")
     public String viewMaquinaA(Model model, @RequestParam int id_maquina){
         Machinery m = machineryDB.obtenerMachineryPorId(id_maquina);
@@ -204,6 +231,7 @@ public class MachineryRental_Controller {
         return "machinery/detail_machinery";
     }
 
+    //actualiza el estado de una maquina en la bd
     public void updateStatusMachine(int id_machinery, boolean status){
 
         Machinery m = machineryDB.obtenerMachineryPorId(id_machinery);

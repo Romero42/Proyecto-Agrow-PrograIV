@@ -1,4 +1,7 @@
-<div class="info-card" th:if="${validate != null}">
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div class="info-card" th:if="${validate != null}" xmlns:th="http://www.w3.org/1999/xhtml">
     <span class="material-symbols-outlined icon">info</span>
     <h2 th:text="${validate}">No hay maquinaria en alquiler</h2>
     <p>Intenta con otros filtros o <a th:href="@{/rent/saveView}">agrega nuevo alquiler</a>.</p>
@@ -54,15 +57,17 @@
     </div>
 </div>
 
-<div class="pagination" th:unless="${rents.isEmpty()}">
+<div th:if="${pag}">
+<div class="pagination" th:unless="${rents == null || rents.isEmpty()}">
     <ul>
         <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
             <a th:href="'#'"
-               onclick="pageRent(this); return false;"
+               th:onclick="${useFilter} ? 'filterRent(this); return false;' : 'pageRent(this); return false;'"
                th:attr="data-page=${i}"
                th:text="${i + 1}"
                th:classappend="${i == currentPage} ? 'active'">
             </a>
         </li>
     </ul>
+</div>
 </div>

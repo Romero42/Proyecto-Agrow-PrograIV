@@ -164,12 +164,13 @@ function mostrarAlerta(tipo, mensaje) {
 }
 
 //logica para la tabla de alquileres
-function filterRent() {
+function filterRent(element) {
 
     var tableUpdate = document.getElementById("tableData");
     var rentStartDay = document.getElementById("rentStartDay").value;
     var rentFinalDay = document.getElementById("rentFinalDay").value;
     var id_maquina = document.getElementById("id_maquina").value;
+    var currentPage = element.getAttribute('data-page');
 
     var params = "";
     var xhttp = new XMLHttpRequest();
@@ -191,14 +192,17 @@ function filterRent() {
 
     if (rentStartDay && !rentFinalDay) {
 
-        params = "rentStartDay=" + encodeURIComponent(rentStartDay);
+        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
+        + "&page=" + encodeURIComponent(currentPage);
     } else if (!rentStartDay && rentFinalDay) {
 
-        params = "rentFinalDay=" + encodeURIComponent(rentFinalDay);
+        params = "rentFinalDay=" + encodeURIComponent(rentFinalDay)
+        + "&page=" + encodeURIComponent(currentPage);
     } else if (rentStartDay && rentFinalDay) {
 
         params = "rentStartDay=" + encodeURIComponent(rentStartDay)
-            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay);
+            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
+            + "&page=" + encodeURIComponent(currentPage);
     } else {
 
         params = "id_maquina=" + encodeURIComponent(id_maquina);
