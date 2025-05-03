@@ -1,12 +1,17 @@
 package cr.ac.una.agrow.controller.producer;
 
 import cr.ac.una.agrow.domain.producer.Producer;
-import cr.ac.una.agrow.data.producer.DataProducer;
-import cr.ac.una.agrow.util.Util;
+import cr.ac.una.agrow.service.Producer_Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+
+import cr.ac.una.agrow.service.producer.ProducerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,41 +25,78 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProducerController {
 
     private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
+    @Autowired
+    private Producer_Service service;
 
     @GetMapping("/list")
     public String listProducers( @RequestParam(value = "city", required = false) String city, @RequestParam(value = "id_producer", required = false) Integer id,
-            Model model) {
+            Model model, @RequestParam(defaultValue = "-1") int page) {
 
+        Pageable pageable;
+        if(page == -1) {
+            pageable = PageRequest.of(0, 5);
+        }else {
+            pageable = PageRequest.of(page, 5);
+        }
+
+        Page<Producer> producerPage = null;
+
+        System.out.println("page "+ page);
         List<Producer> producers;
         String validationMessage = null;
+        String htlm = "";
+
+        if(city != null || id != null || page > -1){
+
+            htlm = "producer/table_producer";
+        }else{
+
+            htlm = "producer/producers_list";
+        }
 
         if (id != null) {
-            Producer producer = DataProducer.getProducer(id);
+
+            Producer producer = service.getById(id);
             producers = new java.util.LinkedList<>();
+
             if (producer != null) {
+
                 producers.add(producer);
             } else {
                 validationMessage = "El productor con Código/ID " + id + " no existe.";
             }
+
+            model.addAttribute("listP", producers);
+            model.addAttribute("list", true);
             model.addAttribute("searchId", id);
+
         } else if (city != null && !city.trim().isEmpty()) {
-            producers = DataProducer.getProducersByCity(city.trim());
-            if (producers.isEmpty()) {
+
+            producerPage = service.findByCity(city.trim(), pageable);
+            if (producerPage.isEmpty()) {
                 validationMessage = "No hay productores registrados en la ciudad seleccionada: " + city;
             }
             model.addAttribute("selectedCity", city);
         } else {
-            producers = DataProducer.getAllProducers();
-            if (producers.isEmpty()) {
+
+            producerPage = service.findAll(pageable);
+            if (producerPage.isEmpty()) {
                 validationMessage = "No hay productores registrados.";
             }
         }
 
-        model.addAttribute("listP", producers);
+        if(id == null){
+
+            model.addAttribute("listP", producerPage.getContent());
+            model.addAttribute("totalPages", producerPage.getTotalPages());
+            model.addAttribute("currentPage", page);
+        }
+
         model.addAttribute("validate", validationMessage);
         model.addAttribute("activeModule", "producer");
         model.addAttribute("activePage", "list");
-        return "producer/producers_list";
+
+        return htlm;
     }
 
     @GetMapping("/form")
@@ -99,17 +141,14 @@ public class ProducerController {
             return "redirect:/producers/form";
         }
 
-        Producer p = new Producer(0, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), true);
+        Producer p = new Producer(ProducerService.generarCodigo(), name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), true);
 
-        String resultMessage = DataProducer.saveProducer(p);
-        String[] parts = Util.arraySplit(resultMessage);
-        int typeMsg = Integer.parseInt(parts[0]);
-        String message = parts[1];
-
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
+        System.out.println("sds "+ p.toString());
+        if (service.save(p)) {
+            redirectAttributes.addFlashAttribute("mensaje", "Se agrego el productor");
         } else {
-            redirectAttributes.addFlashAttribute("error", message);
+
+            redirectAttributes.addFlashAttribute("error", "No se agrego el productor");
             redirectAttributes.addFlashAttribute("producer", p);
             redirectAttributes.addFlashAttribute("registrationDateStr", registrationDateStr);
             return "redirect:/producers/form";
@@ -124,7 +163,7 @@ public class ProducerController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Producer producer = DataProducer.getProducer(id);
+        Producer producer = service.getById(id);
 
         if (producer == null) {
             redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
@@ -166,15 +205,11 @@ public class ProducerController {
 
         Producer p = new Producer(id, name.trim(), contact.trim(), registrationDate, type, email.trim(), city, address.trim(), active);
 
-        String resultMessage = DataProducer.updateProducer(p);
-        String[] parts = Util.arraySplit(resultMessage);
-        int typeMsg = Integer.parseInt(parts[0]);
-        String message = parts[1];
-
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
+        if (service.save(p)) {
+            redirectAttributes.addFlashAttribute("mensaje", "Se actualizo el productor");
         } else {
-            redirectAttributes.addFlashAttribute("error", message);
+
+            redirectAttributes.addFlashAttribute("error", "No se logro actualizar el productor");
             return "redirect:/producers/edit?id_producer=" + id;
         }
 
@@ -184,15 +219,10 @@ public class ProducerController {
     @PostMapping("/delete")
     public String deleteProducerButton(@RequestParam("id_producer") int id, RedirectAttributes redirectAttributes) {
 
-        String resultMessage = DataProducer.deleteProducer(id);
-        String[] parts = Util.arraySplit(resultMessage);
-        int typeMsg = Integer.parseInt(parts[0]);
-        String message = parts[1];
-
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
+        if (service.deleteById(id)) {
+            redirectAttributes.addFlashAttribute("mensaje", "Se elimino correctamente el productor");
         } else {
-            redirectAttributes.addFlashAttribute("error", message);
+            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el productor");
         }
 
         return "redirect:/producers/list";
@@ -201,7 +231,7 @@ public class ProducerController {
     @GetMapping("/information")
     public String information(@RequestParam("id_producer") int id, Model model, RedirectAttributes redirectAttributes) {
 
-        Producer producer = DataProducer.getProducer(id);
+        Producer producer = service.getById(id);
         if (producer == null) {
             redirectAttributes.addFlashAttribute("error", "Productor con ID " + id + " no encontrado.");
             return "redirect:/producers/list";

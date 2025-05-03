@@ -1,0 +1,73 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div class="info-card" th:if="${validate != null}">
+    <span class="material-symbols-outlined icon">info</span>
+    <h2 th:text="${validate}">No se encontraron productores</h2>
+    <p>Intenta con otros filtros o <a th:href="@{/producers/form}">agrega nuevos productores</a>.</p>
+</div>
+
+<div class="table-container" th:unless="${validate != null or listP == null or listP.isEmpty()}">
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Registro</th>
+                <th>Tipo</th>
+                <th>Correo</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tempProducer : ${listP}">
+                <td th:text="${tempProducer.id_producer}"></td>
+                <td th:text="${tempProducer.producerName}"></td>
+                <td th:text="${tempProducer.contactNumber}"></td>
+                <td th:text="${tempProducer.getFormattedRegistrationDate()}"></td>
+                <td th:text="${tempProducer.producerType}"></td>
+                <td th:text="${tempProducer.email}"></td>
+                <td th:text="${tempProducer.city}"></td>
+                <td><span class="status"
+                          th:classappend="${tempProducer.isActive()} ? 'status-optimo' : 'status-bajo'"
+                          th:text="${tempProducer.isActive()} ? 'Activo' : 'Inactivo'"></span></td>
+                <td>
+                    <div class="action-buttons">
+                        <a th:href="@{/producers/information(id_producer=${tempProducer.id_producer})}"
+                           class="btns view-btns" title="Ver Detalles"> <span
+                                class="material-symbols-outlined icon">visibility</span> </a>
+                        <a th:href="@{/producers/edit(id_producer=${tempProducer.id_producer})}"
+                           class="btns edit-btns" title="Editar"> <span
+                                class="material-symbols-outlined icon">edit</span> </a>
+                        <form th:action="@{/producers/delete}" method="post" class="confirm-action"
+                              data-message="¿Eliminar este productor?" data-title="Confirmar Eliminación"
+                              style="margin:0; padding:0; display:inline;">
+                            <input type="hidden" name="id_producer" th:value="${tempProducer.id_producer}"/>
+                            <button type="submit" class="btns delete-btns" title="Eliminar"><span
+                                    class="material-symbols-outlined icon">delete</span></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:unless="${list}">
+    <div class="pagination" th:unless="${listP.isEmpty()}">
+        <ul>
+            <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
+                <a th:href="'#'"
+                   onclick="producer(this); return false;"
+                   th:attr="data-page=${i}, data-button=0"
+                   th:text="${i + 1}"
+                   th:classappend="${i == currentPage} ? 'active'">
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
