@@ -65,6 +65,7 @@ public class MachineryRental_Controller {
 
         model.addAttribute("validate", message);
         model.addAttribute("useFilter", false);
+        model.addAttribute("pag", true);
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", rentsPage.getTotalPages());
