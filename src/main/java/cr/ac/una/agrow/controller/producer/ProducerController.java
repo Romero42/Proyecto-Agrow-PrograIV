@@ -41,16 +41,25 @@ public class ProducerController {
 
         Page<Producer> producerPage = null;
 
-        System.out.println("page "+ page);
         List<Producer> producers;
         String validationMessage = null;
         String htlm = "";
 
-        if(city != null || id != null || page > -1){
+        if(city != null){
+            model.addAttribute("lastCity", city);
+        }
 
+        if(city != null || id != null){
+
+            model.addAttribute("filter", true);
+            htlm = "producer/table_producer";
+        }else if(page > -1){
+
+            model.addAttribute("filter", false);
             htlm = "producer/table_producer";
         }else{
 
+            model.addAttribute("filter", false);
             htlm = "producer/producers_list";
         }
 

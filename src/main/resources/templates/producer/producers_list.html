@@ -114,6 +114,8 @@
             </div>
         </div>
 
+        <input type="hidden" id="filter" th:value="${filter}"/>
+        <input type="hidden" id="lastCity" th:value="${lastCity}"/>
         <div class="pagination" th:unless="${listP.isEmpty()}">
             <ul>
                 <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">

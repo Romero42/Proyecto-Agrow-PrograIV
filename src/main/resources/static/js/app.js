@@ -14,8 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa Flatpickr en los inputs de fecha, se usa flatPickr porque permite formato de fecha especifico
     function initFlatpickr() {
         if (!window.flatpickr) return console.warn('Flatpickr no encontrado');
+
         flatpickr('.date-picker-iso', {dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today'});
         flatpickr('.date-picker-future-iso', {dateFormat: 'Y-m-d', allowInput: true, minDate: 'today'});
+
+        const start = document.querySelector("#rentStartDay");
+        const end = document.querySelector("#rentFinalDay");
+
+        if (start && end) {
+            const startPicker = flatpickr(start, { dateFormat: "Y-m-d", allowInput: true });
+            const endPicker = flatpickr(end, { dateFormat: "Y-m-d", allowInput: true });
+
+            startPicker.config.onChange.push(function (selectedDates) {
+                if (selectedDates.length) {
+                    endPicker.set("minDate", selectedDates[0]);
+                }
+            });
+        }
     }
 
     initFlatpickr();
@@ -128,27 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flash.dataset.error) swalAgrow.fire({title: 'Error', text: flash.dataset.error, icon: 'error'});
 
     }
-
-    // inicializá el picker de inicio
-    const startPicker = flatpickr("#rentStartDay", {
-        dateFormat: "Y-m-d",
-        allowInput: true
-    });
-
-// inicializá el picker de fin
-    const endPicker = flatpickr("#rentFinalDay", {
-        dateFormat: "Y-m-d",
-        allowInput: true
-    });
-
-// cada vez que el user elija rentStar, actualizá el minDate de rentFinal
-    startPicker.config.onChange.push(function (selectedDates) {
-        if (selectedDates.length) {
-            endPicker.set("minDate", selectedDates[0]);
-        }
-    });
-
-
 });
 
 //ventana de mensaje del tipo que se obtiene
@@ -270,11 +264,13 @@ function producer(element){
 
     var tableCurrent = document.getElementById("table-producer");
     var city = document.getElementById("city").value;
+    var lastCity = document.getElementById("lastCity").value;
+    var filter = document.getElementById("filter").value;
     var id_producer = document.getElementById("id_producer").value;
     var currentPage = element.getAttribute('data-page');
     var buttonAction = element.getAttribute('data-button');
 
-    var params = "";
+    var params = "page=" + encodeURIComponent(currentPage);
     var xhttp = new XMLHttpRequest();
 
     if(city && id_producer && buttonAction == 1){
@@ -299,16 +295,23 @@ function producer(element){
      };
 
       if(city && buttonAction == 1){
+
           params = "city=" + encodeURIComponent(city)
                  + "&page=" + encodeURIComponent(currentPage);
       }else if(id_producer && buttonAction == 1){
+
          params = "id_producer=" + encodeURIComponent(id_producer);
-      }else if(buttonAction == 0 && city){
+      }else if(buttonAction == 0 && city && filter === "true" ||
+               buttonAction == 0 && id_producer && filter === "true"){
 
-            params = "page=" + encodeURIComponent(currentPage)
-            + "&city=" + encodeURIComponent(city);
+            if(lastCity){
+                params = "page=" + encodeURIComponent(currentPage)
+                     + "&city=" + encodeURIComponent(lastCity);
+            }else{
+                params = "page=" + encodeURIComponent(currentPage)
+                        + "&city=" + encodeURIComponent(city);
+            }
       }
-
 
     xhttp.open("GET", "/producers/list?"+params, true);
     xhttp.send();
