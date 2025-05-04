@@ -9,7 +9,6 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
     </head>
     <body>
-
         <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
         <div class="main-content">
@@ -20,7 +19,7 @@
                     <h1 class="page-title">Gestión de Cosechas</h1>
                     <p class="page-subtitle">
                         Visualiza, filtra y administra tus cosechas. Total: 
-                        <span th:text="${harvestList != null ? harvestList.size() : 0}">0</span>
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
                     </p>
                 </div>
                 <a th:href="@{/harvests/form}" class="btn btn-primary">
@@ -28,7 +27,7 @@
                 </a>
             </div>
 
-            <!-- NUEVOS FILTROS incorporados -->
+            <!-- FILTROS -->
             <div class="filter-section">
                 <!-- Filtro por Estado -->
                 <form th:action="@{/harvests/list}" method="get" class="filter-row">
@@ -41,6 +40,7 @@
                             <option value="Secundaria" th:selected="${stateC == 'Secundaria'}">Secundaria</option>
                         </select>
                     </div>
+                    <input type="hidden" id="page" name="page" value="0">
                     <div class="filter-buttons">
                         <button type="submit" class="btn btn-primary">
                             <span class="material-symbols-outlined icon">search</span> Filtrar
@@ -58,6 +58,7 @@
                         <input type="text" id="destinyC" name="destinyC" th:value="${destinyC}" 
                                class="filter-input" placeholder="Ej: Mercado local..." maxlength="100" />
                     </div>
+                    <input type="hidden" id="page" name="page" value="0">
                     <div class="filter-buttons">
                         <button type="submit" class="btn btn-primary">
                             <span class="material-symbols-outlined icon">search</span> Filtrar
@@ -68,69 +69,85 @@
                     </div>
                 </form>
             </div>
-            <!-- FIN NUEVOS FILTROS -->
 
             <div id="harvest-list-content">
-                <div class="info-card" th:if="${harvestList == null or harvestList.isEmpty()}">
-                    <span class="material-symbols-outlined icon">eco</span>
-                    <h2>No se encontraron cosechas</h2>
-                    <p>Intenta con otros filtros o <a th:href="@{/harvests/form}">registra una nueva cosecha</a>.</p>
-                </div>
-
-                <div class="table-container" th:unless="${harvestList == null or harvestList.isEmpty()}">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Tipo</th>
-                                    <th>Fecha de Cosechado</th>
-                                    <th>Total (kg)</th>
-                                    <th>Calidad</th>
-                                    <th>Destino</th>
-                                    <th>Registrado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="tempList : ${harvestList}">
-                                    <td th:text="${tempList.idHarvest}"></td>
-                                    <td th:text="${tempList.typeHarvest}"></td>
-                                    <td th:text="${tempList.dateHarvested}"></td>
-                                    <td class="numeric-display" th:text="${#numbers.formatDecimal(tempList.quantityHarvested, 1, 2, 'POINT')}"></td>
-                                    <td>
-                                        <span class="status" 
-                                              th:classappend="${#strings.equals(tempList.quality, 'Premium')} ? 'status-optimo' : 
-                                              (${#strings.equals(tempList.quality, 'Estándar')} ? '' : 'status-bajo')" 
-                                              th:text="${tempList.quality}">
-                                        </span>
-                                    </td>
-                                    <td th:text="${tempList.destiny}"></td>
-                                    <td>
-                                        <span class="status" 
-                                              th:classappend="${tempList.registeredHarvest} ? 'status-optimo' : 'status-bajo'" 
-                                              th:text="${tempList.registeredHarvest ? 'Sí' : 'No'}">
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            
-                                            <a th:href="@{/harvests/edit(idHarvest=${tempList.idHarvest})}" class="btns edit-btns" title="Editar">
-                                                <span class="material-symbols-outlined icon">edit</span>
-                                            </a>
-                                            <form th:action="@{/harvests/delete}" method="post" class="confirm-action" data-message="¿Eliminar esta cosecha?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
-                                                <input type="hidden" name="idHarvest" th:value="${tempList.idHarvest}" />
-                                                <button type="submit" class="btns delete-btns" title="Eliminar">
-                                                    <span class="material-symbols-outlined icon">delete</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Este div contendrá la tabla actualizada por AJAX -->
+                <div th:fragment="harvestTable">
+                    <div class="info-card" th:if="${harvestList == null or harvestList.isEmpty()}">
+                        <span class="material-symbols-outlined icon">eco</span>
+                        <h2>No se encontraron cosechas</h2>
+                        <p>Intenta con otros filtros o <a th:href="@{/harvests/form}">registra una nueva cosecha</a>.</p>
+                    </div>
+                    <div class="table-container" th:unless="${harvestList == null or harvestList.isEmpty()}">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha de Cosechado</th>
+                                        <th>Total (kg)</th>
+                                        <th>Calidad</th>
+                                        <th>Destino</th>
+                                        <th>Registrado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="tempList : ${harvestList}">
+                                        <td th:text="${tempList.idHarvest}"></td>
+                                        <td th:text="${tempList.typeHarvest}"></td>
+                                        <td th:text="${tempList.dateHarvested}"></td>
+                                        <td class="numeric-display" th:text="${#numbers.formatDecimal(tempList.quantityHarvested, 1, 2, 'POINT')}"></td>
+                                        <td>
+                                            <span class="status" 
+                                                  th:classappend="${#strings.equals(tempList.quality, 'Premium')} ? 'status-optimo' : 
+                                                  (${#strings.equals(tempList.quality, 'Estándar')} ? '' : 'status-bajo')" 
+                                                  th:text="${tempList.quality}">
+                                            </span>
+                                        </td>
+                                        <td th:text="${tempList.destiny}"></td>
+                                        <td>
+                                            <span class="status" 
+                                                  th:classappend="${tempList.registeredHarvest} ? 'status-optimo' : 'status-bajo'" 
+                                                  th:text="${tempList.registeredHarvest ? 'Sí' : 'No'}">
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a th:href="@{/harvests/edit(idHarvest=${tempList.idHarvest})}" class="btns edit-btns" title="Editar">
+                                                    <span class="material-symbols-outlined icon">edit</span>
+                                                </a>
+                                                <form th:action="@{/harvests/delete}" method="post" class="confirm-action" data-message="¿Eliminar esta cosecha?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
+                                                    <input type="hidden" name="idHarvest" th:value="${tempList.idHarvest}" />
+                                                    <button type="submit" class="btns delete-btns" title="Eliminar">
+                                                        <span class="material-symbols-outlined icon">delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="pagination" th:if="${totalPages > 0}">
+                <ul>
+                    <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
+                        <a href="javascript:void(0)"
+                           onclick="pageHarvest(this); return false;"
+                           th:attr="data-page=${i}, 
+                                    data-state=${stateC != null ? stateC : ''}, 
+                                    data-destiny=${destinyC != null ? destinyC : ''}"
+                           th:text="${i + 1}"
+                           th:classappend="${i == currentPage} ? 'active'">
+                        </a>
+                    </li>
+                </ul>
             </div>
 
             <div style="margin-top: 20px;">

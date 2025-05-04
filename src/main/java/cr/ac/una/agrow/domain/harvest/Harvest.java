@@ -63,28 +63,12 @@ public class Harvest {
         this.id_producer = id_producer;
     }
 
-    public int getId_producer() {
-        return id_producer;
-    }
-
-    public void setId_producer(int id_producer) {
-        this.id_producer = id_producer;
-    }
-
     public int getIdHarvest() {
         return idHarvest;
     }
 
-    public void setIdHarvest(int id) {
+    public void setIdHarvest(int idHarvest) {
         this.idHarvest = idHarvest;
-    }
-
-    public boolean isRegisteredHarvest() {
-        return registeredHarvest;
-    }
-
-    public void setRegisteredHarvest(boolean registeredHarvest) {
-        this.registeredHarvest = registeredHarvest;
     }
 
     public String getTypeHarvest() {
@@ -127,11 +111,11 @@ public class Harvest {
         this.destiny = destiny;
     }
 
-    public Boolean getRegisteredHarvest() {
+    public boolean isRegisteredHarvest() {
         return registeredHarvest;
     }
 
-    public void setRegisteredHarvest(Boolean registeredHarvest) {
+    public void setRegisteredHarvest(boolean registeredHarvest) {
         this.registeredHarvest = registeredHarvest;
     }
 
@@ -143,4 +127,11 @@ public class Harvest {
         this.description = description;
     }
 
+    public int getId_producer() {
+        return id_producer;
+    }
+
+    public void setId_producer(int id_producer) {
+        this.id_producer = id_producer;
+    }
 }

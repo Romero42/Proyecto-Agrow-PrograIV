@@ -2,7 +2,7 @@ package cr.ac.una.agrow.controller.harvest;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
 import cr.ac.una.agrow.domain.producer.Producer;
-import cr.ac.una.agrow.service.harvest.HarvestService;
+import cr.ac.una.agrow.service.HarvestService;
 import cr.ac.una.agrow.service.producer.ProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Controller
 @RequestMapping("/harvests")
@@ -21,8 +24,9 @@ public class HarvestController {
 
     private ProducerService producerService;
     private int currentId;
-    
-    public HarvestController(){
+    private static final int PAGE_SIZE = 5;
+
+    public HarvestController() {
         this.producerService = new ProducerService();
     }
 
@@ -46,14 +50,14 @@ public class HarvestController {
     }
 
     @PostMapping("/update")
-    public String updateHarvest(
+    public String updateHarvest(@RequestParam("idHarvest") Integer idHarvest,
             @RequestParam("typeC") String type,
             @RequestParam("dateC") LocalDate date,
             @RequestParam("totalC") String totalStr,
             @RequestParam("descriptionC") String description,
             @RequestParam("stateC") String quality,
             @RequestParam("destinyC") String destiny,
-            @RequestParam("producerId") int codeProd,
+            @RequestParam("id_producer") int codeProd,
             RedirectAttributes redirectAttributes) {
 
         if (!totalStr.matches("\\d+")) {
@@ -71,7 +75,7 @@ public class HarvestController {
             return "redirect:/harvests/edit?idHarvest=" + currentId;
         }
 
-        Harvest harvest = service.getById(currentId);
+        Harvest harvest = service.getById(idHarvest);
         harvest.setTypeHarvest(type);
         harvest.setDateHarvested(date);
         harvest.setQuantityHarvested(Integer.parseInt(totalStr));
@@ -80,6 +84,11 @@ public class HarvestController {
         harvest.setDestiny(destiny);
         harvest.setRegisteredHarvest(true);
         harvest.setId_producer(codeProd);
+        
+        if (idHarvest == null || (harvest = service.getById(idHarvest)) == null) {
+            redirectAttributes.addFlashAttribute("error", "No se encontró la cosecha para editar");
+            return "redirect:/harvests/list";
+        }
 
         service.save(harvest);
 
@@ -89,26 +98,71 @@ public class HarvestController {
     @GetMapping("/list")
     public String listHarvests(Model model,
             @RequestParam(value = "stateC", required = false) String state,
-            @RequestParam(value = "destinyC", required = false) String destiny) {
+            @RequestParam(value = "destinyC", required = false) String destiny,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
 
-        List<Harvest> harvestList = service.getAll();
+        // Create a Pageable object for pagination
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<Harvest> harvests;
 
+        // Apply filters with pagination
         if (state != null && !state.isEmpty()) {
-            harvestList = service.getHarvestByQuality(state);
+            harvests = service.getHarvestByQualityPaged(state, pageable);
+            model.addAttribute("stateC", state);
         } else if (destiny != null && !destiny.isEmpty()) {
-            harvestList = service.getHarvestByDestiny(destiny);
+            harvests = service.getHarvestByDestinyPaged(destiny, pageable);
+            model.addAttribute("destinyC", destiny);
         } else {
-            harvestList = service.getAll();
+            harvests = service.getAllPaged(pageable);
         }
 
-        model.addAttribute("harvestList", harvestList);
+        // Add pagination data to model
+        model.addAttribute("harvestList", harvests.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", harvests.getTotalPages());
+        model.addAttribute("totalItems", harvests.getTotalElements());
+
         return "list_harvest";
+    }
+
+    @GetMapping("/page")
+    public String paginate(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String stateC,
+            @RequestParam(required = false) String destinyC,
+            Model model) {
+        int pageSize = 5; // O el tamaño que uses para tu paginación
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Harvest> harvestPage;
+
+        // Aplicar filtros si existen
+        if (stateC != null && !stateC.isEmpty()) {
+            harvestPage = service.getHarvestByQualityPaged(stateC, pageable);
+            model.addAttribute("stateC", stateC); // Mantener estado del filtro
+        } else if (destinyC != null && !destinyC.isEmpty()) {
+            harvestPage = service.getHarvestByDestinyPaged(destinyC, pageable);
+            model.addAttribute("destinyC", destinyC); // Mantener estado del filtro
+        } else {
+            harvestPage = service.getAllPaged(pageable);
+        }
+
+        // Usar harvestList para coincidir con el nombre en list_harvest.html
+        model.addAttribute("harvestList", harvestPage.getContent());
+
+        // También puede ser útil incluir la información de paginación
+        model.addAttribute("currentPage", page);
+
+        return "fragments/harvest_table :: harvestTable";
     }
 
     @PostMapping("/delete")
     public String deleteHarvest(@RequestParam("idHarvest") int idHarvest, RedirectAttributes redirectAttributes) {
-        service.delete(idHarvest);
-        redirectAttributes.addFlashAttribute("mensaje", "Cosecha eliminada exitosamente.");
+        Harvest harvest = service.getById(idHarvest);
+        if (harvest != null) {
+            service.delete(harvest);
+            redirectAttributes.addFlashAttribute("mensaje", "Cosecha eliminada exitosamente.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "No se encontró la cosecha con ID " + idHarvest);
+        }
         return "redirect:/harvests/list";
     }
 
@@ -147,7 +201,7 @@ public class HarvestController {
         harvest.setDestiny(destiny);
         harvest.setRegisteredHarvest(true);
         harvest.setId_producer(Integer.parseInt(codeProd));
-        
+
         service.save(harvest);
 
         redirectAttributes.addFlashAttribute("mensaje", "Cosecha registrada correctamente.");

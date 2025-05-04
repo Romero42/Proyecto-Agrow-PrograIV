@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializa Flatpickr en los inputs de fecha, se usa flatPickr porque permite formato de fecha especifico
     function initFlatpickr() {
-        if (!window.flatpickr) return console.warn('Flatpickr no encontrado');
+        if (!window.flatpickr)
+            return console.warn('Flatpickr no encontrado');
 
         flatpickr('.date-picker-iso', {dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today'});
         flatpickr('.date-picker-future-iso', {dateFormat: 'Y-m-d', allowInput: true, minDate: 'today'});
@@ -22,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const end = document.querySelector("#rentFinalDay");
 
         if (start && end) {
-            const startPicker = flatpickr(start, { dateFormat: "Y-m-d", allowInput: true });
-            const endPicker = flatpickr(end, { dateFormat: "Y-m-d", allowInput: true });
+            const startPicker = flatpickr(start, {dateFormat: "Y-m-d", allowInput: true});
+            const endPicker = flatpickr(end, {dateFormat: "Y-m-d", allowInput: true});
 
             startPicker.config.onChange.push(function (selectedDates) {
                 if (selectedDates.length) {
@@ -38,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Formatea valores como colones costarricenses
     const formatColones = val => {
         const num = parseFloat(val);
-        if (isNaN(num)) return '₡ 0.00';
+        if (isNaN(num))
+            return '₡ 0.00';
         return new Intl.NumberFormat('es-CR', {
             style: 'currency',
             currency: 'CRC',
@@ -59,7 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Agrega confirmaciones a formularios y enlaces
     function attachConfirmHandlers() {
         document.querySelectorAll('.confirm-action').forEach(el => {
-            if (el.dataset.confirmAttached) return;
+            if (el.dataset.confirmAttached)
+                return;
             el.dataset.confirmAttached = 'true';
             const {
                 message = '¿Seguro?',
@@ -78,9 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     cancelButtonText: cancelText,
                     reverseButtons: true
                 })
-                    .then(res => {
-                        if (res.isConfirmed) callback();
-                    });
+                        .then(res => {
+                            if (res.isConfirmed)
+                                callback();
+                        });
             };
             if (el.tagName === 'FORM') {
                 el.addEventListener('submit', e => {
@@ -108,39 +112,42 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`${filterForm.action}?${new URLSearchParams(new FormData(filterForm))}`, {
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
             })
-                .then(r => {
-                    if (!r.ok) throw Error(r.status);
-                    return r.text();
-                })
-                .then(html => {
-                    const doc = new DOMParser().parseFromString(html, 'text/html');
-                    const newContent = doc.getElementById('supply-list-content');
-                    contentDiv.innerHTML = newContent ? newContent.innerHTML : '<p class="info-card">Error al actualizar.</p>';
-                    formatPrices();
-                    attachConfirmHandlers();
-                    initFlatpickr();
-                })
-                .catch(() => {
-                    contentDiv.innerHTML = '<p class="info-card">Error de conexión.</p>';
-                    swalAgrow.fire('Error', 'No se pudo filtrar.', 'error');
-                })
-                .finally(() => {
-                    contentDiv.style.opacity = '1';
-                });
+                    .then(r => {
+                        if (!r.ok)
+                            throw Error(r.status);
+                        return r.text();
+                    })
+                    .then(html => {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const newContent = doc.getElementById('supply-list-content');
+                        contentDiv.innerHTML = newContent ? newContent.innerHTML : '<p class="info-card">Error al actualizar.</p>';
+                        formatPrices();
+                        attachConfirmHandlers();
+                        initFlatpickr();
+                    })
+                    .catch(() => {
+                        contentDiv.innerHTML = '<p class="info-card">Error de conexión.</p>';
+                        swalAgrow.fire('Error', 'No se pudo filtrar.', 'error');
+                    })
+                    .finally(() => {
+                        contentDiv.style.opacity = '1';
+                    });
         });
     }
 
     // Muestra mensajes flash del servidor
     const flash = document.getElementById('swal-message');
     if (flash) {
-        if (flash.dataset.mensaje) swalAgrow.fire({
-            title: '¡Éxito!',
-            text: flash.dataset.mensaje,
-            icon: 'success',
-            timer: 2500,
-            timerProgressBar: true
-        });
-        if (flash.dataset.error) swalAgrow.fire({title: 'Error', text: flash.dataset.error, icon: 'error'});
+        if (flash.dataset.mensaje)
+            swalAgrow.fire({
+                title: '¡Éxito!',
+                text: flash.dataset.mensaje,
+                icon: 'success',
+                timer: 2500,
+                timerProgressBar: true
+            });
+        if (flash.dataset.error)
+            swalAgrow.fire({title: 'Error', text: flash.dataset.error, icon: 'error'});
 
     }
 });
@@ -178,7 +185,7 @@ function filterRent(element) {
 
         mostrarAlerta("error", "Filtros vacios")
         return;
-    }else if(rentStartDay && id_maquina || rentFinalDay && id_maquina){
+    } else if (rentStartDay && id_maquina || rentFinalDay && id_maquina) {
 
         mostrarAlerta("error", "Use solo un filtro")
         return;
@@ -187,16 +194,16 @@ function filterRent(element) {
     if (rentStartDay && !rentFinalDay) {
 
         params = "rentStartDay=" + encodeURIComponent(rentStartDay)
-        + "&page=" + encodeURIComponent(currentPage);
+                + "&page=" + encodeURIComponent(currentPage);
     } else if (!rentStartDay && rentFinalDay) {
 
         params = "rentFinalDay=" + encodeURIComponent(rentFinalDay)
-        + "&page=" + encodeURIComponent(currentPage);
+                + "&page=" + encodeURIComponent(currentPage);
     } else if (rentStartDay && rentFinalDay) {
 
         params = "rentStartDay=" + encodeURIComponent(rentStartDay)
-            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
-            + "&page=" + encodeURIComponent(currentPage);
+                + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
+                + "&page=" + encodeURIComponent(currentPage);
     } else {
 
         params = "id_maquina=" + encodeURIComponent(id_maquina);
@@ -214,7 +221,7 @@ function filterRent(element) {
 }
 
 //ver informacion de una maquina en alquiler
-function viewMaquina(element){
+function viewMaquina(element) {
 
     var maquinaInfo = document.getElementById("infoMaquina");
     var id_maquina = element.getAttribute('data-id');
@@ -237,7 +244,7 @@ function cerrarInfoMaquina() {
 }
 
 //actualizar paginacion en listAlquiler
-function pageRent(element){
+function pageRent(element) {
 
     var tableCurrent = document.getElementById("tableData");
     var currentPage = element.getAttribute('data-page');
@@ -260,7 +267,7 @@ function cerrarInfoMaquina() {
 }
 
 //actualizar paginacionProducer
-function producer(element){
+function producer(element) {
 
     var tableCurrent = document.getElementById("table-producer");
     var city = document.getElementById("city").value;
@@ -273,48 +280,96 @@ function producer(element){
     var params = "page=" + encodeURIComponent(currentPage);
     var xhttp = new XMLHttpRequest();
 
-    if(city && id_producer && buttonAction == 1){
+    if (city && id_producer && buttonAction == 1) {
         mostrarAlerta("error", "Use solo un filtro")
         return;
 
-    }else if(city === "" && buttonAction == 1 && !id_producer){
+    } else if (city === "" && buttonAction == 1 && !id_producer) {
 
         mostrarAlerta("error", "Seleccione una ciudad o busque por id")
         return;
     }
 
-     if(buttonAction == 1 && id_producer || buttonAction == 1 && city){
+    if (buttonAction == 1 && id_producer || buttonAction == 1 && city) {
         currentPage = 0;
-     }
+    }
 
-     xhttp.onreadystatechange = function () {
+    xhttp.onreadystatechange = function () {
         if (xhttp.readyState === 4 && xhttp.status === 200) {
 
             tableCurrent.innerHTML = this.responseText;
         }
-     };
+    };
 
-      if(city && buttonAction == 1){
+    if (city && buttonAction == 1) {
 
-          params = "city=" + encodeURIComponent(city)
-                 + "&page=" + encodeURIComponent(currentPage);
-      }else if(id_producer && buttonAction == 1){
+        params = "city=" + encodeURIComponent(city)
+                + "&page=" + encodeURIComponent(currentPage);
+    } else if (id_producer && buttonAction == 1) {
 
-         params = "id_producer=" + encodeURIComponent(id_producer);
-      }else if(buttonAction == 0 && city && filter === "true" ||
-               buttonAction == 0 && id_producer && filter === "true"){
+        params = "id_producer=" + encodeURIComponent(id_producer);
+    } else if (buttonAction == 0 && city && filter === "true" ||
+            buttonAction == 0 && id_producer && filter === "true") {
 
-            if(lastCity){
-                params = "page=" + encodeURIComponent(currentPage)
-                     + "&city=" + encodeURIComponent(lastCity);
-            }else{
-                params = "page=" + encodeURIComponent(currentPage)
-                        + "&city=" + encodeURIComponent(city);
-            }
-      }
+        if (lastCity) {
+            params = "page=" + encodeURIComponent(currentPage)
+                    + "&city=" + encodeURIComponent(lastCity);
+        } else {
+            params = "page=" + encodeURIComponent(currentPage)
+                    + "&city=" + encodeURIComponent(city);
+        }
+    }
 
-    xhttp.open("GET", "/producers/list?"+params, true);
+    xhttp.open("GET", "/producers/list?" + params, true);
     xhttp.send();
 }
 
+function pageHarvest(element) {
+    const page = element.getAttribute('data-page');
+    const state = element.getAttribute('data-state');
+    const destiny = element.getAttribute('data-destiny');
 
+    // Crear URL con parámetros de filtrado si existen
+    let url = '/harvests/page?page=' + page;
+    if (state && state !== '') {
+        url += '&stateC=' + encodeURIComponent(state);
+    }
+    if (destiny && destiny !== '') {
+        url += '&destinyC=' + encodeURIComponent(destiny);
+    }
+
+    console.log("Cargando página: " + url); // Para depuración
+
+    // Hacer la solicitud AJAX
+    fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error de red: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Verificar si hay contenido
+                if (html.trim() === '') {
+                    console.error('La respuesta está vacía');
+                    return;
+                }
+
+                document.getElementById('harvest-list-content').innerHTML = html;
+
+                // Actualizar la clase active en la paginación
+                document.querySelectorAll('.pagination a').forEach(a => {
+                    a.classList.remove('active');
+                    if (a.getAttribute('data-page') === page) {
+                        a.classList.add('active');
+                    }
+                });
+
+                console.log('Página cargada correctamente');
+            })
+            .catch(error => {
+                console.error('Error cargando la página:', error);
+                // Mostrar mensaje al usuario
+                alert('Error al cargar la página: ' + error.message);
+            });
+}
