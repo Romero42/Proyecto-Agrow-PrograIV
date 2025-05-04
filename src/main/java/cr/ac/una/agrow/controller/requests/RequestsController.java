@@ -85,7 +85,7 @@ public class RequestsController {
         if (requests != null) {
             model.addAttribute("requests", requests);
             model.addAttribute("activeModule", "requests");
-            return "requests/form";
+            return "requests/update_requests";
         } else {
             redirectAttributes.addFlashAttribute("error", "La solicitud no existe");
             return "redirect:/requests/list";
