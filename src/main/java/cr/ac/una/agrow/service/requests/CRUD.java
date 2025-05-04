@@ -8,4 +8,5 @@ public interface CRUD<T>{
     public void delete(int i);
     public List<T> getAll();
     public T getById(int i);
+    public List<T> searchName(String searchTerm);
 }

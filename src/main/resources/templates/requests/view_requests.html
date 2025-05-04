@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Detalle de Solicitud - Agrow</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Detalle de Solicitud</h1>
+            <p class="page-subtitle">Información completa de la solicitud seleccionada.</p>
+        </div>
+    </div>
+
+    <div class="detail-container">
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                <span class="material-symbols-outlined">assignment</span>
+            </div>
+            <div>
+                <h2 class="detail-title" th:text="${requests.name}">Nombre del Solicitante</h2>
+            </div>
+        </div>
+
+        <table class="detail-table">
+            <tr>
+                <td>Tipo de Producto</td>
+                <td th:text="${requests.type}">Tipo de producto</td>
+            </tr>
+            <tr>
+                <td>Cantidad</td>
+                <td th:text="${requests.amount}">100</td>
+            </tr>
+            <tr>
+                <td>Fecha de Solicitud</td>
+                <td th:text="${requests.getFormattedDate()}">01/01/2025</td>
+            </tr>
+            <tr>
+                <td>Dirección</td>
+                <td th:text="${requests.address}">Dirección completa</td>
+            </tr>
+            <tr>
+                <td>Teléfono</td>
+                <td th:text="${requests.phone_number}">8888-8888</td>
+            </tr>
+            <tr>
+                <td>Descripción</td>
+                <td th:text="${requests.description ?: 'No hay descripción disponible'}">Descripción de la solicitud</td>
+            </tr>
+        </table>
+
+        <div class="detail-actions">
+            <a th:href="@{/requests/edit(id=${requests.idrequest})}" class="btn btn-warning"> <span class="material-symbols-outlined icon">edit</span> Editar </a>
+            <form th:action="@{/requests/delete}" method="post" class="confirm-action" data-message="¿Eliminar esta solicitud?" data-title="Confirmar Eliminación" style="margin:0; display:inline;">
+                <input type="hidden" name="id" th:value="${requests.idrequest}" />
+                <button type="submit" class="btn btn-danger"> <span class="material-symbols-outlined icon">delete</span> Eliminar </button>
+            </form>
+            <a th:href="@{/requests/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a la Lista </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

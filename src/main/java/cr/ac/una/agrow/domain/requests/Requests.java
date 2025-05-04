@@ -1,16 +1,18 @@
 package cr.ac.una.agrow.domain.requests;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Entity
-@Table(name="")
+@Table(name="requests")
 public class Requests {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int idrequest;
     private String name;
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate date;
     private String address;
     private String type;

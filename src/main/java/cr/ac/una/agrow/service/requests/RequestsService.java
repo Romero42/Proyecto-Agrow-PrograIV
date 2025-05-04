@@ -32,4 +32,12 @@ public class RequestsService implements CRUD<Requests> {
     public Requests getById(int i) {
         return repoRequests.getReferenceById(i);
     }
+
+    @Override
+    public List<Requests> searchName(String searchTerm){
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return getAll();
+        }
+        return repoRequests.findByNameOrTypeContainingIgnoreCase(searchTerm);
+    }
 }
