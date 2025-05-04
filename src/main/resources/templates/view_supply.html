@@ -1,63 +1,63 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Detalle del Suministro - Agrow</title>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" th:href="@{/css/common.css}" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    </head>
-    <body>
+<head>
+    <title>Detalle del Suministro - Agrow</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
 
-        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-        <div class="main-content">
-            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-            <div class="detail-container" th:if="${supply != null}" th:object="${supply}">
-                <div class="detail-header">
-                    <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
-                        <span class="material-symbols-outlined">inventory_2</span>
-                    </div>
-                    <div>
-                        <h2 class="page-title" th:text="*{name}"></h2>
-                        <p class="page-subtitle" style="margin-top: -5px;">Detalles del Insumo</p>
-                    </div>
-                </div>
-                <table class="detail-table">
-                    <tr> <td>ID Suministro:</td> <td th:text="*{idSupply}"></td> </tr>
-                    <tr> <td>Nombre:</td> <td th:text="*{name}"></td> </tr>
-                    <tr> <td>Categoría:</td> <td th:text="*{category}"></td> </tr>
-                    <!-- CORRECCIÓN: Usar numeric-display para stock y minimo -->
-                    <tr> <td>Stock Actual:</td> <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stock, 1, 2, 'POINT')}"></td> </tr>
-                    <tr> <td>Stock Mínimo:</td> <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stockMinimo, 1, 2, 'POINT')}"></td> </tr>
-                    <tr> <td>Estado Stock:</td> <td> <span class="status" th:classappend="${#strings.equalsIgnoreCase(supply.estado, 'Bajo')} ? ' status-bajo' : (${#strings.equalsIgnoreCase(supply.estado, 'Agotado')} ? ' status-danger' : ' status-optimo')" th:text="*{estado}"></span> </td> </tr>
-                    <tr> <td>Unidad Medida:</td> <td th:text="*{unitType}"></td> </tr>
-                     <!-- CORRECCIÓN: Mantener price-display para precio -->
-                    <tr> <td>Precio Unitario:</td> <td class="price-display" th:attr="data-value=*{pricePerUnit}"></td> </tr>
-                    <tr> <td>Vencimiento:</td> <td th:text="*{getFormattedExpirationDate()}"></td> </tr>
-                    <tr> <td>Proveedor:</td> <td th:text="${supplierName + ' (ID: ' + supply.supplierId + ')'}"></td> </tr>
-                </table>
-
-                <div class="detail-actions">
-                    <a th:href="@{/supplies/edit(idSupply=*{idSupply})}" class="btn btn-warning"> <span class="material-symbols-outlined icon">edit</span> Editar </a>
-                     <form th:action="@{/supplies/delete}" method="post" class="confirm-action" data-message="¿Eliminar este suministro?" data-title="Confirmar Eliminación">
-                           <input type="hidden" name="idSupply" th:value="*{idSupply}" />
-                           <button type="submit" class="btn btn-danger"> <span class="material-symbols-outlined icon">delete</span> Eliminar </button>
-                     </form>
-                    <a th:href="@{/supplies/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
-                </div>
+    <div class="detail-container" th:if="${supply != null}" th:object="${supply}">
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                <span class="material-symbols-outlined">inventory_2</span>
             </div>
-
-            <div th:if="${supply == null}" class="info-card">
-                <span class="material-symbols-outlined icon">error_outline</span>
-                <h2>Suministro no encontrado</h2>
-                <p>El suministro solicitado no existe o fue eliminado.</p>
-                <a th:href="@{/supplies/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+            <div>
+                <h2 class="page-title" th:text="*{name}"></h2>
+                <p class="page-subtitle" style="margin-top: -5px;">Detalles del Insumo</p>
             </div>
         </div>
+        <table class="detail-table">
+            <tr> <td>ID Suministro:</td> <td th:text="*{idSupply}"></td> </tr>
+            <tr> <td>Nombre:</td> <td th:text="*{name}"></td> </tr>
+            <tr> <td>Categoría:</td> <td th:text="*{category}"></td> </tr>
+            
+            <tr> <td>Stock Actual:</td> <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stock, 1, 2, 'POINT')}"></td> </tr>
+            <tr> <td>Stock Mínimo:</td> <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stockMinimo, 1, 2, 'POINT')}"></td> </tr>
+            <tr> <td>Estado Stock:</td> <td> <span class="status" th:classappend="${#strings.equalsIgnoreCase(supply.estado, 'Bajo')} ? ' status-bajo' : (${#strings.equalsIgnoreCase(supply.estado, 'Agotado')} ? ' status-danger' : ' status-optimo')" th:text="*{estado}"></span> </td> </tr>
+            <tr> <td>Unidad Medida:</td> <td th:text="*{unitType}"></td> </tr>
+            
+            <tr> <td>Precio Unitario:</td> <td class="price-display" th:attr="data-value=*{pricePerUnit}"></td> </tr>
+            <tr> <td>Vencimiento:</td> <td th:text="*{getFormattedExpirationDate()}"></td> </tr>
+            <tr> <td>Proveedor:</td> <td th:text="*{supplier?.companyName ?: 'N/A'} + (*{supplier != null} ? ' (ID: ' + *{supplier.supplierIdentification} + ')' : '')"></td> </tr>
+        </table>
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script th:src="@{/js/app.js}"></script> <!-- Asegúrate que app.js aplique formatPrices -->
-    </body>
+        <div class="detail-actions">
+            <a th:href="@{/supplies/edit(idSupply=*{idSupply})}" class="btn btn-warning"> <span class="material-symbols-outlined icon">edit</span> Editar </a>
+            <form th:action="@{/supplies/delete}" method="post" class="confirm-action" data-message="¿Eliminar este suministro?" data-title="Confirmar Eliminación">
+                <input type="hidden" name="idSupply" th:value="*{idSupply}" />
+                <button type="submit" class="btn btn-danger"> <span class="material-symbols-outlined icon">delete</span> Eliminar </button>
+            </form>
+            <a th:href="@{/supplies/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+        </div>
+    </div>
+
+    <div th:if="${supply == null}" class="info-card">
+        <span class="material-symbols-outlined icon">error_outline</span>
+        <h2>Suministro no encontrado</h2>
+        <p>El suministro solicitado no existe o fue eliminado.</p>
+        <a th:href="@{/supplies/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script> 
+</body>
 </html>

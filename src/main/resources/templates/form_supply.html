@@ -9,98 +9,108 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
 <body>
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="main-content">
-        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-        <div class="info-card" th:if="${error_supplier != null}">
-            <span class="material-symbols-outlined icon">warning</span>
-            <h2 th:text="${error_supplier}"></h2>
-        </div>
-
-        <form method="post" th:action="@{/supplies/save}" th:object="${supply}" class="form-container confirm-action" data-message="¿Guardar este nuevo suministro?" data-title="Confirmar Guardado">
-            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
-                <h1 class="page-title">Agregar Nuevo Suministro</h1>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="name">Nombre:</label>
-                <input class="form-input" type="text" id="name" name="name" th:value="*{name}" maxlength="100" placeholder="Ej: Semillas de maíz H-5G" title="Nombre descriptivo" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="category">Categoría:</label>
-                <select class="form-select" id="category" name="category" th:value="*{category}" title="Categoría del suministro" required>
-                    <option value="" disabled th:selected="*{category == null}">Seleccione...</option>
-                    <option value="Semillas" th:selected="*{category == 'Semillas'}">Semillas</option>
-                    <option value="Fertilizantes" th:selected="*{category == 'Fertilizantes'}">Fertilizantes</option>
-                    <option value="Plaguicidas" th:selected="*{category == 'Plaguicidas'}">Plaguicidas</option>
-                    <option value="Herramientas" th:selected="*{category == 'Herramientas'}">Herramientas</option>
-                    <option value="Accesorios de riego" th:selected="*{category == 'Accesorios de riego'}">Accesorios de riego</option>
-                    <option value="Insumos orgánicos" th:selected="*{category == 'Insumos orgánicos'}">Insumos orgánicos</option>
-                    <option value="Otros" th:selected="*{category == 'Otros'}">Otros</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="stock">Stock Inicial:</label>
-                <input class="form-input" type="number" id="stock" name="stock" th:value="*{stock > 0 ? #numbers.formatDecimal(stock, 1, 2, 'POINT') : ''}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 100.00" title="Cantidad inicial" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="stockMinimo">Stock Mínimo:</label>
-                <input class="form-input" type="number" id="stockMinimo" name="stockMinimo" th:value="*{stockMinimo > 0 ? #numbers.formatDecimal(stockMinimo, 1, 2, 'POINT') : ''}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 10.00" title="Nivel mínimo antes de reordenar" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="unitType">Unidad de Medida:</label>
-                <select class="form-select" id="unitType" name="unitType" th:value="*{unitType}" title="Unidad de medida" required>
-                    <option value="" disabled th:selected="*{unitType == null}">Seleccione...</option>
-                    <option value="Unidad" th:selected="*{unitType == 'Unidad'}">Unidad</option>
-                    <option value="Pieza" th:selected="*{unitType == 'Pieza'}">Pieza</option>
-                    <option value="Paquete" th:selected="*{unitType == 'Paquete'}">Paquete</option>
-                    <option value="Saco" th:selected="*{unitType == 'Saco'}">Saco</option>
-                    <option value="Caja" th:selected="*{unitType == 'Caja'}">Caja</option>
-                    <option value="Litro" th:selected="*{unitType == 'Litro'}">Litro (L)</option>
-                    <option value="Kilogramo" th:selected="*{unitType == 'Kilogramo'}">Kilogramo (Kg)</option>
-                    <option value="Metro" th:selected="*{unitType == 'Metro'}">Metro (m)</option>
-                    <option value="Rollo" th:selected="*{unitType == 'Rollo'}">Rollo</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="pricePerUnit">Precio por Unidad (CRC):</label>
-                <input class="form-input" type="number" id="pricePerUnit" name="pricePerUnit" th:value="*{pricePerUnit > 0 ? #numbers.formatDecimal(pricePerUnit, 1, 2, 'POINT') : ''}" step="0.01" min="0.01" max="99999999.99" placeholder="Ej: 750.50" title="Precio unitario" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="expirationDate">Fecha de Vencimiento:</label>
-                <input type="text" id="expirationDate" name="expirationDate" class="form-input date-picker-future-iso" th:value="${expirationDateStr != null ? expirationDateStr : ''}" placeholder="yyyy-mm-dd" title="Fecha de vencimiento" required />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="supplierId">Proveedor:</label>
-                <select class="form-select" id="supplierId" name="supplierId" th:field="*{supplierId}" title="Proveedor" required>
-                    <option value="" disabled th:selected="*{supplierId == null}">Seleccione un proveedor...</option>
-                    <option th:each="supplierOpt : ${suppliers}" th:value="${supplierOpt.supplierIdentification}" th:text="${supplierOpt.companyName + ' (' + supplierOpt.supplierIdentification + ')'}" th:selected="${supply.supplierId == supplierOpt.supplierIdentification}"></option>
-                </select>
-                <p class="form-info">(Si no está en la lista, regístrelo primero)</p>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
-                    <span class="material-symbols-outlined icon">save</span> Guardar Suministro
-                </button>
-                <a th:href="@{/supplies/list}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">cancel</span> Cancelar
-                </a>
-            </div>
-        </form>
+    <div class="info-card" th:if="${error_supplier != null}">
+        <span class="material-symbols-outlined icon">warning</span>
+        <h2 th:text="${error_supplier}"></h2>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:src="@{/js/app.js}"></script>
+    <!-- Se quita th:object del form si usamos valores directos para evitar conflictos -->
+    <form method="post" th:action="@{/supplies/save}" class="form-container confirm-action" data-message="¿Guardar este nuevo suministro?" data-title="Confirmar Guardado">
+        <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+            <h1 class="page-title">Agregar Nuevo Suministro</h1>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="name">Nombre:</label>
+            <!-- Usamos th:value del objeto pasado si existe, si no, vacío -->
+            <input class="form-input" type="text" id="name" name="name" th:value="${supply?.name}" maxlength="100" placeholder="Ej: Semillas de maíz H-5G" title="Nombre descriptivo" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="category">Categoría:</label>
+            <select class="form-select" id="category" name="category" title="Categoría del suministro" required>
+                <option value="" disabled th:selected="${supply?.category == null}">Seleccione...</option>
+                <option value="Semillas" th:selected="${#strings.equals(supply?.category, 'Semillas')}">Semillas</option>
+                <option value="Fertilizantes" th:selected="${#strings.equals(supply?.category, 'Fertilizantes')}">Fertilizantes</option>
+                <option value="Plaguicidas" th:selected="${#strings.equals(supply?.category, 'Plaguicidas')}">Plaguicidas</option>
+                <option value="Herramientas" th:selected="${#strings.equals(supply?.category, 'Herramientas')}">Herramientas</option>
+                <option value="Accesorios de riego" th:selected="${#strings.equals(supply?.category, 'Accesorios de riego')}">Accesorios de riego</option>
+                <option value="Insumos orgánicos" th:selected="${#strings.equals(supply?.category, 'Insumos orgánicos')}">Insumos orgánicos</option>
+                <option value="Otros" th:selected="${#strings.equals(supply?.category, 'Otros')}">Otros</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="stock">Stock Inicial:</label>
+            <!-- Formateo si el valor existe y es > 0 -->
+            <input class="form-input" type="number" id="stock" name="stock" th:value="${supply?.stock != null and supply.stock > 0 ? #numbers.formatDecimal(supply.stock, 1, 2, 'POINT') : ''}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 100.00" title="Cantidad inicial (no negativo)" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="stockMinimo">Stock Mínimo:</label>
+            <input class="form-input" type="number" id="stockMinimo" name="stockMinimo" th:value="${supply?.stockMinimo != null and supply.stockMinimo > 0 ? #numbers.formatDecimal(supply.stockMinimo, 1, 2, 'POINT') : ''}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 10.00" title="Nivel mínimo antes de reordenar (no negativo)" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="unitType">Unidad de Medida:</label>
+            <select class="form-select" id="unitType" name="unitType" title="Unidad de medida" required>
+                <option value="" disabled th:selected="${supply?.unitType == null}">Seleccione...</option>
+                <option value="Unidad" th:selected="${#strings.equals(supply?.unitType, 'Unidad')}">Unidad</option>
+                <option value="Pieza" th:selected="${#strings.equals(supply?.unitType, 'Pieza')}">Pieza</option>
+                <option value="Paquete" th:selected="${#strings.equals(supply?.unitType, 'Paquete')}">Paquete</option>
+                <option value="Saco" th:selected="${#strings.equals(supply?.unitType, 'Saco')}">Saco</option>
+                <option value="Caja" th:selected="${#strings.equals(supply?.unitType, 'Caja')}">Caja</option>
+                <option value="Litro" th:selected="${#strings.equals(supply?.unitType, 'Litro')}">Litro (L)</option>
+                <option value="Kilogramo" th:selected="${#strings.equals(supply?.unitType, 'Kilogramo')}">Kilogramo (Kg)</option>
+                <option value="Metro" th:selected="${#strings.equals(supply?.unitType, 'Metro')}">Metro (m)</option>
+                <option value="Rollo" th:selected="${#strings.equals(supply?.unitType, 'Rollo')}">Rollo</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="pricePerUnit">Precio por Unidad (CRC):</label>
+            <input class="form-input" type="number" id="pricePerUnit" name="pricePerUnit" th:value="${supply?.pricePerUnit != null and supply.pricePerUnit > 0 ? #numbers.formatDecimal(supply.pricePerUnit, 1, 2, 'POINT') : ''}" step="0.01" min="0.01" max="99999999.99" placeholder="Ej: 750.50" title="Precio unitario (mayor que cero)" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="expirationDate">Fecha de Vencimiento:</label>
+            <!-- Usar el valor pasado por redirect attribute si existe, si no el del objeto supply -->
+            <input type="text" id="expirationDate" name="expirationDate" class="form-input date-picker-future-iso" th:value="${expirationDateStr != null ? expirationDateStr : (supply?.getExpirationDateForInput() != null ? supply.getExpirationDateForInput() : '')}" placeholder="yyyy-mm-dd" title="Fecha de vencimiento (obligatoria, no pasada)" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="supplierId">Proveedor:</label>
+            <!-- CORRECCIÓN: Quitar th:field, usar name y id. Manejar selección en option -->
+            <select class="form-select" id="supplierId" name="supplierId" title="Proveedor" required>
+                <option value="" disabled th:selected="${supply?.supplierId == null}">Seleccione un proveedor...</option>
+                <!-- CORRECCIÓN: Añadir th:selected para comparación manual -->
+                <option th:each="supplierOpt : ${suppliers}"
+                        th:value="${supplierOpt.supplierIdentification}"
+                        th:text="${supplierOpt.companyName + ' (' + supplierOpt.supplierIdentification + ')'}"
+                        th:selected="${supply?.supplierId != null and supply.supplierId == supplierOpt.supplierIdentification}">
+                </option>
+            </select>
+            <p class="form-info">(Si no está en la lista, regístrelo primero)</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span class="material-symbols-outlined icon">save</span> Guardar Suministro
+            </button>
+            <a th:href="@{/supplies/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">cancel</span> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+
+<div th:fragment="supplyTable">
+
+    
+    <div class="info-card" th:if="${validate != null or supplies == null or supplies.isEmpty()}">
+        <span class="material-symbols-outlined icon">info</span>
+        <h2 th:text="${validate != null ? validate : 'No se encontraron suministros'}">Mensaje</h2>
+        <p>Intenta con otros filtros o <a th:href="@{/supplies/form}">agrega nuevos suministros</a>.</p>
+    </div>
+
+    
+    <div class="table-container" th:unless="${validate != null or supplies == null or supplies.isEmpty()}">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Estado</th>
+                    <th>Unidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Vencimiento</th>
+                    <th>Proveedor</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="supply : ${supplies}">
+                    <td th:text="${supply.name}"></td>
+                    <td th:text="${supply.category}"></td>
+                    <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stock, 1, 2, 'POINT')}"></td>
+                    <td class="numeric-display" th:text="${#numbers.formatDecimal(supply.stockMinimo, 1, 2, 'POINT')}"></td>
+                    <td>
+                            <span class="status"
+                                  th:classappend="${#strings.equalsIgnoreCase(supply.estado, 'Bajo')} ? ' status-bajo' : (${#strings.equalsIgnoreCase(supply.estado, 'Agotado')} ? ' status-danger' : ' status-optimo')"
+                                  th:text="${supply.estado}">
+                            </span>
+                    </td>
+                    <td th:text="${supply.unitType}"></td>
+                    <td class="price-display" th:attr="data-value=${supply.pricePerUnit}"></td>
+                    <td th:text="${supply.getFormattedExpirationDate()}"></td>
+                    <td th:text="${supply.supplier?.companyName ?: 'N/A'}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/supplies/view(idSupply=${supply.idSupply})}" class="btns view-btns" title="Ver Detalles">
+                                <span class="material-symbols-outlined icon">visibility</span>
+                            </a>
+                            <a th:href="@{/supplies/edit(idSupply=${supply.idSupply})}" class="btns edit-btns" title="Editar">
+                                <span class="material-symbols-outlined icon">edit</span>
+                            </a>
+                            <form th:action="@{/supplies/delete}" method="post" class="confirm-action" data-message="¿Eliminar este suministro?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
+                                <input type="hidden" name="idSupply" th:value="${supply.idSupply}" />
+                                <button type="submit" class="btns delete-btns" title="Eliminar">
+                                    <span class="material-symbols-outlined icon">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    
+    
+    <div class="pagination" th:if="${totalPages != null and totalPages > 1}"> 
+        <ul>
+            
+            <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a th:if="${currentPage > 0}" href="#" th:attr="data-page=${currentPage - 1}" onclick="pageSupplies(this); return false;">«</a>
+                <span th:unless="${currentPage > 0}">«</span>
+            </li>
+
+            
+            
+            
+            <th:block th:if="${startPage != null and endPage != null and startPage <= endPage}">
+                <li th:each="i : ${#numbers.sequence(startPage, endPage)}" th:classappend="${i == currentPage} ? 'active' : ''">
+                    <a th:if="${i != currentPage}" href="#" th:attr="data-page=${i}" onclick="pageSupplies(this); return false;" th:text="${i + 1}"></a>
+                    <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
+                </li>
+            </th:block>
+
+            
+            <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
+                <a th:if="${currentPage < totalPages - 1}" href="#" th:attr="data-page=${currentPage + 1}" onclick="pageSupplies(this); return false;">»</a>
+                <span th:unless="${currentPage < totalPages - 1}">»</span>
+            </li>
+        </ul>
+    </div>
+    
+
+</div> 
+
+</body>
+</html>

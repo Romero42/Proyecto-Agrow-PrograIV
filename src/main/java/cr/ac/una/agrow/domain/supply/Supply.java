@@ -1,29 +1,59 @@
 package cr.ac.una.agrow.domain.supply;
 
+import cr.ac.una.agrow.domain.supplier.Supplier;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Entity
+@Table(name = "supply")
 public class Supply {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idSupply;
+
+    @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(nullable = false, length = 50)
     private String category;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private double stock;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private double stockMinimo;
+
+    @Column(nullable = false, length = 30)
     private String unitType;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
     private double pricePerUnit;
+
+    @Column(nullable = false)
     private LocalDate expirationDate;
-    private Integer supplierId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplierId", nullable = false)
+    private Supplier supplier;
+
+    @Transient
     private String supplierName;
+
+    @Transient
     private String estado;
 
     private static final DateTimeFormatter FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FORMAT_YYYY_MM_DD = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    public Supply() { }
+    public Supply() {
+        this.stock = 0.0;
+        this.stockMinimo = 0.0;
+        this.pricePerUnit = 0.0;
+    }
 
-    // Constructor para inserción (supplierId puede ser null inicialmente)
-    public Supply(String name, String category, double stock, double stockMinimo,
-                  String unitType, double pricePerUnit, LocalDate expirationDate, Integer supplierId) {
+    public Supply(String name, String category, double stock, double stockMinimo, String unitType, double pricePerUnit, LocalDate expirationDate, Supplier supplier) {
         this.name = name;
         this.category = category;
         setStock(stock);
@@ -31,40 +61,8 @@ public class Supply {
         this.unitType = unitType;
         setPricePerUnit(pricePerUnit);
         this.expirationDate = expirationDate;
-        this.supplierId = supplierId;
+        this.supplier = supplier;
     }
-
-    // Constructor para actualización (supplierId debe tener valor)
-    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
-                  String unitType, double pricePerUnit, LocalDate expirationDate, Integer supplierId) {
-        this.idSupply = idSupply;
-        this.name = name;
-        this.category = category;
-        setStock(stock);
-        setStockMinimo(stockMinimo);
-        this.unitType = unitType;
-        setPricePerUnit(pricePerUnit);
-        this.expirationDate = expirationDate;
-        this.supplierId = supplierId;
-    }
-
-    // Constructor completo desde BD
-    public Supply(int idSupply, String name, String category, double stock, double stockMinimo,
-                  String unitType, double pricePerUnit, LocalDate expirationDate, Integer supplierId, String supplierName, String estado) {
-        this.idSupply = idSupply;
-        this.name = name;
-        this.category = category;
-        this.stock = stock;
-        this.stockMinimo = stockMinimo;
-        this.unitType = unitType;
-        this.pricePerUnit = pricePerUnit;
-        this.expirationDate = expirationDate;
-        this.supplierId = supplierId;
-        this.supplierName = supplierName;
-        this.estado = estado;
-    }
-
-    // --- Getters y Setters ---
 
     public int getIdSupply() { return idSupply; }
     public void setIdSupply(int idSupply) { this.idSupply = idSupply; }
@@ -76,19 +74,28 @@ public class Supply {
     public void setCategory(String category) { this.category = category; }
 
     public double getStock() { return stock; }
-    public void setStock(double stock) { this.stock = Math.max(0, stock); }
+    public void setStock(double stock) {
+        this.stock = Math.max(0.0, stock);
+    }
 
     public double getStockMinimo() { return stockMinimo; }
-    public void setStockMinimo(double stockMinimo) { this.stockMinimo = Math.max(0, stockMinimo); }
+    public void setStockMinimo(double stockMinimo) {
+        this.stockMinimo = Math.max(0.0, stockMinimo);
+    }
 
     public String getUnitType() { return unitType; }
     public void setUnitType(String unitType) { this.unitType = unitType; }
 
     public double getPricePerUnit() { return pricePerUnit; }
-    public void setPricePerUnit(double pricePerUnit) { this.pricePerUnit = Math.max(0.01, pricePerUnit); }
+    public void setPricePerUnit(double pricePerUnit) {
+        this.pricePerUnit = Math.max(0.01, pricePerUnit);
+    }
 
     public LocalDate getExpirationDate() { return expirationDate; }
     public void setExpirationDate(LocalDate expirationDate) { this.expirationDate = expirationDate; }
+
+    public Supplier getSupplier() { return supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
 
     public String getFormattedExpirationDate() {
         if (expirationDate == null) return "-";
@@ -100,41 +107,36 @@ public class Supply {
         return expirationDate.format(FORMAT_YYYY_MM_DD);
     }
 
-    public Integer getSupplierId() {
-        return supplierId;
+    public String getSupplierName() {
+        return (this.supplier != null) ? this.supplier.getCompanyName() : "N/A";
     }
-
-    public void setSupplierId(Integer supplierId) {
-        this.supplierId = supplierId;
-    }
-
-    public String getSupplierName() { return supplierName != null ? supplierName : "N/A"; }
-    public void setSupplierName(String supplierName) { this.supplierName = supplierName; }
 
     public String getEstado() {
-        if (this.estado == null || this.estado.trim().isEmpty()) {
-            if (this.stock <= 0) return "Agotado";
-            if (this.stock <= this.stockMinimo) return "Bajo";
-            return "Óptimo";
-        }
-        return estado;
+        // Calculation remains the same logic, using double comparison
+        if (this.stock <= 0) return "Agotado";
+        if (this.stock <= this.stockMinimo) return "Bajo";
+        return "Óptimo";
     }
-    public void setEstado(String estado) { this.estado = estado; }
+
+    @Transient
+    public Integer getSupplierId() {
+        return (this.supplier != null) ? this.supplier.getSupplierIdentification() : null;
+    }
 
     @Override
     public String toString() {
         return "Supply{" +
-               "idSupply=" + idSupply +
-               ", name='" + name + '\'' +
-               ", category='" + category + '\'' +
-               ", stock=" + stock +
-               ", stockMinimo=" + stockMinimo +
-               ", unitType='" + unitType + '\'' +
-               ", pricePerUnit=" + pricePerUnit +
-               ", expirationDate=" + expirationDate +
-               ", supplierId=" + supplierId + 
-               ", supplierName='" + supplierName + '\'' +
-               ", estado='" + estado + '\'' +
-               '}';
+                "idSupply=" + idSupply +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", stock=" + stock + // double prints directly
+                ", stockMinimo=" + stockMinimo +
+                ", unitType='" + unitType + '\'' +
+                ", pricePerUnit=" + pricePerUnit +
+                ", expirationDate=" + expirationDate +
+                ", supplierId=" + getSupplierId() +
+                ", supplierName='" + getSupplierName() + '\'' +
+                ", estado='" + getEstado() + '\'' +
+                '}';
     }
 }
