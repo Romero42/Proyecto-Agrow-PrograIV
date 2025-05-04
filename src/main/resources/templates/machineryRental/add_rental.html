@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>agregaralquiler</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <script th:src="@{/js/app.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="info-card" th:if="${list == null or #lists.isEmpty(list)}">
+        <span class="material-symbols-outlined icon">info</span>
+        <h2>No hay maquinaria registrada o disponible para poder realizar un alquiler</h2>
+    </div>
+
+    <div style="margin-top: 20px;" th:if="${list == null or #lists.isEmpty(list)}">
+        <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado </a>
+    </div>
+
+    <div th:unless="${list.isEmpty()}">
+        <form method="get" th:action="@{/rent/save}" class="form-container confirm-action" data-message="¿Confirmar y guardar nuevo productor?"
+              data-title="Confirmar Registro">
+
+            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                <h1 class="page-title">Registrar un alquiler</h1>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="renterName">Nombre Completo:</label>
+                <input type="text" id="renterName" name="renterName" class="form-input" pattern="^[a-zA-ZáéíóúÁÉÍÓÚ. ]+$"
+                       title="Solo letras, puntos y espacios" required maxlength="50"
+                       placeholder="Ej: Juan Pérez"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Dirección:</label>
+                <input type="text" id="address" name="address" class="form-input" required maxlength="45"
+                       placeholder="Ej: Heredia, Sarapiqui, Puerto viejo"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="contactNumber">Número de Teléfono:</label>
+                <input type="tel" id="contactNumber" name="contactNumber" class="form-input" required pattern="^[24678]\d{7}$"
+                       title="Debe iniciar en 2,4,6,7 u 8 y tener 8 dígitos numéricos" placeholder="Ej: 87654321"
+                       maxlength="8"/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="rentStartDay">Fecha de alquiler:</label>
+                <input type="text" id="rentStartDay" name="rentStartDay" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="rentFinalDay">Fecha final de alquiler:</label>
+                <input type="text" id="rentFinalDay" name="rentFinalDay" class="form-input date-picker-iso" placeholder="yyyy-mm-dd" required/>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="machinery">Maquina:</label>
+                <select id="machinery" name="machinery" class="form-select" required>
+                    <option th:each="tempMachi : ${list}"
+                            th:value="${tempMachi.id}"
+                            th:text="${tempMachi.nombre}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Guardar Alquiler </button>
+                    <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span> Cancelar </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

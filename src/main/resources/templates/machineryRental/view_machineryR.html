@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>visualizartodoslosdatos</title>
+
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="detail-container" th:if="${machinery != null}" th:object="${machinery}">
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                <span class="material-symbols-outlined">key</span>
+            </div>
+            <div>
+                <h2 class="page-title" th:text="*{renterName}"></h2>
+                <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{id_machinaryrental}"></span></p>
+            </div>
+        </div>
+
+        <table class="detail-table">
+            <tr><td>ID alquiler:</td><td th:text="*{id_machinaryrental}"></td></tr>
+            <tr><td>Nombre :</td><td th:text="*{renterName}"></td></tr>
+            <tr><td>Dirección:</td><td th:text="*{address}"></td></tr>
+            <tr><td>Teléfono:</td><td th:text="*{contactNumber}"></td></tr>
+            <tr><td>Inicio alquiler:</td><td th:text="*{rentStartDay}"></td></tr>
+            <tr><td>Final del alquiler:</td><td th:text="*{rentFinalDay}"></td></tr>
+            <tr><td>Maquina:</td><td th:text="*{id_maquina}"></td></tr>
+        </table>
+
+        <div class="detail-actions">
+            <a th:href="@{/rent/editView(id_machinaryrental=*{id_machinaryrental})}" class="btn btn-warning">
+                <span class="material-symbols-outlined icon">edit</span> Editar
+            </a>
+            <form th:action="@{/rent/delete}" method="get" class="confirm-action" data-message="¿Eliminar el alquiler?" data-title="Confirmar Eliminación">
+                <input type="hidden" name="id_machinaryrental" th:value="*{id_machinaryrental}" />
+                <input type="hidden" name="id_maquina" th:value="*{id_maquina}"/>
+                <button type="submit" class="btn btn-danger">
+                    <span class="material-symbols-outlined icon">delete</span> Eliminar
+                </button>
+            </form>
+            <a th:href="@{/rent/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${machinery == null}" class="info-card">
+        <span class="material-symbols-outlined icon">key</span>
+        <h2>Alquiler no encontrado</h2>
+        <p>El alquiler solicitado no existe o fue eliminado.</p>
+        <a th:href="@{/rent/list}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+        </a>
+    </div>
+</div>
+</body>
+</html>

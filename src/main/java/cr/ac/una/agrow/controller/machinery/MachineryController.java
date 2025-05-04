@@ -159,6 +159,7 @@ public String editar(@RequestParam("id") int id, Model model) {
         }
 
         model.addAttribute("maquina", maquina);
+        model.addAttribute("rental", false);
         model.addAttribute("titulo", "Detalles de la Máquina: " + maquina.getNombre());
 
         return "machinery/detail_machinery"; 

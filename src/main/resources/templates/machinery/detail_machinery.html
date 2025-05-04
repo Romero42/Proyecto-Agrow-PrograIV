@@ -8,57 +8,75 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
+
+<!-- Sidebar solo si no viene de rental -->
+<div th:unless="${rental}">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+</div>
 
-    <div class="main-content">
-        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-        <div class="detail-container" th:if="${maquina != null}" th:object="${maquina}">
-            <div class="detail-header">
-                <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
-                    <span class="material-symbols-outlined">build</span>
-                </div>
-                <div>
-                    <h2 class="page-title" th:text="*{nombre}"></h2>
-                    <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{id}"></span></p>
-                </div>
+
+
+    <div class="detail-container" th:if="${maquina != null}" th:object="${maquina}" >
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                <span class="material-symbols-outlined">build</span>
             </div>
 
-            <table class="detail-table">
-                <tr><td>Matrícula:</td><td th:text="*{id}"></td></tr>
-                <tr><td>Nombre:</td><td th:text="*{nombre}"></td></tr>
-                <tr><td>Condición:</td><td th:text="*{condicion}"></td></tr>
-                <tr><td>Disponibilidad:</td><td th:text="*{disponibilidad ? 'Disponible' : 'Ocupada'}"></td></tr>
-                <tr><td>Fecha de Adquisición:</td><td th:text="*{#temporals.format(diaAdquisicion, 'dd/MM/yyyy')}"></td></tr>
-                <tr><td>Costo de Alquiler:</td><td th:text="*{costoAlquiler}"></td></tr>
-                <tr><td>Ubicación:</td><td th:text="*{ubicacion}"></td></tr>
-                <tr><td>Capacidad de Trabajo:</td><td th:text="*{capacidadTrabajo}"></td></tr>
-            </table>
+            <div>
+                <h2 class="page-title" th:text="*{nombre}"></h2>
+                <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{id}"></span></p>
+            </div>
 
-            <div class="detail-actions">
-                <!-- Botón de Editar -->
-                <a th:href="@{/editar(id=${maquina.id})}" class="btn btn-warning">
-                    <span class="material-symbols-outlined icon">edit</span> Editar
-                </a>
+            <div><p style="white-space: pre;">
+                                                                     </p>
+            </div>
 
-                <!-- Formulario de Eliminar -->
-                <form th:action="@{/gestionar}" method="post" style="display:inline;">
-                    <input type="hidden" name="id" th:value="${maquina.id}" />
-                    <div th:if="${_csrf != null}">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    </div>
-                    <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('⚠️ ¿Eliminar esta máquina? Esta acción no se puede deshacer.');">
-                        <span class="material-symbols-outlined icon">delete</span>
-                    </button>
-                </form>
-
-                <!-- Botón de Volver Atrás -->
-                <a href="/lista" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver Atrás
+            <div th:if="${rental}" class="align-right-inline">
+                <a href="#" onclick="cerrarInfoMaquina(); return false;">
+                    <span class="material-symbols-outlined icon">close</span>
                 </a>
             </div>
         </div>
+
+        <table class="detail-table">
+            <tr><td>Matrícula:</td><td th:text="*{id}"></td></tr>
+            <tr><td>Nombre:</td><td th:text="*{nombre}"></td></tr>
+            <tr><td>Condición:</td><td th:text="*{condicion}"></td></tr>
+            <tr><td>Disponibilidad:</td><td th:text="*{disponibilidad} ? 'Disponible' : 'Ocupada'"></td></tr>
+            <tr><td>Fecha de Adquisición:</td><td th:text="*{#temporals.format(diaAdquisicion, 'dd/MM/yyyy')}"></td></tr>
+            <tr><td>Costo de Alquiler:</td><td th:text="*{costoAlquiler}"></td></tr>
+            <tr><td>Ubicación:</td><td th:text="*{ubicacion}"></td></tr>
+            <tr><td>Capacidad de Trabajo:</td><td th:text="*{capacidadTrabajo}"></td></tr>
+        </table>
+
+
+        <!-- Botones solo si NO viene desde rental -->
+        <div class="detail-actions" th:if="${!rental}">
+            <a th:href="@{/editar(id=${maquina.id})}" class="btn btn-warning">
+                <span class="material-symbols-outlined icon">edit</span> Editar
+            </a>
+
+            <form th:action="@{/gestionar}" method="post" style="display:inline;">
+                <input type="hidden" name="id" th:value="${maquina.id}" />
+                <div th:if="${_csrf != null}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                </div>
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('⚠️ ¿Eliminar esta máquina? Esta acción no se puede deshacer.');">
+                    <span class="material-symbols-outlined icon">delete</span>
+                </button>
+            </form>
+
+            <a href="/lista" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver Atrás
+            </a>
+        </div>
     </div>
+</div>
+
 </body>
+
 </html>

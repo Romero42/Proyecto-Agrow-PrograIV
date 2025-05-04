@@ -313,6 +313,11 @@ body {
     text-decoration: underline;
 }
 
+.center-ajax {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
 
 /* vista detallada */
 .detail-container { background-color: var(--white); border-radius: 8px; padding: 30px; box-shadow: 0 1px 5px var(--black-06); max-width: 750px; margin: 20px auto; border: 1px solid var(--border-lighter); animation: fadeIn 0.4s ease-out; }
@@ -431,4 +436,42 @@ body {
 /* Asegurar la alineación a la izquierda para la segunda columna de la tabla de detalles */
 .detail-table td:last-child {
     text-align: left !important; /* Forzar que esté siempre alineado a la izquierda */
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination ul {
+    list-style: none;
+    display: inline-flex;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.pagination ul li a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #007bff;
+    border-right: 1px solid #ddd;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pagination ul li:last-child a {
+    border-right: none;
+}
+
+.pagination ul li a:hover {
+    background-color: #e6f4ea;
+    color: #2e7d32; /* verde oscuro */
+}
+
+.pagination ul li a.active {
+    background-color: #4CAF50; /* verde */
+    color: white;
+    font-weight: bold;
 }
