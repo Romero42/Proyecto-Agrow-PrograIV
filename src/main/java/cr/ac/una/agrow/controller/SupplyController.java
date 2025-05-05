@@ -1,8 +1,8 @@
-package cr.ac.una.agrow.controller.supply;
+package cr.ac.una.agrow.controller;
 
 import cr.ac.una.agrow.domain.supplier.Supplier;
-import cr.ac.una.agrow.domain.supply.Supply;
-import cr.ac.una.agrow.service.supply.SupplyService;
+import cr.ac.una.agrow.domain.Supply;
+import cr.ac.una.agrow.service.SupplyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -117,7 +117,7 @@ public class SupplyController {
         model.addAttribute("activeModule", "supply");
         model.addAttribute("activePage", "list");
 
-        return "list_supply";
+        return "supply/list_supply";
     }
 
     @GetMapping("/table")
@@ -194,7 +194,7 @@ public class SupplyController {
         model.addAttribute("supply", supply);
         model.addAttribute("activeModule", "supply");
         model.addAttribute("activePage", "add");
-        return "form_supply";
+        return "supply/form_supply";
     }
 
     @PostMapping("/save")
@@ -242,7 +242,7 @@ public class SupplyController {
         addSuppliersToModel(model);
         model.addAttribute("supply", supplyOpt.get());
         model.addAttribute("activeModule", "supply");
-        return "edit_supply";
+        return "supply/edit_supply";
     }
 
 
@@ -309,7 +309,7 @@ public class SupplyController {
         }
         model.addAttribute("supply", supplyOpt.get());
         model.addAttribute("activeModule", "supply");
-        return "view_supply";
+        return "supply/view_supply";
     }
 
     private String validateSupplyObject(Supply supply) {

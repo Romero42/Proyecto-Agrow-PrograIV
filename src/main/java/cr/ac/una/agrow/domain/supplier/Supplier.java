@@ -1,6 +1,6 @@
 package cr.ac.una.agrow.domain.supplier;
 
-import cr.ac.una.agrow.domain.supply.Supply;
+import cr.ac.una.agrow.domain.Supply;
 import jakarta.persistence.*;
 // No longer need BigDecimal
 import java.time.LocalDate;

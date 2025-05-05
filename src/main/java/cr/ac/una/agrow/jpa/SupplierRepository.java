@@ -11,6 +11,4 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
 
     List<Supplier> findAllByOrderByCompanyNameAsc();
 
-    List<Supplier> findByCompanyNameContainingIgnoreCaseOrSupplierNameContainingIgnoreCaseOrSupplierIdentification(String company, String name, int id);
-
 }

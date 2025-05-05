@@ -2,11 +2,11 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Editar Suministro - Agrow</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 </head>
 <body>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -15,9 +15,9 @@
     <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
     <div th:if="${supply != null}">
-        <!-- Usamos th:object aquí porque estamos editando y necesitamos los valores -->
-        <form method="post" th:action="@{/supplies/update}" th:object="${supply}" class="form-container confirm-action" data-message="¿Actualizar los datos de este suministro?" data-title="Confirmar Actualización">
-            <input type="hidden" name="idSupply" th:value="*{idSupply}" />
+        <form method="post" th:action="@{/supplies/update}" th:object="${supply}" class="form-container confirm-action"
+              data-message="¿Actualizar los datos de este suministro?" data-title="Confirmar Actualización">
+            <input type="hidden" name="idSupply" th:value="*{idSupply}"/>
 
             <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
                 <h1 class="page-title">Editar Suministro</h1>
@@ -25,12 +25,14 @@
 
             <div class="form-group">
                 <label class="form-label" for="name">Nombre:</label>
-                <input class="form-input" type="text" id="name" th:field="*{name}" maxlength="100" placeholder="Ej: Semillas de maíz H-5G" title="Nombre descriptivo del suministro" required />
+                <input class="form-input" type="text" id="name" th:field="*{name}" maxlength="100"
+                       placeholder="Ej: Semillas de maíz H-5G" title="Nombre descriptivo del suministro" required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="category">Categoría:</label>
-                <select class="form-select" id="category" th:field="*{category}" title="Categoría del suministro" required>
+                <select class="form-select" id="category" th:field="*{category}" title="Categoría del suministro"
+                        required>
                     <option value="" disabled>Seleccione...</option>
                     <option value="Semillas">Semillas</option>
                     <option value="Fertilizantes">Fertilizantes</option>
@@ -44,17 +46,22 @@
 
             <div class="form-group">
                 <label class="form-label" for="stock">Stock Actual:</label>
-                <input class="form-input" type="number" id="stock" th:field="*{stock}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 100.00" title="Cantidad actual en inventario (no negativo)" required />
+                <input class="form-input" type="number" id="stock" th:field="*{stock}" step="0.01" min="0"
+                       max="99999999.99" placeholder="Ej: 100.00" title="Cantidad actual en inventario (no negativo)"
+                       required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="stockMinimo">Stock Mínimo:</label>
-                <input class="form-input" type="number" id="stockMinimo" th:field="*{stockMinimo}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 10.00" title="Nivel mínimo antes de reordenar (no negativo)" required />
+                <input class="form-input" type="number" id="stockMinimo" th:field="*{stockMinimo}" step="0.01" min="0"
+                       max="99999999.99" placeholder="Ej: 10.00" title="Nivel mínimo antes de reordenar (no negativo)"
+                       required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="unitType">Unidad de Medida:</label>
-                <select class="form-select" id="unitType" th:field="*{unitType}" title="Cómo se mide este suministro" required>
+                <select class="form-select" id="unitType" th:field="*{unitType}" title="Cómo se mide este suministro"
+                        required>
                     <option value="" disabled>Seleccione...</option>
                     <option value="Unidad">Unidad</option>
                     <option value="Pieza">Pieza</option>
@@ -70,21 +77,23 @@
 
             <div class="form-group">
                 <label class="form-label" for="pricePerUnit">Precio por Unidad (CRC):</label>
-                <input class="form-input" type="number" id="pricePerUnit" th:field="*{pricePerUnit}" step="0.01" min="0.01" max="99999999.99" placeholder="Ej: 750.50" title="Costo por unidad (mayor que cero)" required />
+                <input class="form-input" type="number" id="pricePerUnit" th:field="*{pricePerUnit}" step="0.01"
+                       min="0.01" max="99999999.99" placeholder="Ej: 750.50" title="Costo por unidad (mayor que cero)"
+                       required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="expirationDate">Fecha de Vencimiento:</label>
-                <!-- Usar th:value con el método formateado del objeto -->
-                <input type="text" id="expirationDate" name="expirationDate" class="form-input date-picker-future-iso" th:value="*{getExpirationDateForInput()}" placeholder="yyyy-mm-dd" title="Fecha de caducidad (obligatoria, no pasada)" required />
+                <input type="text" id="expirationDate" name="expirationDate" class="form-input date-picker-future-iso"
+                       th:value="*{getExpirationDateForInput()}" placeholder="yyyy-mm-dd"
+                       title="Fecha de caducidad (obligatoria, no pasada)" required/>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="supplierId">Proveedor:</label>
-                <!-- CORRECCIÓN: Quitar th:field, usar name y id. -->
                 <select class="form-select" id="supplierId" name="supplierId" title="Proveedor del suministro" required>
                     <option value="" disabled>Seleccione un proveedor...</option>
-                    <!-- CORRECCIÓN: Añadir th:selected para comparación manual, usando el supplierId del th:object -->
+
                     <option th:each="supplierOpt : ${suppliers}"
                             th:value="${supplierOpt.supplierIdentification}"
                             th:text="${supplierOpt.companyName + ' (' + supplierOpt.supplierIdentification + ')'}"

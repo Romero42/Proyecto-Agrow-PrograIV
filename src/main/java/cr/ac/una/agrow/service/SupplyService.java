@@ -1,7 +1,7 @@
-package cr.ac.una.agrow.service.supply;
+package cr.ac.una.agrow.service;
 
 import cr.ac.una.agrow.domain.supplier.Supplier;
-import cr.ac.una.agrow.domain.supply.Supply;
+import cr.ac.una.agrow.domain.Supply;
 import cr.ac.una.agrow.jpa.SupplierRepository;
 import cr.ac.una.agrow.jpa.SupplyRepository;
 import org.springframework.beans.factory.annotation.Autowired;

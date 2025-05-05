@@ -1,4 +1,4 @@
-package cr.ac.una.agrow.domain.supply;
+package cr.ac.una.agrow.domain;
 
 import cr.ac.una.agrow.domain.supplier.Supplier;
 import jakarta.persistence.*;

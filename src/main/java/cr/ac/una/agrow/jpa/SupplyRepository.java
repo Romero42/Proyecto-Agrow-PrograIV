@@ -1,7 +1,7 @@
 
 package cr.ac.una.agrow.jpa;
 
-import cr.ac.una.agrow.domain.supply.Supply;
+import cr.ac.una.agrow.domain.Supply;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
