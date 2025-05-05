@@ -29,7 +29,7 @@ public class Producer_Service implements CRUD<Producer>{
 
     @Override
     public void delete(Producer producer) {
-
+        
     }
 
     //elimina un alquiler por id

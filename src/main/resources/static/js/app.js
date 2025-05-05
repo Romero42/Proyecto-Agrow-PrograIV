@@ -1,22 +1,21 @@
-
-        document.addEventListener('DOMContentLoaded', () => {
-        
-        const swalAgrow = Swal.mixin({
+document.addEventListener('DOMContentLoaded', () => {
+    // Configurar SweetAlert2 con estilos de Agrow
+    const swalAgrow = Swal.mixin({
         customClass: {
-        popup: 'swal2-agrow-popup',
-        title: 'swal2-agrow-title',
-        confirmButton: 'btn btn-primary swal2-agrow-confirm',
-        cancelButton: 'btn btn-danger swal2-agrow-cancel',
-        htmlContainer: 'swal2-html-container'
+            popup: 'swal2-agrow-popup',
+            title: 'swal2-agrow-title',
+            confirmButton: 'btn btn-primary swal2-agrow-confirm',
+            cancelButton: 'btn btn-danger swal2-agrow-cancel',
+            htmlContainer: 'swal2-html-container'
         },
         buttonsStyling: false
-        });
+    });
 
-        
+
         function initFlatpickr() {
         if (!window.flatpickr) {
-        
-        return; 
+
+        return;
         }
         flatpickr('.date-picker-iso', { dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today' });
         flatpickr('.date-picker-future-iso', { dateFormat: 'Y-m-d', allowInput: true, minDate: 'today' });
@@ -25,370 +24,299 @@
         const end = document.querySelector("#rentFinalDay");
 
         if (start && end) {
-        const startPicker = flatpickr(start, { dateFormat: "Y-m-d", allowInput: true, enableTime: false });
-        const endPicker = flatpickr(end, { dateFormat: "Y-m-d", allowInput: true, enableTime: false });
+            const startPicker = flatpickr(start, { dateFormat: "Y-m-d", allowInput: true });
+            const endPicker = flatpickr(end, { dateFormat: "Y-m-d", allowInput: true });
 
-        startPicker.config.onChange.push(function (selectedDates) {
-        if (selectedDates.length) {
-        
-        endPicker.set("minDate", selectedDates[0]);
-        
-        if (endPicker.selectedDates.length && endPicker.selectedDates[0] < selectedDates[0]) {
-        endPicker.setDate(selectedDates[0], false); 
+            startPicker.config.onChange.push(function (selectedDates) {
+                if (selectedDates.length) {
+                    endPicker.set("minDate", selectedDates[0]);
+                }
+            });
         }
-        } else {
-        endPicker.set("minDate", null); 
-        }
-        });
-        endPicker.config.onChange.push(function(selectedDates) {
-        if (selectedDates.length && startPicker.selectedDates.length) {
-        
-        startPicker.set("maxDate", selectedDates[0]);
-        } else if (!selectedDates.length) {
-        startPicker.set("maxDate", null); 
-        }
-        });
-        }
-        }
+    }
 
-        initFlatpickr();
+    initFlatpickr();
 
-        
-        const formatColones = val => {
+    // Formatea valores como colones costarricenses
+    const formatColones = val => {
         const num = parseFloat(val);
-        if (isNaN(num)) return '₡\u00A00.00'; 
+        if (isNaN(num)) return '₡ 0.00';
         return new Intl.NumberFormat('es-CR', {
-        style: 'currency',
-        currency: 'CRC',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+            style: 'currency',
+            currency: 'CRC',
+            minimumFractionDigits: 2
         }).format(num);
-        };
+    };
 
-        
-        function formatNumbers() {
+    // Aplica formato de moneda a elementos .price-display
+    function formatPrices() {
         document.querySelectorAll('.price-display').forEach(el => {
-        const value = el.dataset.value || el.textContent;
-        el.textContent = formatColones(value);
+            const value = el.dataset.value || el.textContent;
+            el.textContent = formatColones(value);
         });
-        document.querySelectorAll('.numeric-display').forEach(el => {
-        const value = el.dataset.value || el.textContent;
-        const num = parseFloat(value);
-        if (!isNaN(num)) {
-        
-        el.textContent = new Intl.NumberFormat('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num);
-        }
+    }
+
+    formatPrices();
+
+    // Agrega confirmaciones a formularios y enlaces
+    function attachConfirmHandlers() {
+        document.querySelectorAll('.confirm-action').forEach(el => {
+            if (el.dataset.confirmAttached) return;
+            el.dataset.confirmAttached = 'true';
+            const {
+                message = '¿Seguro?',
+                title = 'Confirmar',
+                confirmText = 'Sí',
+                cancelText = 'Cancelar',
+                icon = 'warning'
+            } = el.dataset;
+            const showDialog = (callback) => {
+                swalAgrow.fire({
+                    title,
+                    text: message,
+                    icon,
+                    showCancelButton: true,
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText,
+                    reverseButtons: true
+                })
+                    .then(res => {
+                        if (res.isConfirmed) callback();
+                    });
+            };
+            if (el.tagName === 'FORM') {
+                el.addEventListener('submit', e => {
+                    e.preventDefault();
+                    showDialog(() => el.submit());
+                });
+            } else if (el.tagName === 'A') {
+                el.addEventListener('click', e => {
+                    e.preventDefault();
+                    showDialog(() => window.location = el.href);
+                });
+            }
         });
-        }
+    }
 
-        formatNumbers(); 
+    attachConfirmHandlers();
 
-        
-        function attachConfirmHandlers() {
-        document.querySelectorAll('.confirm-action:not([data-confirm-attached="true"])').forEach(el => {
-        el.dataset.confirmAttached = 'true'; 
-        const {
-        message = '¿Está seguro de realizar esta acción?',
-        title = 'Confirmar',
-        confirmText = 'Sí, continuar',
-        cancelText = 'Cancelar',
-        icon = 'warning' 
-        } = el.dataset;
-
-        const showDialog = (callback) => {
-        swalAgrow.fire({
-        title: title,
-        text: message,
-        icon: icon,
-        showCancelButton: true,
-        confirmButtonText: confirmText,
-        cancelButtonText: cancelText,
-        reverseButtons: true
-        }).then((result) => {
-        if (result.isConfirmed) {
-        if (callback && typeof callback === 'function') {
-        callback();
-        }
-        }
+    // Lógica AJAX para filtrar suministros
+    const filterForm = document.getElementById('filter-form-supply');
+    const contentDiv = document.getElementById('supply-list-content');
+    if (filterForm && contentDiv) {
+        filterForm.addEventListener('submit', e => {
+            e.preventDefault();
+            contentDiv.style.opacity = '0.5';
+            fetch(`${filterForm.action}?${new URLSearchParams(new FormData(filterForm))}`, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+                .then(r => {
+                    if (!r.ok) throw Error(r.status);
+                    return r.text();
+                })
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('supply-list-content');
+                    contentDiv.innerHTML = newContent ? newContent.innerHTML : '<p class="info-card">Error al actualizar.</p>';
+                    formatPrices();
+                    attachConfirmHandlers();
+                    initFlatpickr();
+                })
+                .catch(() => {
+                    contentDiv.innerHTML = '<p class="info-card">Error de conexión.</p>';
+                    swalAgrow.fire('Error', 'No se pudo filtrar.', 'error');
+                })
+                .finally(() => {
+                    contentDiv.style.opacity = '1';
+                });
         });
-        };
+    }
 
-        if (el.tagName === 'FORM') {
-        el.addEventListener('submit', (event) => {
-        event.preventDefault(); 
-        showDialog(() => {
-        el.submit(); 
+    // Muestra mensajes flash del servidor
+    const flash = document.getElementById('swal-message');
+    if (flash) {
+        if (flash.dataset.mensaje) swalAgrow.fire({
+            title: '¡Éxito!',
+            text: flash.dataset.mensaje,
+            icon: 'success',
+            timer: 2500,
+            timerProgressBar: true
         });
-        });
-        } else if (el.tagName === 'A') {
-        el.addEventListener('click', (event) => {
-        event.preventDefault(); 
-        showDialog(() => {
-        window.location.href = el.href; 
-        });
-        });
-        }
-        });
-        }
+        if (flash.dataset.error) swalAgrow.fire({title: 'Error', text: flash.dataset.error, icon: 'error'});
 
-        attachConfirmHandlers(); 
+    }
+});
 
-        
-        const supplyContentDiv = document.getElementById('supply-list-content');
-        const supplyFilterForm = document.getElementById('filter-form-supply');
-
-        
-        function updateSupplyTable(url) {
-        if (!supplyContentDiv) return;
-        supplyContentDiv.style.opacity = '0.5'; 
-
-        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(response => {
-        if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-        })
-        .then(html => {
-        supplyContentDiv.innerHTML = html;
-        
-        formatNumbers();
-        attachConfirmHandlers();
-        initFlatpickr(); 
-        })
-        .catch(error => {
-        console.error('AJAX Error:', error);
-        supplyContentDiv.innerHTML = '<p class="info-card">Error al cargar los datos. Intente de nuevo.</p>';
-        swalAgrow.fire('Error', 'No se pudo actualizar la tabla.', 'error');
-        })
-        .finally(() => {
-        supplyContentDiv.style.opacity = '1'; 
-        });
-        }
-
-        
-        if (supplyFilterForm) {
-        
-        
-        window.filterSupplies = () => {
-        const formData = new FormData(supplyFilterForm);
-        
-        formData.set('page', '0');
-        const params = new URLSearchParams(formData).toString();
-        updateSupplyTable(`/supplies/table?${params}`);
-        };
-        }
-
-        
-        window.pageSupplies = (element) => {
-        const page = element.getAttribute('data-page');
-        const formData = new FormData(supplyFilterForm); 
-        formData.set('page', page); 
-        const params = new URLSearchParams(formData).toString();
-        updateSupplyTable(`/supplies/table?${params}`);
-        };
-
-        
-        const flash = document.getElementById('swal-message');
-        if (flash) {
-        if (flash.dataset.mensaje) {
-        swalAgrow.fire({
-        title: '¡Éxito!',
-        text: flash.dataset.mensaje,
-        icon: 'success',
-        timer: 2500,
-        timerProgressBar: true,
-        toast: true, 
-        position: 'top-end' 
-        });
-        }
-        if (flash.dataset.error) {
-        swalAgrow.fire({
-        title: 'Error',
-        text: flash.dataset.error,
-        icon: 'error'
-        });
-        }
-        
-        flash.removeAttribute('data-mensaje');
-        flash.removeAttribute('data-error');
-        }
-
-        
-        
-        const rentalTableUpdate = document.getElementById("tableData"); 
-        const maquinaInfoDiv = document.getElementById("infoMaquina");
-
-        window.mostrarAlerta = (tipo, mensaje) => { 
-        swalAgrow.fire({ 
-        icon: tipo,
+//ventana de mensaje del tipo que se obtiene
+function mostrarAlerta(tipo, mensaje) {
+    Swal.fire({
+        icon: tipo, // success, error, warning, info, question
         text: mensaje,
-        title: tipo === 'error' ? '¡Error!' : (tipo === 'warning' ? 'Atención' : 'Información'),
+        title: '¡Error!',
         timer: 2500,
         timerProgressBar: true,
         confirmButtonText: 'OK'
-        });
-        }
+    });
+}
 
-        window.filterRent = (element) => { 
-        if (!rentalTableUpdate) return;
-        var rentStartDay = document.getElementById("rentStartDay")?.value; 
-        var rentFinalDay = document.getElementById("rentFinalDay")?.value;
-        var id_maquina = document.getElementById("id_maquina")?.value;
-        var currentPage = element.getAttribute('data-page') || '0'; 
+//logica para la tabla de alquileres
+function filterRent(element) {
 
-        var params = new URLSearchParams(); 
-        var filterCount = 0;
-        if (rentStartDay) { params.append("rentStartDay", rentStartDay); filterCount++; }
-        if (rentFinalDay) { params.append("rentFinalDay", rentFinalDay); filterCount++; }
-        if (id_maquina) { params.append("id_maquina", id_maquina); filterCount++; }
+    var tableUpdate = document.getElementById("tableData");
+    var rentStartDay = document.getElementById("rentStartDay").value;
+    var rentFinalDay = document.getElementById("rentFinalDay").value;
+    var id_maquina = document.getElementById("id_maquina").value;
+    var currentPage = element.getAttribute('data-page');
 
-        if (filterCount === 0) {
-        mostrarAlerta("error", "Debe seleccionar al menos un filtro (fechas o código de máquina).");
+    var params = "";
+    var xhttp = new XMLHttpRequest();
+
+
+    if (rentStartDay && rentFinalDay && id_maquina) {
+
+        mostrarAlerta("error", "Use solo un filtro")
         return;
-        }
-        if (filterCount > 1 && id_maquina) {
-        mostrarAlerta("error", "No puede combinar búsqueda por código de máquina con filtros de fecha.");
+    } else if (!rentStartDay && !rentFinalDay && !id_maquina) {
+
+        mostrarAlerta("error", "Filtros vacios")
         return;
-        }
-        if (filterCount > 2) { 
-        mostrarAlerta("error", "Use solo filtro de fechas o filtro de código de máquina.");
+    }else if(rentStartDay && id_maquina || rentFinalDay && id_maquina){
+
+        mostrarAlerta("error", "Use solo un filtro")
         return;
+    }
+
+    if (rentStartDay && !rentFinalDay) {
+
+        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
+        + "&page=" + encodeURIComponent(currentPage);
+    } else if (!rentStartDay && rentFinalDay) {
+
+        params = "rentFinalDay=" + encodeURIComponent(rentFinalDay)
+        + "&page=" + encodeURIComponent(currentPage);
+    } else if (rentStartDay && rentFinalDay) {
+
+        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
+            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
+            + "&page=" + encodeURIComponent(currentPage);
+    } else {
+
+        params = "id_maquina=" + encodeURIComponent(id_maquina);
+    }
+
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+            tableUpdate.innerHTML = this.responseText;
         }
+    };
 
-        params.append("page", currentPage); 
+    xhttp.open("GET", "/rent/tableFilter?" + params, true);
+    xhttp.send();
+}
 
-        rentalTableUpdate.style.opacity = '0.5';
-        fetch("/rent/tableFilter?" + params.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(response => response.ok ? response.text() : Promise.reject('Network response was not ok.'))
-        .then(html => { rentalTableUpdate.innerHTML = html; initFlatpickr(); attachConfirmHandlers(); }) 
-        .catch(error => {
-        console.error('Filter Rent Error:', error);
-        rentalTableUpdate.innerHTML = '<p class="info-card">Error al cargar los datos.</p>';
-        mostrarAlerta('error', 'No se pudo aplicar el filtro.');
-        })
-        .finally(() => { rentalTableUpdate.style.opacity = '1'; });
+//ver informacion de una maquina en alquiler
+function viewMaquina(element){
+
+    var maquinaInfo = document.getElementById("infoMaquina");
+    var id_maquina = element.getAttribute('data-id');
+
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+            maquinaInfo.innerHTML = this.responseText;
         }
+    };
 
-        window.viewMaquina = (element) => { 
-        if (!maquinaInfoDiv) return;
-        var id_maquina = element.getAttribute('data-id');
-        if (!id_maquina) return;
+    xhttp.open("GET", "/rent/viewMaquina?id_maquina=" + id_maquina, true);
+    xhttp.send();
+}
 
-        maquinaInfoDiv.style.opacity = '0.5';
-        fetch("/rent/viewMaquina?id_maquina=" + id_maquina, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(response => response.ok ? response.text() : Promise.reject('Network response was not ok.'))
-        .then(html => { maquinaInfoDiv.innerHTML = html; }) 
-        .catch(error => {
-        console.error('View Maquina Error:', error);
-        maquinaInfoDiv.innerHTML = '<p class="info-card">Error al cargar detalles.</p>';
-        mostrarAlerta('error', 'No se pudieron cargar los detalles de la máquina.');
-        })
-        .finally(() => { maquinaInfoDiv.style.opacity = '1'; });
+function cerrarInfoMaquina() {
+    document.getElementById("infoMaquina").innerHTML = "";
+}
+
+//actualizar paginacion en listAlquiler
+function pageRent(element){
+
+    var tableCurrent = document.getElementById("tableData");
+    var currentPage = element.getAttribute('data-page');
+
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+            tableCurrent.innerHTML = this.responseText;
         }
+    };
 
-        window.cerrarInfoMaquina = () => { 
-        if (maquinaInfoDiv) maquinaInfoDiv.innerHTML = "";
-        }
+    xhttp.open("GET", "/rent/pageCurrent?page=" + currentPage, true);
+    xhttp.send();
+}
 
-        window.pageRent = (element) => { 
-        if (!rentalTableUpdate) return;
-        var currentPage = element.getAttribute('data-page');
-        if (currentPage === null) return;
+function cerrarInfoMaquina() {
+    document.getElementById("infoMaquina").innerHTML = "";
+}
 
-        rentalTableUpdate.style.opacity = '0.5';
-        fetch("/rent/pageCurrent?page=" + currentPage, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(response => response.ok ? response.text() : Promise.reject('Network response was not ok.'))
-        .then(html => { rentalTableUpdate.innerHTML = html; initFlatpickr(); attachConfirmHandlers(); }) 
-        .catch(error => {
-        console.error('Page Rent Error:', error);
-        rentalTableUpdate.innerHTML = '<p class="info-card">Error al cargar la página.</p>';
-        mostrarAlerta('error', 'No se pudo cambiar de página.');
-        })
-        .finally(() => { rentalTableUpdate.style.opacity = '1'; });
-        }
+//actualizar paginacionProducer
+function producer(element){
 
-        
-        const producerTableDiv = document.getElementById("table-producer");
-        const producerFilterForm = document.getElementById("filter-form-producer"); 
+    var tableCurrent = document.getElementById("table-producer");
+    var city = document.getElementById("city").value;
+    var lastCity = document.getElementById("lastCity").value;
+    var filter = document.getElementById("filter").value;
+    var id_producer = document.getElementById("id_producer").value;
+    var currentPage = element.getAttribute('data-page');
+    var buttonAction = element.getAttribute('data-button');
 
-        window.producer = (element) => { 
-        if (!producerTableDiv || !producerFilterForm) return;
+    var params = "page=" + encodeURIComponent(currentPage);
+    var xhttp = new XMLHttpRequest();
 
-        const cityInput = document.getElementById("city");
-        const idInput = document.getElementById("id_producer");
-        const lastCityInput = document.getElementById("lastCity"); 
-        const filterActiveInput = document.getElementById("filter"); 
-
-        const city = cityInput ? cityInput.value : null;
-        const id_producer = idInput ? idInput.value : null;
-        const lastCity = lastCityInput ? lastCityInput.value : null; 
-        const filterActive = filterActiveInput ? filterActiveInput.value === 'true' : false; 
-
-        const currentPage = element.getAttribute('data-page') || '0';
-        const buttonAction = element.getAttribute('data-button'); 
-
-        const params = new URLSearchParams();
-        let resetPage = false;
-
-        
-        if (buttonAction === '1') {
-        if (city && id_producer) {
-        mostrarAlerta("error", "Use solo un filtro a la vez (Provincia o Código).");
+    if(city && id_producer && buttonAction == 1){
+        mostrarAlerta("error", "Use solo un filtro")
         return;
-        }
-        if (!city && !id_producer) {
-        mostrarAlerta("error", "Seleccione una provincia o ingrese un código para filtrar.");
+
+    }else if(city === "" && buttonAction == 1 && !id_producer){
+
+        mostrarAlerta("error", "Seleccione una ciudad o busque por id")
         return;
-        }
-        resetPage = true; 
-        if (city) params.set("city", city);
-        if (id_producer) params.set("id_producer", id_producer);
+    }
 
-        } else { 
-        
-        if (filterActive) {
-        
-        if (lastCity) { 
-        params.set("city", lastCity);
-        } else if (id_producer) { 
-        
-        
-        
-        
-        const currentSearchId = document.getElementById("id_producer")?.value; 
-        if (currentSearchId) params.set("id_producer", currentSearchId);
+     if(buttonAction == 1 && id_producer || buttonAction == 1 && city){
+        currentPage = 0;
+     }
 
-        }
-        }
-        
-        }
+     xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
 
-        params.set("page", resetPage ? '0' : currentPage); 
+            tableCurrent.innerHTML = this.responseText;
+        }
+     };
 
-        producerTableDiv.style.opacity = '0.5';
-        fetch("/producers/list?" + params.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(response => response.ok ? response.text() : Promise.reject('Network response was not ok.'))
-        .then(html => {
-        producerTableDiv.innerHTML = html;
-        attachConfirmHandlers(); 
-        
-        const newLastCityInput = producerTableDiv.querySelector("#lastCity");
-        if (newLastCityInput && lastCityInput) {
-        lastCityInput.value = newLastCityInput.value;
-        }
-        const newFilterActiveInput = producerTableDiv.querySelector("#filter");
-        if (newFilterActiveInput && filterActiveInput) {
-        filterActiveInput.value = newFilterActiveInput.value;
-        }
-        })
-        .catch(error => {
-        console.error('Producer AJAX Error:', error);
-        producerTableDiv.innerHTML = '<p class="info-card">Error al cargar los datos.</p>';
-        mostrarAlerta('error', 'No se pudo actualizar la tabla de productores.');
-        })
-        .finally(() => { producerTableDiv.style.opacity = '1'; });
-        };
+      if(city && buttonAction == 1){
+
+          params = "city=" + encodeURIComponent(city)
+                 + "&page=" + encodeURIComponent(currentPage);
+      }else if(id_producer && buttonAction == 1){
+
+         params = "id_producer=" + encodeURIComponent(id_producer);
+      }else if(buttonAction == 0 && city && filter === "true" ||
+               buttonAction == 0 && id_producer && filter === "true"){
+
+            if(lastCity){
+                params = "page=" + encodeURIComponent(currentPage)
+                     + "&city=" + encodeURIComponent(lastCity);
+            }else{
+                params = "page=" + encodeURIComponent(currentPage)
+                        + "&city=" + encodeURIComponent(city);
+            }
+      }
+
+    xhttp.open("GET", "/producers/list?"+params, true);
+    xhttp.send();
+}
 
 
-        }); 
