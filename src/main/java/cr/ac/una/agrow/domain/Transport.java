@@ -1,11 +1,12 @@
-package cr.ac.una.agrow.domain.transport;
+package cr.ac.una.agrow.domain;
+
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "transport")
+@Table(name = "tb_transporte")
 public class Transport {
     
     

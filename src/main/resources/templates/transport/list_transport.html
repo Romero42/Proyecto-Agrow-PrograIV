@@ -1,135 +1,138 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Listado de Transportes - Agrow</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-</head>
-<body>
+    <head>
+        <title>Listado de Transportes - Agrow</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    </head>
+    <body>
 
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="main-content">
-        <!-- Mensajes de éxito/error -->
-        <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div class="main-content">
 
-        <div class="page-header">
-            <h1 class="page-title">Listado de Transportes</h1>
-            <p class="page-subtitle" th:text="'Total registrados: ' + ${cantidad}"></p>
-        </div>
+            <!-- Mensajes de éxito/error -->
+            <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${validate}" class="alert alert-info" th:text="${validate}"></div>
 
-        <div class="card-body" style="max-width: 100%; margin: auto;">
-            <div class="card-header">
-                <div class="header-actions">
-                    <a th:href="@{/formulario-transporte}" class="btn btn-primary">
-                        <span class="material-symbols-outlined icon">add</span>
-                        Agregar Transporte
-                    </a>
-                    <div class="search-box">
-                        <form th:action="@{/buscarTransportePorDestino}" method="get">
-                            <input type="text" name="destino" placeholder="Buscar por destino..." 
-                                   th:value="${destinoBuscado != null} ? ${destinoBuscado} : ''"/>
-                            <button type="submit" class="btn btn-search">
-                                <span class="material-symbols-outlined icon">search</span>
-                            </button>
-                        </form>
-                    </div>
-                    <div class="availability-filter">
-                        <a th:href="@{/buscarTransportePorEstado(estado=true)}" 
-                           class="btn" 
-                           th:classappend="${estadoFiltro != null && estadoFiltro} ? 'btn-success' : 'btn-outline-success'">
-                            Activos
-                        </a>
-                        <a th:href="@{/buscarTransportePorEstado(estado=false)}" 
-                           class="btn" 
-                           th:classappend="${estadoFiltro != null && !estadoFiltro} ? 'btn-danger' : 'btn-outline-danger'">
-                            Inactivos
-                        </a>
-                        <a th:href="@{/lista-transportes}" class="btn btn-secondary">
-                            <span class="material-symbols-outlined icon">refresh</span>
-                            Mostrar Todos
-                        </a>
-                    </div>
-                </div>
+            <div class="page-header">
+                <h1 class="page-title">Listado de Transportes</h1>
+                <p class="page-subtitle" th:text="'Total registrados: ' + ${cantidad}"></p>
             </div>
 
-            <div class="detail-container">
-                <div class="table-responsive">
-                    <table class="detail-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Compra</th>
-                                <th>Estado</th>
-                                <th>Origen → Destino</th>
-                                <th>Fecha</th>
-                                <th>Horario</th>
-                                <th>Costo</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="transporte : ${transportes}">
-                                <td th:text="${transporte.transportId}"></td>
-                                <td>
-                                    <span th:if="${clientesMap != null}" 
-                                          th:text="${clientesMap.get(transporte.clientId)?.nombre} + ' (ID: ' + ${transporte.clientId} + ')'">
-                                    </span>
-                                    <span th:unless="${clientesMap != null}" th:text="${transporte.clientId}"></span>
-                                </td>
-                                <td th:text="'Compra #' + ${transporte.compraId}"></td>
-                                <td>
-                                    <span class="status"
-                                          th:classappend="${transporte.estado} ? 'status-optimo' : 'status-danger'"
-                                          th:text="${transporte.estado ? 'Activo' : 'Inactivo'}">
-                                    </span>
-                                </td>
-                                <td>
-                                    <span th:text="${transporte.transportOrigin} + ' → ' + ${transporte.transportDestination}"></span>
-                                </td>
-                                <td th:text="${#temporals.format(transporte.transportDate, 'dd/MM/yyyy')}"></td>
-                                <td th:text="${#temporals.format(transporte.departureTime, 'HH:mm')} + ' - ' + ${#temporals.format(transporte.arrivalTime, 'HH:mm')}"></td>
-                                <td class="price-display" th:attr="data-value=${transporte.transportCost}"></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <!-- Botón de Editar -->
-                                        <a th:href="@{/editar-transporte(id=${transporte.transportId})}" class="btn btn-warning">
-                                            <span class="material-symbols-outlined icon">edit</span>
-                                        </a>
+            <div class="card-body" style="max-width: 100%; margin: auto;">
+                <div class="card-header">
+                    <div class="header-actions">
+                        <a th:href="@{/transport/formulario-transporte}" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">add</span>
+                            Agregar Transporte
+                        </a>
 
-                                        <!-- Formulario de Eliminar -->
-                                        <form th:action="@{/eliminar-transporte}" method="post" style="display:inline;">
-                                            <input type="hidden" name="transportId" th:value="${transporte.transportId}" />
-                                            <div th:if="${_csrf != null}">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                            </div>
-                                            <button type="submit" class="btn btn-danger"
-                                                    onclick="return confirm('⚠️ ¿Eliminar este transporte? Esta acción no se puede deshacer.');">
-                                                <span class="material-symbols-outlined icon">delete</span>
-                                            </button>
-                                        </form>
+                        <div class="search-box">
+                            <form th:action="@{/transport/buscarTransportePorDestino}" method="get">
+                                <input type="text" name="destino" placeholder="Buscar por destino..." 
+                                       th:value="${destinoBuscado != null} ? ${destinoBuscado} : ''" />
+                                <button type="submit" class="btn btn-search">
+                                    <span class="material-symbols-outlined icon">search</span>
+                                </button>
+                            </form>
+                        </div>
 
-                                        <!-- Botón de Ver Detalle -->
-                                        <a th:href="@{/detalles-transporte(id=${transporte.transportId})}" class="btn btn-info">
-                                            <span class="material-symbols-outlined icon">visibility</span>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <div class="availability-filter">
+                            <a th:href="@{/transport/buscarTransportePorEstado(estado=true)}"
+                               class="btn"
+                               th:classappend="${estadoFiltro != null && estadoFiltro} ? 'btn-success' : 'btn-outline-success'">
+                                En Camino
+                            </a>
+                            <a th:href="@{/transport/buscarTransportePorEstado(estado=false)}"
+                               class="btn"
+                               th:classappend="${estadoFiltro != null && !estadoFiltro} ? 'btn-danger' : 'btn-outline-danger'">
+                                Entregado
+                            </a>
+                            <a th:href="@{/transport/lista-transportes}" class="btn btn-secondary">
+                                <span class="material-symbols-outlined icon">refresh</span>
+                                Mostrar Todos
+                            </a>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="detail-container">
+                    <div class="table-responsive">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Compra</th>
+                                    <th>Estado</th>
+                                    <th>Origen → Destino</th>
+                                    <th>Fecha</th>
+                                    <th>Horario</th>
+                                    <th>Costo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="transporte : ${transportes}">
+                                    <td th:text="${transporte.transportId}"></td>
+                                    <td>
+                                        <span th:if="${clientesMap != null}" 
+                                              th:text="${clientesMap.get(transporte.clientId)?.nombre} + ' (ID: ' + ${transporte.clientId} + ')'">
+                                        </span>
+                                        <span th:unless="${clientesMap != null}" th:text="${transporte.clientId}"></span>
+                                    </td>
+                                    <td th:text="'Compra #' + ${transporte.compraId}"></td>
+                                    <td>
+                                        <span class="status"
+                                              th:classappend="${transporte.estado} ? 'status-optimo' : 'status-danger'"
+                                              th:text="${transporte.estado ? 'En Camino' : 'Entregado'}">
+                                        </span>
+                                    </td>
+                                    <td th:text="${transporte.transportOrigin} + ' → ' + ${transporte.transportDestination}"></td>
+                                    <td th:text="${#temporals.format(transporte.transportDate, 'dd/MM/yyyy')}"></td>
+                                    <td th:text="${#temporals.format(transporte.departureTime, 'HH:mm')} + ' - ' + ${#temporals.format(transporte.arrivalTime, 'HH:mm')}"></td>
+                                    <td class="price-display" th:attr="data-value=${transporte.transportCost}"></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <!-- Editar -->
+                                            <a th:href="@{/transport/editar-transporte(id=${transporte.transportId})}" class="btn btn-warning">
+                                                <span class="material-symbols-outlined icon">edit</span>
+                                            </a>
+
+                                            <!-- Eliminar -->
+                                            <form th:action="@{/transport/eliminar-transporte}" method="post" style="display:inline;">
+                                                <input type="hidden" name="transportId" th:value="${transporte.transportId}" />
+                                                <div th:if="${_csrf != null}">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                </div>
+                                                <button type="submit" class="btn btn-danger"
+                                                        onclick="return confirm('⚠️ ¿Eliminar este transporte? Esta acción no se puede deshacer.');">
+                                                    <span class="material-symbols-outlined icon">delete</span>
+                                                </button>
+                                            </form>
+
+                                            <!-- Ver Detalle -->
+                                            <a th:href="@{/transport/detalles-transporte(id=${transporte.transportId})}" class="btn btn-info">
+                                                <span class="material-symbols-outlined icon">visibility</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
         </div>
 
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:src="@{/js/app.js}"></script>
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/app.js}"></script>
+    </body>
 </html>

@@ -56,6 +56,33 @@
                     </a>
                 </div>
 
+                <!-- Tarjeta para Cosechas -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">
+                        <span class="material-symbols-outlined icon">eco</span>
+                    </div>
+                    <h2 class="dashboard-card-title">Gestión de Cosechas</h2>
+                    <p class="dashboard-card-description">
+                        Visualiza, registra y administra la información de tus cosechas: tipo, calidad, destino y cantidad recolectada.
+                    </p>
+                    <a th:href="@{/harvests/list}" class="dashboard-card-action">
+                        Ir a Cosechas <span class="material-symbols-outlined icon">arrow_forward</span>
+                    </a>
+                </div>
+                
+                <!-- Tarjeta para Alquiler de Maquinaria -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">
+                        <span class="material-symbols-outlined icon">key</span>
+                    </div>
+                    <h2 class="dashboard-card-title">Gestión Alquiler de Maquinaria</h2>
+                    <p class="dashboard-card-description">Administre su alquiler de maquinaria con toda su informacion.</p>
+                    <a th:href="@{/rent/list}" class="dashboard-card-action">
+                        Ir a Alquiler de Maquinaria
+                        <span class="material-symbols-outlined icon">arrow_forward</span>
+                    </a>
+                </div>
+
                 <!-- Nueva Tarjeta para Transporte -->
                 <div class="dashboard-card">
                     <div class="dashboard-card-icon"> 
@@ -63,7 +90,7 @@
                     </div>
                     <h2 class="dashboard-card-title">Gestión de Transporte</h2>
                     <p class="dashboard-card-description">Controle los servicios de transporte, rutas, horarios y costos asociados a la logística de su producción.</p>
-                    <a th:href="@{/lista-transportes}" class="dashboard-card-action">
+                    <a th:href="@{/transport/list}" class="dashboard-card-action">
                         Ir a Transporte
                         <span class="material-symbols-outlined icon">arrow_forward</span>
                     </a>
