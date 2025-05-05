@@ -41,9 +41,14 @@
             </a>
             <!-- Enlace Maquinaria -->
             <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
-    <span class="material-symbols-outlined icon">engineering</span>
-    Maquinaria
-</a>
+                <span class="material-symbols-outlined icon">engineering</span>
+                Maquinaria
+            </a>
+            <!-- Enlace Transporte (Nuevo) -->
+            <a th:href="@{/lista-transportes}" th:classappend="${activeModule == 'transport'} ? ' active' : ''">
+                <span class="material-symbols-outlined icon">local_shipping</span>
+                Transportes
+            </a>
         </div>
     </div>
 

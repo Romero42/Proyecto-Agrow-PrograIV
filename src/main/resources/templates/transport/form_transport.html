@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Transporte - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <form method="post" action="/guardar-transporte" id="formAgregar" class="form-container confirm-action" data-message="¿Confirmar y guardar nuevo transporte?" data-title="Confirmar Registro">
+            
+            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                <h1 class="page-title">Agregar Nuevo Transporte</h1>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transportId">ID de Transporte:</label>
+                <input type="number" name="transportId" id="transportId" class="form-input" required min="0" title="Por favor, ingresa un ID válido (no se permiten números negativos)." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="clientId">ID de Cliente:</label>
+                <input type="number" name="clientId" id="clientId" class="form-input" required min="0" title="Por favor, ingresa un ID de cliente válido." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="compraId">ID de Compra:</label>
+                <input type="number" name="compraId" id="compraId" class="form-input" required min="0" title="Por favor, ingresa un ID de compra válido." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Estado:</label>
+                <div class="radio-group">
+                    <input type="radio" name="estado" value="true" id="activo" required>
+                    <label for="activo">🟢 Activo</label>
+
+                    <input type="radio" name="estado" value="false" id="inactivo">
+                    <label for="inactivo">🔴 Inactivo</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transportOrigin">Origen:</label>
+                <input type="text" name="transportOrigin" id="transportOrigin" class="form-input" required title="Por favor, ingresa el origen del transporte." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transportDestination">Destino:</label>
+                <input type="text" name="transportDestination" id="transportDestination" class="form-input" required title="Por favor, ingresa el destino del transporte." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transportDate">Fecha de Transporte:</label>
+                <input type="date" name="transportDate" id="transportDate" class="form-input" required title="Por favor, selecciona la fecha del transporte." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="departureTime">Hora de Salida:</label>
+                <input type="time" name="departureTime" id="departureTime" class="form-input" required title="Por favor, ingresa la hora de salida." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="arrivalTime">Hora de Llegada:</label>
+                <input type="time" name="arrivalTime" id="arrivalTime" class="form-input" required title="Por favor, ingresa la hora de llegada." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transportCost">Costo de Transporte:</label>
+                <input type="number" name="transportCost" id="transportCost" class="form-input" step="0.01" required min="0" title="Por favor, ingresa un costo válido (no se permiten números negativos)." />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('¿Estás seguro de que deseas guardar este transporte?')">
+                    <span class="material-symbols-outlined icon">save</span>
+                    Guardar Transporte
+                </button>
+                <a href="/lista-transportes" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

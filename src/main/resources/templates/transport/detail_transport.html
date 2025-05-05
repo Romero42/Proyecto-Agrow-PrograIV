@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Maquinaria - Agrow</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Editar Máquina <span th:text="'Matrícula: ' + ${maquinaria.id}"></span></h2>
+            </div>
+
+            <div class="card-body">
+                <form th:action="@{/actualizar}" method="post" class="confirm-action" data-message="¿Estás seguro de actualizar esta máquina?">
+                    <input type="hidden" name="id" th:value="${maquinaria.id}">
+                    
+                    <div class="form-grid">
+                        <!-- Nombre -->
+                        <div class="form-group">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" name="nombre" id="nombre" th:value="${maquinaria.nombre}" required
+                                   pattern="[A-Za-zÁ-ú0-9\s\-]+" title="Solo letras, números, espacios y guiones"
+                                   class="form-input">
+                        </div>
+
+                        <!-- Condición -->
+                        <div class="form-group">
+                            <label for="condicion">Condición:</label>
+                            <select name="condicion" id="condicion" required class="form-input">
+                                <option value="Nueva" th:selected="${maquinaria.condicion == 'Nueva'}">Nueva</option>
+                                <option value="Usada" th:selected="${maquinaria.condicion == 'Usada'}">Usada</option>
+                                <option value="En reparación" th:selected="${maquinaria.condicion == 'En reparación'}">En reparación</option>
+                            </select>
+                        </div>
+
+                        <!-- Disponibilidad -->
+                        <div class="form-group">
+                            <label>Disponibilidad:</label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="disponibilidad" value="true" 
+                                           th:checked="${maquinaria.disponibilidad == true}" required>
+                                    <span class="status status-optimo">Disponible</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="disponibilidad" value="false"
+                                           th:checked="${maquinaria.disponibilidad == false}">
+                                    <span class="status status-bajo">No Disponible</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Fecha Adquisición -->
+                        <div class="form-group">
+                            <label for="diaAdquisicion">Fecha Adquisición:</label>
+                            <input type="date" name="diaAdquisicion" id="diaAdquisicion" 
+                                   th:value="${#temporals.format(maquinaria.diaAdquisicion, 'yyyy-MM-dd')}" 
+                                   required class="form-input">
+                        </div>
+
+                        <!-- Costo Alquiler -->
+                        <div class="form-group">
+                            <label for="costoAlquiler">Costo Alquiler:</label>
+                            <div class="input-with-symbol">
+                                <span>₡</span>
+                                <input type="number" name="costoAlquiler" id="costoAlquiler" 
+                                       th:value="${maquinaria.costoAlquiler}" step="0.01" 
+                                       min="0" required class="form-input">
+                            </div>
+                        </div>
+
+                        <!-- Ubicación -->
+                        <div class="form-group">
+                            <label for="ubicacion">Ubicación:</label>
+                            <input type="text" name="ubicacion" id="ubicacion" 
+                                   th:value="${maquinaria.ubicacion}" required
+                                   pattern="[A-Za-zÁ-ú0-9\s\-,]+" 
+                                   title="Solo letras, números, espacios, guiones y comas"
+                                   class="form-input">
+                        </div>
+
+                        <!-- Capacidad Trabajo -->
+                        <div class="form-group">
+                            <label for="capacidadTrabajo">Capacidad Trabajo:</label>
+                            <input type="text" name="capacidadTrabajo" id="capacidadTrabajo" 
+                                   th:value="${maquinaria.capacidadTrabajo}" required
+                                   pattern="[A-Za-zÁ-ú0-9\s\-]+" 
+                                   title="Solo letras, números, espacios y guiones"
+                                   class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">save</span>
+                            Actualizar
+                        </button>
+                        <a th:href="@{/lista}" class="btn btn-secondary">
+                            <span class="material-symbols-outlined icon">close</span>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

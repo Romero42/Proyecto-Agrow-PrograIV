@@ -44,21 +44,33 @@
                     <a th:href="@{/suppliers/list}" class="dashboard-card-action"> Ir a Proveedores <span class="material-symbols-outlined icon">arrow_forward</span> </a>
                 </div>
 
-            <!-- Tarjeta para Maquinaria -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-icon"> 
-                    <span class="material-symbols-outlined icon">engineering</span> 
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon"> 
+                        <span class="material-symbols-outlined icon">engineering</span> 
+                    </div>
+                    <h2 class="dashboard-card-title">Gestión de Maquinaria</h2>
+                    <p class="dashboard-card-description">Administre su flota de maquinaria, incluyendo información de adquisición, condición y disponibilidad.</p>
+                    <a th:href="@{/lista}" class="dashboard-card-action">
+                        Ir a Maquinaria
+                        <span class="material-symbols-outlined icon">arrow_forward</span>
+                    </a>
                 </div>
-                <h2 class="dashboard-card-title">Gestión de Maquinaria</h2>
-                <p class="dashboard-card-description">Administre su flota de maquinaria, incluyendo información de adquisición, condición y disponibilidad.</p>
-                <a th:href="@{/lista}" class="dashboard-card-action">
-                    Ir a Maquinaria
-                    <span class="material-symbols-outlined icon">arrow_forward</span>
-                </a>
-            </div>
 
+                <!-- Nueva Tarjeta para Transporte -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon"> 
+                        <span class="material-symbols-outlined icon">local_shipping</span> 
+                    </div>
+                    <h2 class="dashboard-card-title">Gestión de Transporte</h2>
+                    <p class="dashboard-card-description">Controle los servicios de transporte, rutas, horarios y costos asociados a la logística de su producción.</p>
+                    <a th:href="@{/lista-transportes}" class="dashboard-card-action">
+                        Ir a Transporte
+                        <span class="material-symbols-outlined icon">arrow_forward</span>
+                    </a>
+                </div>
+
+            </div>
         </div>
-    </div>
 
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

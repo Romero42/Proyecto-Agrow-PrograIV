@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Transporte - Agrow</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Editar Transporte <span th:text="'ID: ' + ${transporte.transportId}"></span></h2>
+            </div>
+
+            <div class="card-body">
+                <form th:action="@{/actualizar-transporte}" method="post" class="confirm-action" data-message="¿Estás seguro de actualizar este transporte?">
+                    <input type="hidden" name="transportId" th:value="${transporte.transportId}">
+                    
+                    <div class="form-grid">
+                        <!-- ID Cliente (mejorado con select) -->
+                        <div class="form-group">
+                            <label for="clientId">Cliente:</label>
+                            <select name="clientId" id="clientId" required class="form-input">
+                                <option th:each="cliente : ${clientes}" 
+                                        th:value="${cliente.id}"
+                                        th:text="${cliente.nombre + ' (ID: ' + cliente.id + ')'}"
+                                        th:selected="${transporte.clientId == cliente.id}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- ID Compra (mejorado con select) -->
+                        <div class="form-group">
+                            <label for="compraId">Compra asociada:</label>
+                            <select name="compraId" id="compraId" required class="form-input">
+                                <option th:each="compra : ${compras}" 
+                                        th:value="${compra.id}"
+                                        th:text="'Compra #' + ${compra.id} + ' - ' + ${#temporals.format(compra.fecha, 'dd/MM/yyyy')}"
+                                        th:selected="${transporte.compraId == compra.id}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-group">
+                            <label>Estado:</label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="estado" value="true" 
+                                           th:checked="${transporte.estado == true}" required>
+                                    <span class="status status-optimo">Activo</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="estado" value="false"
+                                           th:checked="${transporte.estado == false}">
+                                    <span class="status status-bajo">Inactivo</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Origen -->
+                        <div class="form-group">
+                            <label for="transportOrigin">Origen:</label>
+                            <input type="text" name="transportOrigin" id="transportOrigin" 
+                                   th:value="${transporte.transportOrigin}" required
+                                   pattern="[A-Za-zÁ-ú0-9\s\-,.]+" 
+                                   title="Solo letras, números, espacios y caracteres comunes"
+                                   class="form-input">
+                        </div>
+
+                        <!-- Destino -->
+                        <div class="form-group">
+                            <label for="transportDestination">Destino:</label>
+                            <input type="text" name="transportDestination" id="transportDestination" 
+                                   th:value="${transporte.transportDestination}" required
+                                   pattern="[A-Za-zÁ-ú0-9\s\-,.]+" 
+                                   title="Solo letras, números, espacios y caracteres comunes"
+                                   class="form-input">
+                        </div>
+
+                        <!-- Fecha Transporte -->
+                        <div class="form-group">
+                            <label for="transportDate">Fecha Transporte:</label>
+                            <input type="date" name="transportDate" id="transportDate" 
+                                   th:value="${#temporals.format(transporte.transportDate, 'yyyy-MM-dd')}" 
+                                   required class="form-input"
+                                   min="2023-01-01">
+                        </div>
+
+                        <!-- Hora Salida -->
+                        <div class="form-group">
+                            <label for="departureTime">Hora de Salida:</label>
+                            <input type="time" name="departureTime" id="departureTime" 
+                                   th:value="${#temporals.format(transporte.departureTime, 'HH:mm')}" 
+                                   required class="form-input">
+                        </div>
+
+                        <!-- Hora Llegada -->
+                        <div class="form-group">
+                            <label for="arrivalTime">Hora de Llegada:</label>
+                            <input type="time" name="arrivalTime" id="arrivalTime" 
+                                   th:value="${#temporals.format(transporte.arrivalTime, 'HH:mm')}" 
+                                   required class="form-input">
+                        </div>
+
+                        <!-- Costo Transporte -->
+                        <div class="form-group">
+                            <label for="transportCost">Costo:</label>
+                            <div class="input-with-symbol">
+                                <span>₡</span>
+                                <input type="number" name="transportCost" id="transportCost" 
+                                       th:value="${transporte.transportCost}" step="0.01" 
+                                       min="0" required class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">save</span>
+                            Actualizar
+                        </button>
+                        <a th:href="@{/lista-transportes}" class="btn btn-secondary">
+                            <span class="material-symbols-outlined icon">close</span>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        // Validación para asegurar que la hora de llegada sea posterior a la de salida
+        document.addEventListener('DOMContentLoaded', function() {
+            const departureTime = document.getElementById('departureTime');
+            const arrivalTime = document.getElementById('arrivalTime');
+            
+            departureTime.addEventListener('change', validateTimes);
+            arrivalTime.addEventListener('change', validateTimes);
+            
+            function validateTimes() {
+                if(departureTime.value && arrivalTime.value) {
+                    if(arrivalTime.value <= departureTime.value) {
+                        arrivalTime.setCustomValidity('La hora de llegada debe ser posterior a la hora de salida');
+                    } else {
+                        arrivalTime.setCustomValidity('');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
