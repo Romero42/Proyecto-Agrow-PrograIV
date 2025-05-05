@@ -373,3 +373,52 @@ function pageHarvest(element) {
                 alert('Error al cargar la página: ' + error.message);
             });
 }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Inicializar el selector de fecha
+                flatpickr("#reviewDate", {
+                    dateFormat: "d/m/Y",
+                    maxDate: "today",
+                    locale: {
+                        firstDayOfWeek: 1,
+                        weekdays: {
+                            shorthand: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                            longhand: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+                        },
+                        months: {
+                            shorthand: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                            longhand: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                        }
+                    }
+                });
+
+                // Sistema de calificación por estrellas
+                const ratingStars = document.getElementById('ratingStars');
+                const ratingValue = document.getElementById('ratingValue');
+                const stars = ratingStars.querySelectorAll('.star');
+
+                // Establecer calificación inicial si existe
+                if (ratingValue.value) {
+                    updateStars(parseFloat(ratingValue.value));
+                }
+
+                // Agregar eventos a las estrellas
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const value = parseFloat(this.getAttribute('data-value'));
+                        ratingValue.value = value;
+                        updateStars(value);
+                    });
+                });
+
+                function updateStars(value) {
+                    stars.forEach(star => {
+                        const starValue = parseFloat(star.getAttribute('data-value'));
+                        if (starValue <= value) {
+                            star.classList.add('selected');
+                        } else {
+                            star.classList.remove('selected');
+                        }
+                    });
+                }
+            });
