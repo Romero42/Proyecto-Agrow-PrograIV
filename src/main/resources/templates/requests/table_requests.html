@@ -1,0 +1,76 @@
+<!-- Fragmento que contiene la tabla de solicitudes -->
+<div th:fragment="requestTableContent" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- Mensaje cuando no hay solicitudes -->
+    <div class="info-card" th:if="${validate != null}">
+        <span class="material-symbols-outlined icon">info</span>
+        <h2 th:text="${validate}">No se encontraron solicitudes</h2>
+        <p>
+            Intenta con otro término o <a th:href="@{/requests/form}">crea una nueva solicitud</a>.
+        </p>
+    </div>
+
+    <!-- Tabla de solicitudes -->
+    <div class="table-container" th:unless="${validate != null or listR == null or listR.isEmpty()}">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="tempRequest : ${listR}">
+                    <td th:text="${tempRequest.name}"></td>
+                    <td th:text="${tempRequest.type}"></td>
+                    <td class="numeric-display"
+                        th:text="${#numbers.formatDecimal(tempRequest.amount, 1, 0, 'POINT')}">
+                        <!-- Formatear cantidad como entero -->
+                    </td>
+                    <td th:text="${tempRequest.getFormattedDate()}"></td>
+
+                    <!-- Estilos según estado -->
+                    <td>
+                            <span class="status"
+                                  th:classappend="${#strings.equalsIgnoreCase(tempRequest.status, 'Aprobada')} ? 'status-optimo' :
+                                                  (${#strings.equalsIgnoreCase(tempRequest.status, 'Rechazada')} ? 'status-danger' : 'status-bajo')"
+                                  th:text="${tempRequest.status}">
+                            </span>
+                    </td>
+
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/requests/view(id=${tempRequest.idrequest})}"
+                               class="btns view-btns" title="Ver detalles">
+                                <span class="material-symbols-outlined icon">visibility</span>
+                            </a>
+                            <a th:href="@{/requests/edit(id=${tempRequest.idrequest})}"
+                               class="btns edit-btns" title="Editar solicitud">
+                                <span class="material-symbols-outlined icon">edit</span>
+                            </a>
+                            <form th:action="@{/requests/delete}" method="post"
+                                  class="confirm-action"
+                                  data-message="¿Eliminar esta solicitud?"
+                                  data-title="Confirmar eliminación"
+                                  style="margin:0; padding:0; display:inline;">
+                                <input type="hidden" name="id"
+                                       th:value="${tempRequest.idrequest}" />
+                                <button type="submit" class="btns delete-btns"
+                                        title="Eliminar solicitud">
+                                    <span class="material-symbols-outlined icon">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

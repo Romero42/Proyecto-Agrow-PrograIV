@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -7,6 +6,7 @@
     <title>Editar Cosecha - Agrow</title>
     <link rel="stylesheet" th:href="@{/css/common.css}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <!-- CSS de Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 </head>
 <body>
@@ -22,89 +22,100 @@
             <p class="page-subtitle">Modifica los detalles de la cosecha seleccionada</p>
         </div>
         <a th:href="@{/harvests/list}" class="btn btn-secondary">
-            <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado
         </a>
     </div>
 
-    <!-- Mensaje de advertencia si hay ventas -->
+    <!-- Advertencia si ya hay ventas registradas -->
     <div class="info-card" style="background-color: var(--warning-light-alt); border-color: var(--warning); color: var(--warning-text-alt);" th:if="${hasSales}">
         <span class="material-symbols-outlined icon" style="color: var(--warning);">warning</span>
-        <h2>Cosecha con Ventas Registradas</h2>
-        <p>Esta cosecha ya tiene ventas asociadas. Solo se puede modificar el total cosechado si el nuevo valor no es menor a la cantidad ya vendida (<span th:text="${harvest.quantityHarvested - harvest.availableQuantity}">0</span> kg).</p>
+        <h2>Cosecha con ventas registradas</h2>
+        <p>
+            Esta cosecha ya tiene ventas asociadas. Solo puedes reducir el total si no es menor a lo ya vendido
+            (<span th:text="${harvest.quantityHarvested - harvest.availableQuantity}">0</span> kg).
+        </p>
     </div>
 
-
     <div class="form-container">
-        <form th:action="@{/harvests/update}" method="post" id="editHarvestForm" class="confirm-action" data-message="¿Confirmar los cambios en la cosecha?" data-title="Confirmar Actualización">
-            <input type="hidden" id="idHarvest" name="idHarvest" th:value="${harvest != null ? harvest.idHarvest : ''}" />
+        <form th:action="@{/harvests/update}" method="post" th:object="${harvest}"
+              class="confirm-action"
+              data-message="¿Confirmar los cambios en la cosecha?"
+              data-title="Confirmar actualización">
+
+            <!-- ID oculto de la cosecha -->
+            <input type="hidden" th:field="*{idHarvest}" />
 
             <div class="form-group">
-                <label for="typeC" class="form-label">Tipo Cosecha</label>
-                <input type="text" class="form-input" id="typeC" name="typeC"
-                       th:value="${harvest != null ? harvest.typeHarvest : ''}"
-                       maxlength="50" required>
+                <label for="typeC" class="form-label">Tipo de cosecha*</label>
+                <input type="text" id="typeC" th:field="*{typeHarvest}"
+                       class="form-input" maxlength="50" required>
+                <div class="form-info" th:if="${#fields.hasErrors('typeHarvest')}" th:errors="*{typeHarvest}"></div>
             </div>
 
             <div class="form-group">
-                <label for="dateC" class="form-label">Fecha de Cosecha</label>
-                <!-- Usar date-picker-iso para flatpickr -->
-                <input type="text" id="dateC" name="dateC" class="form-input date-picker-iso"
-                       th:value="${harvest != null ? #temporals.format(harvest.dateHarvested, 'yyyy-MM-dd') : ''}" required placeholder="yyyy-mm-dd">
+                <label for="dateC" class="form-label">Fecha de cosecha*</label>
+                <input type="text" id="dateC" th:field="*{dateHarvested}"
+                       class="form-input date-picker-iso" required placeholder="yyyy-mm-dd">
+                <div class="form-info" th:if="${#fields.hasErrors('dateHarvested')}" th:errors="*{dateHarvested}"></div>
             </div>
 
             <div class="form-group">
-                <label for="totalC" class="form-label">Total Cosechado (kg)</label>
-                <input type="number" class="form-input" id="totalC" name="totalC" step="1" min="1"  -- Cambiado step y min a enteros
-                       th:value="${harvest != null ? harvest.quantityHarvested : ''}" required
-                       title="Cantidad total cosechada originalmente. Solo modificable si es mayor o igual a la cantidad ya vendida.">
-                <!-- Mensaje informativo si tiene ventas -->
-                <p class="form-info" th:if="${hasSales}">Cantidad ya vendida: <span th:text="${harvest.quantityHarvested - harvest.availableQuantity}"></span> kg. El nuevo total debe ser mayor o igual.</p>
+                <label for="totalC" class="form-label">Total cosechado (kg)*</label>
+                <input type="number" id="totalC" th:field="*{quantityHarvested}"
+                       class="form-input" step="1" min="1" required
+                       title="Solo reducible si no queda por debajo de lo ya vendido">
+                <p class="form-info" th:if="${hasSales}">
+                    Cantidad ya vendida: <span th:text="${harvest.quantityHarvested - harvest.availableQuantity}"></span> kg.
+                </p>
+                <div class="form-info" th:if="${#fields.hasErrors('quantityHarvested')}" th:errors="*{quantityHarvested}"></div>
             </div>
 
             <div class="form-group">
-                <label for="availableQuantity" class="form-label">Cantidad Disponible (kg):</label>
-                <input type="number" class="form-input" id="availableQuantity" name="availableQuantity"
-                       th:value="${harvest != null ? harvest.availableQuantity : ''}" readonly disabled
-                       title="Cantidad disponible para la venta (calculada automáticamente).">
+                <label for="availableQuantity" class="form-label">Cantidad disponible (kg)</label>
+                <!-- Cantidad disponible no editable (calculada) -->
+                <input type="number" id="availableQuantity" th:field="*{availableQuantity}"
+                       class="form-input" readonly disabled>
             </div>
 
-
             <div class="form-group">
-                <label for="stateC" class="form-label">Calidad</label>
-                <select class="form-select" id="stateC" name="stateC" required>
-                    <option value="" disabled>Seleccione</option>
-                    <option value="Premium" th:selected="${harvest != null && harvest.quality == 'Premium'}">Premium</option>
-                    <option value="Estándar" th:selected="${harvest != null && harvest.quality == 'Estándar'}">Estándar</option>
-                    <option value="Secundaria" th:selected="${harvest != null && harvest.quality == 'Secundaria'}">Secundaria</option>
+                <label for="stateC" class="form-label">Calidad*</label>
+                <select id="stateC" th:field="*{quality}" class="form-select" required>
+                    <option value="" disabled>Seleccione...</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Estándar">Estándar</option>
+                    <option value="Secundaria">Secundaria</option>
                 </select>
+                <div class="form-info" th:if="${#fields.hasErrors('quality')}" th:errors="*{quality}"></div>
             </div>
 
             <div class="form-group">
-                <label for="producerId" class="form-label">Productor</label>
-                <select class="form-select" id="producerId" name="id_producer" required>
-                    <option value="" disabled>Seleccione un productor</option>
+                <label for="producerId" class="form-label">Productor*</label>
+                <select id="producerId" th:field="*{id_producer}" class="form-select" required>
+                    <option value="" disabled>Seleccione un productor...</option>
                     <th:block th:each="prod : ${producers}">
-                        <option th:value="${prod.id_producer}"
-                                th:text="${prod.producerName}"
-                                th:selected="${prod.id_producer == harvest.id_producer}">
-                        </option>
+                        <option th:value="${prod.id_producer}" th:text="${prod.producerName}"></option>
                     </th:block>
                 </select>
+                <div class="form-info" th:if="${#fields.hasErrors('id_producer')}" th:errors="*{id_producer}"></div>
             </div>
 
             <div class="form-group">
-                <label for="destinyC" class="form-label">Destino</label>
-                <input type="text" class="form-input" id="destinyC" maxlength="100" name="destinyC" th:value="${harvest != null ? harvest.destiny : ''}" required>
+                <label for="destinyC" class="form-label">Destino*</label>
+                <input type="text" id="destinyC" th:field="*{destiny}"
+                       class="form-input" maxlength="100" required>
+                <div class="form-info" th:if="${#fields.hasErrors('destiny')}" th:errors="*{destiny}"></div>
             </div>
 
             <div class="form-group">
-                <label for="descriptionC" class="form-label">Descripción</label>
-                <textarea class="form-input" id="descriptionC" name="descriptionC" maxlength="250" rows="4" required th:text="${harvest != null ? harvest.description : ''}"></textarea>
+                <label for="descriptionC" class="form-label">Descripción*</label>
+                <textarea id="descriptionC" th:field="*{description}"
+                          class="form-input" maxlength="250" rows="4" required></textarea>
+                <div class="form-info" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
             </div>
 
             <div class="form-actions">
-                <button id="confirmButton" class="btn btn-primary" type="submit">
-                    <span class="material-symbols-outlined icon">save</span> Guardar Cambios
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">save</span> Guardar cambios
                 </button>
                 <a th:href="@{/harvests/list}" class="btn btn-secondary">
                     <span class="material-symbols-outlined icon">cancel</span> Cancelar
@@ -114,6 +125,7 @@
     </div>
 </div>
 
+<!-- JS de Flatpickr y SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/app.js}"></script>

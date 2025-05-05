@@ -364,6 +364,12 @@ body {
 .status-bajo { background-color: var(--warning-light-alt); color: var(--warning-text-alt); border-color: var(--yellow); }
 .status-danger { background-color: var(--danger-light); color: var(--danger-text); border-color: var(--danger); }
 
+.status-estandar {
+    background-color: var(--gray-lighter-alt); /* Light gray background */
+    color: var(--secondary); /* Neutral gray text */
+    border-color: var(--border-light); /* Light border */
+}
+
 /* filtros */
 .filter-section { background-color: var(--white); border-radius: 8px; padding: 20px 25px; margin-bottom: 25px; border: 1px solid var(--border-lighter); box-shadow: 0 1px 5px var(--black-06); }
 .filter-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }

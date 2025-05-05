@@ -10,42 +10,56 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
 @RequestMapping("/requests")
 public class RequestsController {
-    private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Autowired
     private RequestsService requestService;
 
-    @GetMapping("/list")
-    public String listRequests(@RequestParam(required = false) String search, Model model) {
+    // Prepara la lista de solicitudes y el mensaje de validación
+    private void prepareModelForList(Model model, String search) {
         List<Requests> requests;
+        String validateMsg = null;
 
-        if (search != null && !search.isEmpty()) {
-            requests = requestService.searchName(search);
-            model.addAttribute("searchTerm", search);
-        }
-        else {
+        if (search != null && !search.trim().isEmpty()) {
+            requests = requestService.searchName(search.trim());
+            if (requests.isEmpty()) {
+                validateMsg = "No se encontraron solicitudes con: '" + search.trim() + "'";
+            }
+            model.addAttribute("searchTerm", search.trim());
+        } else {
             requests = requestService.getAll();
-        }
-
-        if (requests.isEmpty()) {
-            model.addAttribute("validate", "No se encontró solicitudes");
+            if (requests.isEmpty()) {
+                validateMsg = "No hay solicitudes registradas.";
+            }
         }
 
         model.addAttribute("listR", requests);
+        model.addAttribute("validate", validateMsg);
+    }
+
+    @GetMapping("/list")
+    public String listRequests(@RequestParam(required = false) String search, Model model) {
+        prepareModelForList(model, search);
         model.addAttribute("activeModule", "requests");
+        model.addAttribute("activePage", "list");
         return "requests/requests_list";
+    }
+
+    @GetMapping("/table")
+    public String getRequestsTable(@RequestParam(required = false) String search, Model model) {
+        prepareModelForList(model, search);
+        return "requests/table_requests :: requestTableContent";
     }
 
     @GetMapping("/form")
     public String showForm(Model model) {
         model.addAttribute("request", new Requests());
         model.addAttribute("activeModule", "requests");
+        model.addAttribute("activePage", "add");
         return "requests/form_requests";
     }
 
@@ -57,6 +71,7 @@ public class RequestsController {
 
         if (result.hasErrors()) {
             model.addAttribute("activeModule", "requests");
+            model.addAttribute("activePage", "add");
             return "requests/form_requests";
         }
 
@@ -67,10 +82,9 @@ public class RequestsController {
 
     @GetMapping("/view")
     public String viewRequest(@RequestParam int id, Model model, RedirectAttributes redirectAttributes) {
-        Requests requests = requestService.getById(id);
-
-        if (requests != null) {
-            model.addAttribute("requests", requests);
+        Requests req = requestService.getById(id);
+        if (req != null) {
+            model.addAttribute("requests", req);
             model.addAttribute("activeModule", "requests");
             return "requests/view_requests";
         } else {
@@ -81,11 +95,11 @@ public class RequestsController {
 
     @GetMapping("/edit")
     public String editForm(@RequestParam int id, Model model, RedirectAttributes redirectAttributes) {
-        Requests requests = requestService.getById(id);
-
-        if (requests != null) {
-            model.addAttribute("requests", requests);
+        Requests req = requestService.getById(id);
+        if (req != null) {
+            model.addAttribute("requests", req);
             model.addAttribute("activeModule", "requests");
+            model.addAttribute("activePage", "edit");
             return "requests/update_requests";
         } else {
             redirectAttributes.addFlashAttribute("error", "La solicitud no existe");
@@ -93,16 +107,14 @@ public class RequestsController {
         }
     }
 
-
     @PostMapping("/delete")
     public String deleteRequest(@RequestParam int id, RedirectAttributes redirectAttributes) {
         try {
             requestService.delete(id);
             redirectAttributes.addFlashAttribute("mensaje", "Solicitud eliminada correctamente");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar la solicitud");
+            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar la solicitud. Verifique dependencias.");
         }
         return "redirect:/requests/list";
     }
-
 }
