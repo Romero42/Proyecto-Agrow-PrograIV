@@ -32,7 +32,7 @@
             <tr><td style="width: 30%;">ID Cosecha:</td><td th:text="*{harvest.idHarvest}"></td></tr>
             <tr><td>Tipo:</td><td th:text="*{harvest.typeHarvest}"></td></tr>
             <tr><td>Calidad:</td><td th:text="*{harvest.quality}"></td></tr>
-            <tr><td>Productor:</td><td th:text="${sale.harvest.id_producer}"></td></tr> <!-- O cargar nombre del productor -->
+            <tr><td>Productor:</td><td th:text="${sale.harvest.id_producer}"></td></tr>
         </table>
         <p th:unless="*{harvest != null}">Información de cosecha no disponible.</p>
 
@@ -54,7 +54,27 @@
         </table>
 
         <div class="detail-actions">
-            <!-- Aquí podrían ir acciones como imprimir recibo, etc. -->
+            <a th:href="@{/sales/edit(idSale=*{idSale})}" class="btn btn-warning">
+                <span class="material-symbols-outlined icon">edit</span> Editar Venta
+            </a>
+            <a th:href="@{/sales/print-receipt(idSale=*{idSale})}"
+               class="btn btn-info confirm-action"
+               style="background-color: #28a745; color: #fff;"
+            title="Imprimir Recibo"
+            target="_blank"
+            data-message="¿Generar recibo para imprimir?"
+            data-title="Confirmar Impresión"
+            data-icon="info">
+            <span class="material-symbols-outlined icon">print</span> Imprimir Recibo
+            </a>
+            <form th:action="@{/sales/delete}" method="post" class="confirm-action"
+                  data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
+                  data-title="Confirmar Eliminación">
+                <input type="hidden" name="idSale" th:value="*{idSale}" />
+                <button type="submit" class="btn btn-danger">
+                    <span class="material-symbols-outlined icon">delete</span> Eliminar Venta
+                </button>
+            </form>
             <a th:href="@{/sales/list}" class="btn btn-secondary">
                 <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado de Ventas
             </a>

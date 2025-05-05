@@ -1,3 +1,4 @@
+
 package cr.ac.una.agrow.service;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
@@ -40,37 +41,133 @@ public class SaleService {
         }
 
         try {
+            // Se usa findById para obtener la entidad gestionada por JPA
             Optional<Harvest> harvestOpt = harvestRepository.findById(sale.getHarvest().getIdHarvest());
             if (harvestOpt.isEmpty()) {
                 throw new IllegalArgumentException("La cosecha seleccionada (ID: " + sale.getHarvest().getIdHarvest() + ") no existe.");
             }
-            Harvest harvest = harvestOpt.get();
+            Harvest harvest = harvestOpt.get(); // Obtener la entidad Harvest gestionada
 
             if (harvest.getAvailableQuantity() < quantityToSell) {
                 throw new IllegalArgumentException("No hay suficiente stock disponible. Disponible: " + harvest.getAvailableQuantity() + ", Solicitado: " + quantityToSell);
             }
 
+            // Actualizar el stock disponible de la cosecha
             harvest.setAvailableQuantity(harvest.getAvailableQuantity() - quantityToSell);
             harvestRepository.save(harvest); // Guardar la cosecha actualizada
 
+            // Completar y guardar la venta
+            sale.setHarvest(harvest); // Asegurarse que la venta referencia la entidad gestionada
             sale.setQuantitySold(quantityToSell);
             sale.setSaleDate(LocalDate.now()); // Asegurar fecha actual
-
-            sale.setTotalSaleAmount(sale.getPricePerUnitSold() * quantityToSell);
-            saleRepository.save(sale);
+            sale.setTotalSaleAmount(sale.getPricePerUnitSold() * quantityToSell); // Calcular total
+            saleRepository.save(sale); // Guardar la nueva venta
 
             LOG.info("Venta procesada exitosamente para cosecha ID: " + harvest.getIdHarvest() + ", Cantidad: " + quantityToSell);
             return true;
 
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error de acceso a datos al procesar la venta para cosecha ID: " + sale.getHarvest().getIdHarvest(), e);
-            // La transacción hará rollback automáticamente aquí si es una RuntimeException (como DataAccessException)
-            throw new RuntimeException("Error de base de datos al procesar la venta.", e); // Relanzar para asegurar rollback
+            LOG.log(Level.SEVERE, "Error de acceso a datos al procesar la venta para cosecha ID: " + (sale.getHarvest() != null ? sale.getHarvest().getIdHarvest() : "N/A"), e);
+            throw new RuntimeException("Error de base de datos al procesar la venta.", e); // Relanzar para rollback
         } catch (IllegalArgumentException e) {
             LOG.log(Level.WARNING, "Error de validación al procesar venta: " + e.getMessage());
-            throw e;
+            throw e; // Relanzar para que el controller la maneje
         }
     }
+
+    @Transactional
+    public boolean updateSale(Sale updatedSaleData, int newQuantitySold) throws IllegalArgumentException, RuntimeException {
+        if (updatedSaleData == null || updatedSaleData.getIdSale() <= 0) {
+            throw new IllegalArgumentException("ID de venta inválido para actualizar.");
+        }
+
+        Optional<Sale> originalSaleOpt = saleRepository.findById(updatedSaleData.getIdSale());
+        if (originalSaleOpt.isEmpty()) {
+            throw new IllegalArgumentException("Venta con ID " + updatedSaleData.getIdSale() + " no encontrada para actualizar.");
+        }
+        Sale originalSale = originalSaleOpt.get();
+
+        // Validaciones básicas
+        if (newQuantitySold <= 0) {
+            throw new IllegalArgumentException("La nueva cantidad vendida debe ser mayor que cero.");
+        }
+        if (updatedSaleData.getPricePerUnitSold() <= 0) {
+            throw new IllegalArgumentException("El precio por unidad debe ser mayor a cero.");
+        }
+        if (updatedSaleData.getBuyerName() == null || updatedSaleData.getBuyerName().trim().isEmpty() ||
+                updatedSaleData.getBuyerPhone() == null || updatedSaleData.getBuyerPhone().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nombre y teléfono del comprador son obligatorios.");
+        }
+
+
+        try {
+            // Obtener cosecha asociada
+            Harvest harvest = harvestRepository.findById(originalSale.getHarvest().getIdHarvest())
+                    .orElseThrow(() -> new RuntimeException("Cosecha asociada (ID: " + originalSale.getHarvest().getIdHarvest() + ") no encontrada."));
+
+            int quantityDifference = newQuantitySold - originalSale.getQuantitySold();
+            int currentAvailableWithRestore = harvest.getAvailableQuantity() + originalSale.getQuantitySold();
+
+            // Validar stock suficiente
+            if (newQuantitySold > currentAvailableWithRestore) {
+                throw new IllegalArgumentException("Stock insuficiente para la nueva cantidad. Máximo posible: " + currentAvailableWithRestore + ", Solicitado: " + newQuantitySold);
+            }
+
+            // Actualizar stock de la cosecha
+            harvest.setAvailableQuantity(harvest.getAvailableQuantity() - quantityDifference);
+            harvestRepository.save(harvest);
+
+            // Actualizar datos de la venta
+            originalSale.setBuyerName(updatedSaleData.getBuyerName().trim());
+            originalSale.setBuyerPhone(updatedSaleData.getBuyerPhone().trim());
+            originalSale.setBuyerAddress(updatedSaleData.getBuyerAddress() != null ? updatedSaleData.getBuyerAddress().trim() : null);
+            originalSale.setTransportOption(updatedSaleData.getTransportOption() != null ? updatedSaleData.getTransportOption().trim() : null);
+            originalSale.setPricePerUnitSold(updatedSaleData.getPricePerUnitSold());
+            originalSale.setQuantitySold(newQuantitySold);
+            originalSale.setTotalSaleAmount(newQuantitySold * updatedSaleData.getPricePerUnitSold());
+
+            saleRepository.save(originalSale); // Guardar la venta actualizada
+
+            LOG.info("Venta ID: " + originalSale.getIdSale() + " actualizada exitosamente. Diferencia Cantidad: " + quantityDifference);
+            return true;
+
+        } catch (DataAccessException e) {
+            LOG.log(Level.SEVERE, "Error de acceso a datos al actualizar venta ID: " + updatedSaleData.getIdSale(), e);
+            throw new RuntimeException("Error de base de datos al actualizar la venta.", e); // Relanzar para rollback
+        }
+    }
+
+    @Transactional
+    public boolean deleteSale(int idSale) throws RuntimeException {
+        Optional<Sale> saleOpt = saleRepository.findById(idSale);
+        if (saleOpt.isEmpty()) {
+            LOG.warning("Intento de eliminar venta no existente ID: " + idSale);
+            return false; // O podría lanzar excepción
+        }
+        Sale saleToDelete = saleOpt.get();
+
+        try {
+            // Obtener cosecha asociada
+            Harvest harvest = harvestRepository.findById(saleToDelete.getHarvest().getIdHarvest())
+                    .orElseThrow(() -> new RuntimeException("Cosecha asociada (ID: " + saleToDelete.getHarvest().getIdHarvest() + ") no encontrada al eliminar venta."));
+
+
+            // Restaurar stock en la cosecha
+            harvest.setAvailableQuantity(harvest.getAvailableQuantity() + saleToDelete.getQuantitySold());
+            harvestRepository.save(harvest);
+
+            // Eliminar la venta
+            saleRepository.deleteById(idSale);
+
+            LOG.info("Venta ID: " + idSale + " eliminada exitosamente. Stock restaurado: " + saleToDelete.getQuantitySold());
+            return true;
+
+        } catch (DataAccessException e) {
+            LOG.log(Level.SEVERE, "Error de acceso a datos al eliminar venta ID: " + idSale, e);
+            throw new RuntimeException("Error de base de datos al eliminar la venta.", e); // Relanzar para rollback
+        }
+    }
+
 
     @Transactional(readOnly = true)
     public Page<Sale> listAllSales(Pageable pageable) {

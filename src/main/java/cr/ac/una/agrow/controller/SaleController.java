@@ -15,7 +15,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,7 @@ public class SaleController {
     private SaleService saleService;
 
     @Autowired
-    private Producer_Service producerService; // Service with JPA methods
+    private Producer_Service producerService;
 
     @Autowired
     private HarvestService harvestService;
@@ -41,10 +40,11 @@ public class SaleController {
     public String showSelectProducerForm(Model model,
                                          @RequestParam(required = false) Integer preselectedProducerId,
                                          @RequestParam(required = false) Integer preselectedHarvestId) {
-        Pageable allProducersPageable = PageRequest.of(0, Integer.MAX_VALUE); // Get all producers
+
+        Pageable allProducersPageable = PageRequest.of(0, Integer.MAX_VALUE);
         Page<Producer> producerPage = producerService.findAll(allProducersPageable);
 
-        // Filter producers: only those with at least one available harvest
+
         List<Producer> sellableProducers = producerPage.getContent().stream()
                 .filter(producer -> {
                     List<Harvest> availableHarvests = harvestService.getAvailableHarvestsByProducer(producer.getId_producer());
@@ -52,7 +52,7 @@ public class SaleController {
                 })
                 .collect(Collectors.toList());
 
-        model.addAttribute("sellableProducers", sellableProducers); // Pass filtered list
+        model.addAttribute("sellableProducers", sellableProducers);
         model.addAttribute("activeModule", "sales");
         model.addAttribute("preselectedProducerId", preselectedProducerId);
         model.addAttribute("preselectedHarvestId", preselectedHarvestId);
@@ -62,8 +62,9 @@ public class SaleController {
 
     @GetMapping("/form")
     public String showSaleForm(@RequestParam("producerId") int producerId,
-                               @RequestParam(required = false) Integer preselectedHarvestId, // Renamed to match link
+                               @RequestParam(required = false) Integer preselectedHarvestId,
                                Model model, RedirectAttributes redirectAttributes) {
+
         Producer producer = producerService.getById(producerId);
         if (producer == null) {
             redirectAttributes.addFlashAttribute("error", "Productor no encontrado.");
@@ -74,16 +75,17 @@ public class SaleController {
         if (availableHarvests.isEmpty()) {
             model.addAttribute("producer", producer);
             model.addAttribute("infoMessage", "Este productor no tiene cosechas con stock disponible para la venta.");
-            // Allow viewing the form even if no harvests, but disable harvest selection
-            model.addAttribute("availableHarvests", new ArrayList<Harvest>()); // Pass empty list explicitly
+
+            model.addAttribute("availableHarvests", new ArrayList<Harvest>());
         } else {
             model.addAttribute("availableHarvests", availableHarvests);
         }
 
         model.addAttribute("producer", producer);
         model.addAttribute("sale", new Sale());
-        model.addAttribute("preselectedHarvestId", preselectedHarvestId); // Pass preselected harvest ID
+        model.addAttribute("preselectedHarvestId", preselectedHarvestId);
         model.addAttribute("activeModule", "sales");
+        model.addAttribute("activePage", "add");
         return "sales/form_sale";
     }
 
@@ -98,51 +100,60 @@ public class SaleController {
                               @RequestParam("pricePerUnitSold") double pricePerUnitSold,
                               RedirectAttributes redirectAttributes) {
 
-        Harvest harvest = harvestService.getById(harvestId);
-        if (harvest == null) {
-            redirectAttributes.addFlashAttribute("error", "La cosecha seleccionada ya no existe.");
-            // Redirect back to producer selection as harvest context is lost
-            return "redirect:/sales/select-producer";
-        }
-
-        // Basic validation
         if (buyerName == null || buyerName.trim().isEmpty() || buyerPhone == null || buyerPhone.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Nombre y teléfono del comprador son obligatorios.");
-            // Redirect back to the form, preserving producer and selected harvest
-            return "redirect:/sales/form?producerId=" + harvest.getId_producer() + "&preselectedHarvestId=" + harvestId;
+
+
+            Harvest tempHarvest = harvestService.getById(harvestId);
+            int producerId = (tempHarvest != null) ? tempHarvest.getId_producer() : 0;
+            if (producerId == 0) return "redirect:/sales/select-producer";
+            return "redirect:/sales/form?producerId=" + producerId + "&preselectedHarvestId=" + harvestId;
         }
         if (pricePerUnitSold <= 0) {
             redirectAttributes.addFlashAttribute("error", "El precio por unidad debe ser mayor a cero.");
-            return "redirect:/sales/form?producerId=" + harvest.getId_producer() + "&preselectedHarvestId=" + harvestId;
+            Harvest tempHarvest = harvestService.getById(harvestId);
+            int producerId = (tempHarvest != null) ? tempHarvest.getId_producer() : 0;
+            if (producerId == 0) return "redirect:/sales/select-producer";
+            return "redirect:/sales/form?producerId=" + producerId + "&preselectedHarvestId=" + harvestId;
         }
 
 
         Sale newSale = new Sale();
-        newSale.setHarvest(harvest); // Associate with the actual Harvest object
+        Harvest harvestRef = new Harvest();
+        harvestRef.setIdHarvest(harvestId);
+        newSale.setHarvest(harvestRef);
+
         newSale.setBuyerName(buyerName.trim());
         newSale.setBuyerPhone(buyerPhone.trim());
-        newSale.setBuyerAddress(buyerAddress != null ? buyerAddress.trim() : null); // Handle potential null address
-        newSale.setTransportOption(transportOption != null ? transportOption.trim() : null); // Handle potential null transport
+        newSale.setBuyerAddress(buyerAddress != null ? buyerAddress.trim() : null);
+        newSale.setTransportOption(transportOption != null ? transportOption.trim() : null);
         newSale.setPricePerUnitSold(pricePerUnitSold);
-        // totalSaleAmount will be calculated in the service
 
         try {
-            boolean success = saleService.processSale(newSale, quantitySold); // Pass the Sale object
+            boolean success = saleService.processSale(newSale, quantitySold);
             if (success) {
                 redirectAttributes.addFlashAttribute("mensaje", "Venta registrada exitosamente. Stock de cosecha actualizado.");
-                return "redirect:/sales/list"; // Redirect to sales list on success
+                return "redirect:/sales/list";
             } else {
-                // Generic error if service returns false without exception (should ideally not happen with exceptions)
+
                 redirectAttributes.addFlashAttribute("error", "No se pudo registrar la venta (error inesperado).");
-                return "redirect:/sales/form?producerId=" + harvest.getId_producer() + "&preselectedHarvestId=" + harvestId;
+                Harvest tempHarvest = harvestService.getById(harvestId);
+                int producerId = (tempHarvest != null) ? tempHarvest.getId_producer() : 0;
+                if (producerId == 0) return "redirect:/sales/select-producer";
+                return "redirect:/sales/form?producerId=" + producerId + "&preselectedHarvestId=" + harvestId;
             }
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", "Error al registrar venta: " + e.getMessage());
-            return "redirect:/sales/form?producerId=" + harvest.getId_producer() + "&preselectedHarvestId=" + harvestId; // Preserve selection on error
-        } catch (RuntimeException e) { // Catch broader runtime exceptions like DataAccessException
-            redirectAttributes.addFlashAttribute("error", "Error de base de datos al procesar la venta.");
-            // Don't pass preselected harvest ID here as the DB state might be inconsistent
-            return "redirect:/sales/form?producerId=" + harvest.getId_producer();
+            Harvest tempHarvest = harvestService.getById(harvestId);
+            int producerId = (tempHarvest != null) ? tempHarvest.getId_producer() : 0;
+            if (producerId == 0) return "redirect:/sales/select-producer";
+            return "redirect:/sales/form?producerId=" + producerId + "&preselectedHarvestId=" + harvestId;
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Error interno al procesar la venta. Intente de nuevo.");
+            Harvest tempHarvest = harvestService.getById(harvestId);
+            int producerId = (tempHarvest != null) ? tempHarvest.getId_producer() : 0;
+            if (producerId == 0) return "redirect:/sales/select-producer";
+            return "redirect:/sales/form?producerId=" + producerId;
         }
     }
 
@@ -157,7 +168,7 @@ public class SaleController {
         model.addAttribute("totalPages", salesPage.getTotalPages());
         model.addAttribute("totalItems", salesPage.getTotalElements());
         model.addAttribute("activeModule", "sales");
-        model.addAttribute("activePage", "list"); // Added for sidebar active state
+        model.addAttribute("activePage", "list");
         return "sales/list_sales";
     }
 
@@ -175,15 +186,109 @@ public class SaleController {
         }
     }
 
+    @GetMapping("/print-receipt")
+    public String showPrintReceipt(@RequestParam("idSale") int idSale, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Sale> saleOpt = saleService.getSaleById(idSale);
+        if (saleOpt.isPresent()) {
+            Sale sale = saleOpt.get();
+
+            model.addAttribute("sale", sale);
+
+            return "sales/print_receipt";
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Venta con ID " + idSale + " no encontrada para imprimir.");
+            return "redirect:/sales/list";
+        }
+    }
+
+    @GetMapping("/edit")
+    public String showEditSaleForm(@RequestParam("idSale") int idSale, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Sale> saleOpt = saleService.getSaleById(idSale);
+        if (saleOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Venta con ID " + idSale + " no encontrada para editar.");
+            return "redirect:/sales/list";
+        }
+        Sale sale = saleOpt.get();
+        Harvest harvest = sale.getHarvest();
+
+        if (harvest == null) {
+            redirectAttributes.addFlashAttribute("error", "Error: La cosecha asociada a esta venta ya no existe.");
+            return "redirect:/sales/list";
+        }
+
+
+        int maxEditableQuantity = harvest.getAvailableQuantity() + sale.getQuantitySold();
+
+        model.addAttribute("sale", sale);
+        model.addAttribute("harvest", harvest);
+        model.addAttribute("maxEditableQuantity", maxEditableQuantity);
+        model.addAttribute("activeModule", "sales");
+        return "sales/edit_sale";
+    }
+
+    @PostMapping("/update")
+    public String updateSale(@RequestParam("idSale") int idSale,
+                             @RequestParam("quantitySold") int newQuantitySold,
+                             @RequestParam("buyerName") String buyerName,
+                             @RequestParam("buyerPhone") String buyerPhone,
+                             @RequestParam("buyerAddress") String buyerAddress,
+                             @RequestParam("transportOption") String transportOption,
+                             @RequestParam("pricePerUnitSold") double pricePerUnitSold,
+                             RedirectAttributes redirectAttributes) {
+
+
+        Sale updatedSaleData = new Sale();
+        updatedSaleData.setIdSale(idSale);
+        updatedSaleData.setBuyerName(buyerName);
+        updatedSaleData.setBuyerPhone(buyerPhone);
+        updatedSaleData.setBuyerAddress(buyerAddress);
+        updatedSaleData.setTransportOption(transportOption);
+        updatedSaleData.setPricePerUnitSold(pricePerUnitSold);
+
+
+        try {
+            boolean success = saleService.updateSale(updatedSaleData, newQuantitySold);
+            if (success) {
+                redirectAttributes.addFlashAttribute("mensaje", "Venta actualizada correctamente.");
+                return "redirect:/sales/list";
+            } else {
+
+                redirectAttributes.addFlashAttribute("error", "No se pudo actualizar la venta.");
+                return "redirect:/sales/edit?idSale=" + idSale;
+            }
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "Error al actualizar venta: " + e.getMessage());
+            return "redirect:/sales/edit?idSale=" + idSale;
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Error interno al actualizar la venta. Intente de nuevo.");
+            return "redirect:/sales/edit?idSale=" + idSale;
+        }
+    }
+
+
+    @PostMapping("/delete")
+    public String deleteSale(@RequestParam("idSale") int idSale, RedirectAttributes redirectAttributes) {
+        try {
+            boolean success = saleService.deleteSale(idSale);
+            if (success) {
+                redirectAttributes.addFlashAttribute("mensaje", "Venta eliminada correctamente. Stock de cosecha restaurado.");
+            } else {
+
+                redirectAttributes.addFlashAttribute("error", "No se encontró la venta con ID " + idSale + " para eliminar.");
+            }
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Error interno al eliminar la venta. Verifique dependencias o intente de nuevo.");
+        }
+        return "redirect:/sales/list";
+    }
+
 
     @GetMapping("/harvest-details")
-    @ResponseBody // Return data directly, not a view name
+    @ResponseBody
     public Harvest getHarvestDetails(@RequestParam("harvestId") int harvestId) {
-        // Basic fetch, could be enhanced with DTO to avoid sending unnecessary data
+
         Harvest harvest = harvestService.getById(harvestId);
-        // Return the harvest object (Spring Boot will convert to JSON)
-        // Handle null case if needed, e.g., return ResponseEntity.notFound().build()
-        return harvest; // Jackson will serialize this
+        return harvest;
     }
 
 }

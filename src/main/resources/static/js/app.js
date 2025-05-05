@@ -1,170 +1,307 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Configurar SweetAlert2 con estilos de Agrow
-    const swalAgrow = Swal.mixin({
-        customClass: {
-            popup: 'swal2-agrow-popup',
-            title: 'swal2-agrow-title',
-            confirmButton: 'btn btn-primary swal2-agrow-confirm',
-            cancelButton: 'btn btn-danger swal2-agrow-cancel',
-            htmlContainer: 'swal2-html-container'
-        },
-        buttonsStyling: false
-    });
 
-    // Función para inicializar Flatpickr
-    function initFlatpickr() {
-        if (!window.flatpickr) {
-            console.warn("Flatpickr library not loaded.");
-            return;
-        }
-        // Selectores generales para fechas pasadas y futuras
-        flatpickr('.date-picker-iso', { dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today' });
-        flatpickr('.date-picker-future-iso', { dateFormat: 'Y-m-d', allowInput: true, minDate: 'today' });
+        const swalAgrow = Swal.mixin({
+    customClass: {
+        popup: 'swal2-agrow-popup',
+                title: 'swal2-agrow-title',
+                confirmButton: 'btn btn-primary swal2-agrow-confirm',
+                cancelButton: 'btn btn-danger swal2-agrow-cancel',
+                htmlContainer: 'swal2-html-container'
+    },
+    buttonsStyling: false
+});
 
-        // Selectores específicos para rangos si existen
+function initFlatpickr() {
+
+    if (!window.flatpickr) {
+        console.warn("Flatpickr library not loaded.");
+        return;
+    }
+    // Selectores generales para fechas pasadas y futuras
+    flatpickr('.date-picker-iso', { dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today' });
+    flatpickr('.date-picker-future-iso', { dateFormat: 'Y-m-d', allowInput: true, minDate: 'today' });
+
+    // Selectores específicos para rangos si existen
         const start = document.querySelector("#rentStartDay");
         const end = document.querySelector("#rentFinalDay");
 
-        if (start && end) {
-            try {
+    if (start && end) {
+        try {
                 const startPicker = flatpickr(start, { dateFormat: "Y-m-d", allowInput: true });
                 const endPicker = flatpickr(end, { dateFormat: "Y-m-d", allowInput: true });
 
-                startPicker.config.onChange.push(function (selectedDates) {
-                    if (selectedDates.length) {
-                        endPicker.set("minDate", selectedDates[0]);
-                    }
-                });
+            startPicker.config.onChange.push(function (selectedDates) {
+                if (selectedDates.length) {
+                    endPicker.set("minDate", selectedDates[0]);
+                } else {
+                    endPicker.set("minDate", null);
+                }
 
-                 if (startPicker.selectedDates.length && endPicker.selectedDates.length) {
-                    if (endPicker.selectedDates[0] < startPicker.selectedDates[0]) {
-                         endPicker.clear();
-                    }
-                     endPicker.set("minDate", startPicker.selectedDates[0]);
-                 }
+                if (endPicker.selectedDates.length && selectedDates.length && endPicker.selectedDates[0] < selectedDates[0]) {
+                    endPicker.clear();
+                }
+            });
 
-            } catch (e) {
-                console.error("Error initializing date range pickers:", e);
+            if (startPicker.selectedDates.length) {
+                endPicker.set("minDate", startPicker.selectedDates[0]);
+
+                if (endPicker.selectedDates.length && endPicker.selectedDates[0] < startPicker.selectedDates[0]) {
+                    endPicker.clear();
+                }
             }
+
+        } catch (e) {
+            console.error("Error initializing date range pickers:", e);
         }
     }
+}
 
-    initFlatpickr();
+initFlatpickr();
 
     const formatColones = val => {
         const num = parseFloat(val);
         if (isNaN(num)) return '---';
         return new Intl.NumberFormat('es-CR', {
-            style: 'currency',
+    style: 'currency',
             currency: 'CRC',
             minimumFractionDigits: 2
-        }).format(num);
+}).format(num);
     };
 
-    function formatPrices() {
-        document.querySelectorAll('.price-display').forEach(el => {
+function formatPrices() {
+    document.querySelectorAll('.price-display').forEach(el => {
             const value = el.dataset.value || el.textContent;
-            el.textContent = formatColones(value);
+    el.textContent = formatColones(value);
         });
-    }
+}
 
-    formatPrices();
+formatPrices();
 
-    function calculateAndDisplayTotalSale() {
+// Función para calcular y mostrar total
+function calculateAndDisplayTotalSale() {
         const quantityInput = document.getElementById('quantitySold');
         const priceInput = document.getElementById('pricePerUnitSold');
         const totalDisplay = document.getElementById('totalSaleDisplay');
 
-        if (!quantityInput || !priceInput || !totalDisplay) return;
+    if (!quantityInput || !priceInput || !totalDisplay) return;
 
         const quantity = parseInt(quantityInput.value, 10);
         const price = parseFloat(priceInput.value);
 
-        if (!isNaN(quantity) && quantity > 0 && !isNaN(price) && price > 0) {
+    if (!isNaN(quantity) && quantity > 0 && !isNaN(price) && price > 0) {
             const total = quantity * price;
-            totalDisplay.textContent = `Total Venta: ${formatColones(total)}`;
-            totalDisplay.style.display = 'block';
-        } else {
-            totalDisplay.textContent = '';
-            totalDisplay.style.display = 'none';
+        totalDisplay.textContent = `Total Venta: ${formatColones(total)}`;
+        totalDisplay.style.display = 'block';
+    } else {
+        totalDisplay.textContent = '';
+        totalDisplay.style.display = 'none';
+    }
+}
+
+// Listener para inputs de cantidad y precio en cualquier form que los tenga
+    document.body.addEventListener('input', (event) => {
+        if (event.target.matches('#quantitySold') || event.target.matches('#pricePerUnitSold')) {
+calculateAndDisplayTotalSale();
         }
+                if (event.target.matches('#quantitySold')) {
+validateQuantityInput();
+         }
+                 });
+
+
+// Función para validar cantidad
+function validateQuantityInput() {
+        const quantityInput = document.getElementById('quantitySold');
+        const quantityError = document.getElementById('quantityError');
+    if (!quantityInput || !quantityError) return;
+
+        const maxAttr = quantityInput.getAttribute('max');
+        const max = maxAttr ? parseInt(maxAttr, 10) : null;
+        const current = parseInt(quantityInput.value, 10);
+
+    if (max !== null && !isNaN(current) && current > max) {
+        quantityError.textContent = `La cantidad no puede exceder el máximo (${max} kg).`; // Mensaje dinámico
+        quantityError.style.display = 'block';
+        quantityInput.classList.add('input-error');
+        return false; // Indica error
+    } else if (max !== null && !isNaN(current) && current <= 0){
+        quantityError.textContent = 'La cantidad debe ser mayor a cero.';
+        quantityError.style.display = 'block';
+        quantityInput.classList.add('input-error');
+        return false; // Indica error
+    } else {
+        quantityError.style.display = 'none';
+        quantityInput.classList.remove('input-error');
+        return true; // Indica que está bien
+    }
+}
+
+// --- Lógica para selección de cosecha y actualización de cantidad ---
+function updateMaxQuantityAndPrice() {
+        const harvestSelect = document.getElementById('harvestId'); // Presente en form_sale
+        const quantityInput = document.getElementById('quantitySold');
+
+    if (!harvestSelect || !quantityInput) return;
+
+        const selectedOption = harvestSelect.options[harvestSelect.selectedIndex];
+
+    if (selectedOption && selectedOption.value) {
+            const available = parseInt(selectedOption.getAttribute('data-available'), 10);
+
+        if (!isNaN(available) && available > 0) {
+            quantityInput.max = available;
+            quantityInput.placeholder = `Máximo disponible: ${available} kg`;
+            quantityInput.disabled = false;
+
+            // Ajustar valor si excede el máximo al cambiar de cosecha
+            if (parseInt(quantityInput.value, 10) > available) {
+                quantityInput.value = available;
+            }
+
+            // Forzar validación visual al cambiar
+            validateQuantityInput();
+
+        } else {
+            quantityInput.max = 0;
+            quantityInput.placeholder = 'No disponible';
+            quantityInput.value = '';
+            quantityInput.disabled = true;
+            validateQuantityInput();
+        }
+    } else {
+        // Si no hay cosecha seleccionada
+        quantityInput.removeAttribute('max'); // Quitar restricción max
+        quantityInput.placeholder = 'Seleccione cosecha primero';
+        quantityInput.value = '';
+        quantityInput.disabled = true;
+        validateQuantityInput(); // Limpiar error visual
+    }
+    calculateAndDisplayTotalSale(); // Recalcular total
+}
+
+// Event listener para el select de cosecha en form_sale.html
+    const harvestSelectForCreate = document.getElementById('harvestId');
+    if (harvestSelectForCreate && document.getElementById('saleForm')) {
+        harvestSelectForCreate.addEventListener('change', updateMaxQuantityAndPrice);
+// Llamar una vez al cargar por si hay preselección en form_sale
+updateMaxQuantityAndPrice();
     }
 
-    const quantitySaleInput = document.getElementById('quantitySold');
-    const priceSaleInput = document.getElementById('pricePerUnitSold');
-    if (quantitySaleInput) {
-        quantitySaleInput.addEventListener('input', calculateAndDisplayTotalSale);
-    }
-    if (priceSaleInput) {
-        priceSaleInput.addEventListener('input', calculateAndDisplayTotalSale);
-    }
+            // Llamar a la validación y cálculo iniciales en la página de edición
+            if (document.getElementById('editSaleForm')) {
+validateQuantityInput();
+calculateAndDisplayTotalSale();
+     }
 
 
-
-    // Agrega confirmaciones a formularios y enlaces con clase 'confirm-action'
-    function attachConfirmHandlers() {
-        document.querySelectorAll('.confirm-action').forEach(el => {
-            if (el.dataset.confirmAttached) return;
-            el.dataset.confirmAttached = 'true';
+// --- Manejo de Confirmaciones ---
+function attachConfirmHandlers() {
+    document.querySelectorAll('.confirm-action').forEach(el => {
+    if (el.dataset.confirmAttached) return;
+    el.dataset.confirmAttached = 'true';
 
             const {
-                message = '¿Está seguro de realizar esta acción?',
+        message = '¿Está seguro de realizar esta acción?',
                 title = 'Confirmar Acción',
                 confirmText = 'Sí, proceder',
                 cancelText = 'Cancelar',
-                icon = 'warning' // 'warning', 'question', 'info'
-            } = el.dataset;
+                icon = 'warning'
+    } = el.dataset;
 
             const showConfirmationDialog = (callback) => {
-                swalAgrow.fire({
-                    title: title,
-                    text: message,
-                    icon: icon,
-                    showCancelButton: true,
-                    confirmButtonText: confirmText,
-                    cancelButtonText: cancelText,
-                    reverseButtons: true // Poner botón de confirmación a la derecha
-                })
-                    .then((result) => {
-                        if (result.isConfirmed) {
-                            callback(); // Ejecutar la acción si se confirma
-                        }
-                    });
+            // Validar campos requeridos ANTES de mostrar el diálogo si es un formulario
+            let formIsValid = true;
+    if (el.tagName === 'FORM') {
+        if (typeof el.checkValidity === 'function' && !el.checkValidity()) {
+            // Mostrar mensajes de validación HTML5 nativos
+            el.reportValidity();
+            formIsValid = false;
+        }
+
+        if (el.id === 'saleForm' || el.id === 'editSaleForm') {
+            if (!validateQuantityInput()) { // Re-valida cantidad
+                formIsValid = false;
+            }
+
+        }
+    }
+
+    if (!formIsValid) {
+        console.warn("Formulario no válido, confirmación cancelada.");
+        return;
+    }
+
+
+    swalAgrow.fire({
+            title: title,
+            text: message,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            reverseButtons: true
+                }).then((result) => {
+    if (result.isConfirmed) {
+        callback();
+    }
+                });
             };
 
-            // Asignar al evento correcto según el tipo de elemento
-            if (el.tagName === 'FORM') {
-                el.addEventListener('submit', (event) => {
-                    event.preventDefault(); // Detener el envío normal
-                    showConfirmationDialog(() => {
-                        el.submit(); // Enviar el formulario si se confirma
+    if (el.tagName === 'FORM') {
+        el.addEventListener('submit', (event) => {
+                event.preventDefault();
+        showConfirmationDialog(() => {
+                el.submit();
                     });
                 });
-            } else if (el.tagName === 'A') {
-                el.addEventListener('click', (event) => {
-                    event.preventDefault(); // Detener la navegación normal
-                    const linkUrl = el.href;
-                    if (linkUrl) {
-                        showConfirmationDialog(() => {
-                            window.location.href = linkUrl; // Navegar si se confirma
-                        });
-                    }
-                });
-            }
-            // Añadir aquí para botones si es necesario
-            else if (el.tagName === 'BUTTON' && el.type !== 'submit') {
-                 el.addEventListener('click', (event) => {
-                      // Si es un botón que no es submit, tal vez navega o llama a JS
-                      // Se necesita lógica específica aquí basada en qué hace el botón
-                      // showConfirmationDialog(() => { /* acción del botón */ });
-                 });
+    } else if (el.tagName === 'A') {
+
+el.addEventListener('click', (event) => {
+    event.preventDefault();
+    const linkUrl = el.href;
+    const target = el.target;
+
+    const {
+        message = '¿Está seguro de realizar esta acción?',
+        title = 'Confirmar Acción',
+        confirmText = 'Sí, proceder',
+        cancelText = 'Cancelar',
+        icon = 'warning'
+    } = el.dataset;
+
+
+    if (linkUrl) {
+
+         swalAgrow.fire({
+            title: title,
+            text: message,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (target === '_blank') {
+                    window.open(linkUrl, '_blank');
+                } else {
+                    window.location.href = linkUrl;
+                }
             }
         });
     }
+});
+    } else if (el.tagName === 'BUTTON' && el.type !== 'submit') {
+        el.addEventListener('click', (event) => {
 
-    attachConfirmHandlers(); // Asigna confirmaciones al cargar
+        });
+    }
+        });
+}
 
-    // ----- Función general para manejar peticiones AJAX de paginación/filtrado -----
+attachConfirmHandlers();
+
+ // --- Manejo de AJAX para paginación y filtros ---
     function handleAjaxRequest(url, contentDivId) {
         const contentDiv = document.getElementById(contentDivId);
         if (!contentDiv) {
@@ -172,308 +309,269 @@ document.addEventListener('DOMContentLoaded', () => {
             swalAgrow.fire('Error', `Error interno: Contenedor '${contentDivId}' no encontrado.`, 'error');
             return;
         }
-        contentDiv.style.opacity = '0.5'; // Indicate loading
+        // Mostrar indicador visual de carga
+        const loader = document.createElement('div');
+        loader.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="material-symbols-outlined" style="font-size: 40px; animation: spin 1.5s linear infinite;">autorenew</span><p>Cargando...</p></div>';
+        contentDiv.innerHTML = '';
+        contentDiv.appendChild(loader);
+        contentDiv.style.opacity = '0.7';
+
 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                     return response.text().then(text => {
+                        throw new Error(`HTTP error ${response.status}: ${text || response.statusText}`);
+                     });
                 }
                 return response.text();
             })
             .then(html => {
-                contentDiv.innerHTML = html;
-                // Re-initialize functionalities for the new content
-                formatPrices();
-                attachConfirmHandlers();
-                initFlatpickr();
-                attachDynamicEventListeners(); // Re-attach listeners for new elements
-                // Specific re-init if needed, e.g., calculateAndDisplayTotalSale(); if applicable
+                 contentDiv.innerHTML = html;
+                 contentDiv.style.opacity = '1';
+                 formatPrices();
+                 attachConfirmHandlers();
+                 initFlatpickr();
+                 attachDynamicEventListeners();
+                 // Llamadas específicas si son necesarias para el contenido nuevo
+                 if (document.getElementById('editSaleForm') || document.getElementById('saleForm')) {
+                    validateQuantityInput();
+                    calculateAndDisplayTotalSale();
+                 }
             })
             .catch(error => {
                 console.error(`Error fetching content for ${contentDivId}:`, error);
-                swalAgrow.fire('Error', 'No se pudo cargar el contenido solicitado. Verifique la conexión o inténtelo más tarde.', 'error');
-                contentDiv.innerHTML = `<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos. Por favor, actualice la página o inténtelo de nuevo.</p></div>`;
-            })
-            .finally(() => {
-                contentDiv.style.opacity = '1'; // Restore opacity
-            });
-    }
-
-    // ----- Delegación de eventos para elementos cargados dinámicamente (paginación, etc.) -----
-    function attachDynamicEventListeners() {
-        // Listener para paginación de Cosechas
-        document.getElementById('harvest-list-content')?.addEventListener('click', function(event) {
-             const target = event.target.closest('a[data-page]'); // Busca el enlace de paginación
-             if (target && target.closest('.pagination')) { // Asegura que esté dentro de la paginación
-                  event.preventDefault();
-                  const page = target.getAttribute('data-page');
-                  const stateC = target.getAttribute('data-state'); // Pasar filtros actuales
-                  const destinyC = target.getAttribute('data-destiny');
-
-                  const params = new URLSearchParams();
-                  params.append('page', page);
-                  if (stateC && stateC !== 'null' && stateC !== '') params.append('stateC', stateC);
-                  if (destinyC && destinyC !== 'null' && destinyC !== '') params.append('destinyC', destinyC);
-
-                  handleAjaxRequest(`/harvests/page?${params.toString()}`, 'harvest-list-content');
-             }
-        });
-
-        // Listener para paginación de Suministros
-        document.getElementById('supply-list-content')?.addEventListener('click', function(event) {
-            const target = event.target.closest('a[data-page]');
-            if (target && target.closest('.pagination')) {
-                 event.preventDefault();
-                 const page = target.getAttribute('data-page');
-                 const filterForm = document.getElementById('filter-form-supply');
-                 const formData = filterForm ? new FormData(filterForm) : new FormData();
-                 formData.set('page', page); // Actualiza la página en los datos del form
-
-                 handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
-            }
-        });
-
-        // Listener para paginación/filtrado de Productores
-        document.getElementById('table-producer')?.addEventListener('click', function(event) {
-            const target = event.target.closest('a[data-page]'); // Link de paginación
-             if (target && target.closest('.pagination')) {
-                  event.preventDefault();
-                  const currentPage = target.getAttribute('data-page');
-                  const filterForm = document.getElementById('filter-form-producer'); // El form tiene los filtros
-                  const formData = filterForm ? new FormData(filterForm) : new FormData();
-                  formData.set('page', currentPage); // Establece la página
-
-                  // Asegurar que se envíen los filtros correctos (ciudad o id) si existen en el form
-                  const city = formData.get('city');
-                  const idProducer = formData.get('id_producer');
-
-                  // Limpiar parámetros que no se usan para evitar conflictos
-                  if(city && idProducer) {
-                       // Si ambos están (aunque la UI no debería permitirlo), priorizamos? O limpiamos uno?
-                       // Por ahora, dejemos que el backend maneje la prioridad o error.
-                  }
-
-                   // Construye URL basado en formData
-                  handleAjaxRequest(`/producers/list?${new URLSearchParams(formData).toString()}`, 'table-producer');
-             }
-        });
-
-         // Listener para paginación/filtrado de Alquileres
-         document.getElementById('tableData')?.addEventListener('click', function(event) {
-              const target = event.target.closest('a[data-page]'); // Links de paginación
-               if (target && target.closest('.pagination')) {
-                    event.preventDefault();
-                    const page = target.getAttribute('data-page');
-                    const filterForm = document.getElementById('filter-form-rent'); // Formulario de filtros
-
-                    const rentStartDay = filterForm?.querySelector('#rentStartDay')?.value;
-                    const rentFinalDay = filterForm?.querySelector('#rentFinalDay')?.value;
-                    const idMaquina = filterForm?.querySelector('#id_maquina')?.value;
-
-                     const params = new URLSearchParams();
-                     params.append('page', page);
-
-                     // Lógica de filtrado igual que en la función filterRent original
-                     if (rentStartDay && !rentFinalDay && !idMaquina) {
-                          params.append('rentStartDay', rentStartDay);
-                     } else if (!rentStartDay && rentFinalDay && !idMaquina) {
-                          params.append('rentFinalDay', rentFinalDay);
-                     } else if (rentStartDay && rentFinalDay && !idMaquina) {
-                          params.append('rentStartDay', rentStartDay);
-                          params.append('rentFinalDay', rentFinalDay);
-                     } else if (!rentStartDay && !rentFinalDay && idMaquina) {
-                          params.append('id_maquina', idMaquina);
-                     } else if (!rentStartDay && !rentFinalDay && !idMaquina){
-                         // Caso sin filtro, solo paginación normal
-                     } else {
-                          // Caso inválido (múltiples filtros activos), no hacer nada o mostrar error
-                           console.warn("Multiple rent filters active, request aborted.");
-                           // mostrarAlerta("error", "Use solo un tipo de filtro a la vez."); // Requeriría mostrarAlerta aquí
-                           return;
-                     }
-
-                     const endpoint = params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina')
-                                        ? '/rent/tableFilter' // Endpoint de filtro
-                                        : '/rent/pageCurrent'; // Endpoint de paginación normal
-
-                     handleAjaxRequest(`${endpoint}?${params.toString()}`, 'tableData');
-               }
-
-               // Listener para el botón "Ver Maquina"
-               const viewMachineButton = event.target.closest('a[data-id]');
-                if (viewMachineButton && !viewMachineButton.closest('.pagination')) { // Asegura que no sea un link de paginación
-                     event.preventDefault();
-                     const machineId = viewMachineButton.getAttribute('data-id');
-                     const infoDiv = document.getElementById('infoMaquina');
-                     if (infoDiv) {
-                          handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
-                     }
-                }
-         });
-
-         // Listener para el botón "Cerrar Info Maquina" (si existe dinámicamente)
-         document.getElementById('infoMaquina')?.addEventListener('click', function(event) {
-              if (event.target.closest('a') && event.target.closest('a').textContent.includes('close')) { // Simple check for close icon/link
-                   event.preventDefault();
-                   this.innerHTML = ""; // Clear the content
-              }
-         });
-
-          // Listener para botones de submit en formularios de filtro (que ahora usarán AJAX)
-          // Filtro Productores
-           document.getElementById('filter-form-producer')?.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(this);
-                formData.set('page', '0'); // Filtrar siempre empieza en página 0
-                handleAjaxRequest(`/producers/list?${new URLSearchParams(formData).toString()}`, 'table-producer');
-           });
-
-           // Filtro Alquileres
-           document.getElementById('filter-form-rent')?.addEventListener('submit', function(event) {
-                 event.preventDefault();
-                 // La lógica de validación y construcción de URL ya está en el listener de paginación.
-                 // Podemos reutilizarla o simplificarla aquí.
-                 const rentStartDay = this.querySelector('#rentStartDay').value;
-                 const rentFinalDay = this.querySelector('#rentFinalDay').value;
-                 const idMaquina = this.querySelector('#id_maquina').value;
-                 const params = new URLSearchParams();
-                 params.append('page', '0'); // Filtrar empieza en página 0
-
-                 if (rentStartDay && rentFinalDay && idMaquina) {
-                     swalAgrow.fire("Error", "Use solo un filtro a la vez.", "error"); return;
-                 } else if (rentStartDay && idMaquina) {
-                      swalAgrow.fire("Error", "Use solo un filtro a la vez.", "error"); return;
-                 } else if (rentFinalDay && idMaquina) {
-                       swalAgrow.fire("Error", "Use solo un filtro a la vez.", "error"); return;
-                 } else if (!rentStartDay && !rentFinalDay && !idMaquina) {
-                     swalAgrow.fire("Info", "Por favor ingrese un filtro.", "info"); return;
+                 let errorMsg = 'No se pudo cargar el contenido solicitado. Verifique la conexión o inténtelo más tarde.';
+                 if (error.message.includes('HTTP error')) {
+                    errorMsg = `Error al cargar: ${error.message}. Por favor, intente de nuevo.`;
                  }
-
-                  if (rentStartDay) params.append('rentStartDay', rentStartDay);
-                  if (rentFinalDay) params.append('rentFinalDay', rentFinalDay);
-                  if (idMaquina) params.append('id_maquina', idMaquina);
-
-                  handleAjaxRequest(`/rent/tableFilter?${params.toString()}`, 'tableData');
-           });
-
-            // Filtro Suministros (ya estaba usando AJAX, asegurarse que siga funcionando)
-            document.getElementById('filter-form-supply')?.addEventListener('submit', function(event) {
-                 event.preventDefault();
-                 const formData = new FormData(this);
-                 formData.set('page', '0'); // Reset page on filter submit
-                 handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
+                 swalAgrow.fire('Error de Carga', errorMsg, 'error');
+                contentDiv.innerHTML = `<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos (${error.message}). Por favor, actualice la página o inténtelo de nuevo.</p></div>`;
+                 contentDiv.style.opacity = '1';
             });
-
-             // Filtro Cosechas por Calidad
-            document.getElementById('filter-form-state')?.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(this);
-                formData.set('page', '0');
-                handleAjaxRequest(`/harvests/page?${new URLSearchParams(formData).toString()}`, 'harvest-list-content');
-            });
-
-            // Filtro Cosechas por Destino
-            document.getElementById('filter-form-destiny')?.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(this);
-                formData.set('page', '0');
-                handleAjaxRequest(`/harvests/page?${new URLSearchParams(formData).toString()}`, 'harvest-list-content');
-            });
-
     }
 
-    attachDynamicEventListeners();
+// --- Función para paginación AJAX de Cosechas ---
+window.pageHarvests = function(link) {
+    if (!link) return;
+        const page = link.getAttribute('data-page');
+        const stateC = link.getAttribute('data-state');
+        const destinyC = link.getAttribute('data-destiny');
+        const params = new URLSearchParams();
+    params.append('page', page);
+    if (stateC && stateC !== 'null') params.append('stateC', stateC);
+    if (destinyC && destinyC !== 'null') params.append('destinyC', destinyC);
+    handleAjaxRequest(`/harvests/page?${params.toString()}`, 'harvest-list-content');
+};
 
-    // Muestra mensajes flash del servidor (éxito/error)
+// --- Función para paginación AJAX de Suministros ---
+window.pageSupplies = function(link) {
+    if (!link) return;
+           const page = link.getAttribute('data-page');
+           const filterForm = document.getElementById('filter-form-supply');
+           const formData = filterForm ? new FormData(filterForm) : new FormData();
+    formData.set('page', page); // Actualiza la página en los datos del form
+    handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
+};
+
+// --- Función para paginación/filtrado AJAX de Productores ---
+window.producer = function(button) {
+    if (!button) return;
+           const isFilterButton = button.getAttribute('data-button') === '1';
+           const page = isFilterButton ? '0' : button.getAttribute('data-page'); // Filtrar va a pág 0, paginar usa data-page
+
+           const filterForm = document.getElementById('filter-form-producer');
+           const formData = filterForm ? new FormData(filterForm) : new FormData();
+    formData.set('page', page); // Establece la página
+
+    // Lógica de limpieza de filtros si se usa ID
+           const idProducerInput = filterForm?.querySelector('#id_producer');
+           const citySelect = filterForm?.querySelector('#city');
+    if (idProducerInput?.value) { // Si se busca por ID
+        formData.delete('city'); // Eliminar filtro de ciudad
+        if (citySelect) citySelect.value = ''; // Limpiar visualmente select de ciudad
+    } else {
+        formData.delete('id_producer'); // Si no hay ID, eliminarlo del form data
+        if (idProducerInput) idProducerInput.value = ''; // Limpiar visualmente input ID
+    }
+
+
+    handleAjaxRequest(`/producers/list?${new URLSearchParams(formData).toString()}`, 'table-producer');
+};
+
+// --- Función para paginación/filtrado AJAX de Alquileres ---
+window.pageRent = function(link) {
+    if (!link) return;
+             const page = link.getAttribute('data-page');
+             const params = new URLSearchParams(getCurrentRentFilters()); // Obtener filtros actuales
+    params.set('page', page);
+              const endpoint = params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina')
+            ? '/rent/tableFilter'
+            : '/rent/pageCurrent';
+    handleAjaxRequest(`${endpoint}?${params.toString()}`, 'tableData');
+};
+
+window.filterRent = function(button) {
+    if (!button) return;
+            const page = button.getAttribute('data-page') || '0'; // Usar data-page si existe (paginación con filtro), si no, es botón de filtrar (pág 0)
+            const params = new URLSearchParams(getCurrentRentFilters()); // Obtener filtros actuales del form
+    params.set('page', page);
+
+    // Validar que no haya filtros vacíos o múltiples (a menos que sea solo paginación)
+            const hasFilters = params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina');
+            const isJustPaging = !hasFilters && button.hasAttribute('data-page'); // Es paginación sin filtros
+
+    if (hasFilters) {
+        // Validar combinaciones inválidas
+                 const start = params.get('rentStartDay');
+                 const end = params.get('rentFinalDay');
+                 const id = params.get('id_maquina');
+        if ((start && id) || (end && id) || (start && end && id)) {
+            swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez (rango de fechas o código de máquina).", "error");
+            return;
+        }
+        // Validar fechas si ambas están presentes
+        if (start && end && start > end) {
+            swalAgrow.fire("Error", "La fecha de inicio no puede ser posterior a la fecha final.", "error");
+            return;
+        }
+        // Validar que al menos un filtro tenga valor si se presionó el botón Filtrar
+        if (!isJustPaging && !start && !end && !id) {
+            swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
+            return;
+        }
+
+    } else if (!isJustPaging) {
+        // Si se presionó Filtrar pero no hay filtros, informar
+        swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
+        return;
+    }
+
+            const endpoint = hasFilters ? '/rent/tableFilter' : '/rent/pageCurrent';
+    handleAjaxRequest(`${endpoint}?${params.toString()}`, 'tableData');
+};
+
+// Función auxiliar para obtener filtros actuales de alquileres
+function getCurrentRentFilters() {
+             const filterForm = document.getElementById('filter-form-rent');
+             const params = new URLSearchParams();
+    if (!filterForm) return params;
+
+             const rentStartDay = filterForm.querySelector('#rentStartDay')?.value;
+             const rentFinalDay = filterForm.querySelector('#rentFinalDay')?.value;
+             const idMaquina = filterForm.querySelector('#id_maquina')?.value;
+
+    if (rentStartDay) params.append('rentStartDay', rentStartDay);
+    if (rentFinalDay) params.append('rentFinalDay', rentFinalDay);
+    if (idMaquina) params.append('id_maquina', idMaquina);
+    return params;
+}
+
+
+// --- Funciones para ver/cerrar info máquina (Alquileres) ---
+window.viewMaquina = function(link) {
+    if (!link) return;
+             const machineId = link.getAttribute('data-id');
+             const infoDiv = document.getElementById('infoMaquina');
+    if (infoDiv && machineId) {
+        handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
+    }
+};
+window.cerrarInfoMaquina = function() {
+             const infoDiv = document.getElementById('infoMaquina');
+    if (infoDiv) {
+        infoDiv.innerHTML = ""; // Limpiar contenido
+    }
+};
+
+
+// --- Delegación de Eventos (AJAX) ---
+function attachDynamicEventListeners() {
+    // Listener genérico para botones de submit de formularios de filtro
+    document.body.addEventListener('submit', function(event) {
+            const form = event.target.closest('form.filter-section form'); // Busca el form de filtro
+        if (form) {
+            event.preventDefault(); // Prevenir envío normal
+                const contentDivId = form.closest('.main-content').querySelector('[id$="-list-content"], [id="table-producer"], [id="tableData"]')?.id;
+            if (!contentDivId) {
+                console.error("Could not find target content div for filter form:", form.id);
+                return;
+            }
+
+            let actionUrl = form.getAttribute('action');
+            // Ajustar URL para Suministros y Cosechas si es necesario (para que apunten a /table o /page)
+            if (contentDivId === 'supply-list-content') actionUrl = '/supplies/table';
+            if (contentDivId === 'harvest-list-content') actionUrl = '/harvests/page';
+            // Los demás ya apuntan a los endpoints correctos (producers/list, rent/tableFilter)
+
+
+                const formData = new FormData(form);
+            formData.set('page', '0'); // Reset page on filter submit
+
+            // Lógica de limpieza para Productor
+            if (form.id === 'filter-form-producer') {
+                     const idProducerInput = form.querySelector('#id_producer');
+                if (idProducerInput?.value) formData.delete('city');
+                     else formData.delete('id_producer');
+            }
+
+            // Lógica de validación para Alquiler
+            if (form.id === 'filter-form-rent') {
+                     const start = formData.get('rentStartDay');
+                     const end = formData.get('rentFinalDay');
+                     const id = formData.get('id_maquina');
+                if ((start && id) || (end && id) || (start && end && id)) { swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez.", "error"); return; }
+                if (start && end && start > end) { swalAgrow.fire("Error", "Fecha inicio > fecha final.", "error"); return; }
+                if (!start && !end && !id) { swalAgrow.fire("Info", "Ingrese un filtro.", "info"); return; }
+                actionUrl = '/rent/tableFilter'; // Asegurar que filtrar va al endpoint correcto
+            }
+
+
+            handleAjaxRequest(`${actionUrl}?${new URLSearchParams(formData).toString()}`, contentDivId);
+        }
+    });
+
+    // Listener genérico para links de paginación dentro de contenedores AJAX
+    document.body.addEventListener('click', function(event) {
+             const paginationLink = event.target.closest('.pagination a[data-page]');
+        if (paginationLink) {
+            event.preventDefault();
+                 const contentDiv = paginationLink.closest('[id$="-list-content"], [id="table-producer"], [id="tableData"]');
+            if (contentDiv) {
+                       const contentDivId = contentDiv.id;
+                // Determinar la función de paginación correcta basada en el ID del contenedor
+                if (contentDivId === 'harvest-list-content') window.pageHarvests(paginationLink);
+                else if (contentDivId === 'supply-list-content') window.pageSupplies(paginationLink);
+                else if (contentDivId === 'table-producer') window.producer(paginationLink); // 'producer' maneja paginación y filtro
+                else if (contentDivId === 'tableData') window.filterRent(paginationLink); // 'filterRent' maneja paginación con filtro
+                else console.warn("No pagination handler found for content ID:", contentDivId);
+            }
+        }
+
+        // Listener para "Ver Maquina" (si es necesario fuera de tableData)
+               const viewMachineButton = event.target.closest('a[data-id][onclick*="viewMaquina"]');
+        if (viewMachineButton && !viewMachineButton.closest('.pagination')) {
+            event.preventDefault(); // Prevenir si ya está manejado por onclick
+            // window.viewMaquina(viewMachineButton); // Ya se llama con onclick
+        }
+
+        // Listener para "Cerrar Info Maquina" (si es necesario fuera de infoMaquina)
+                const closeInfoButton = event.target.closest('a[onclick*="cerrarInfoMaquina"]');
+        if (closeInfoButton) {
+            event.preventDefault(); // Prevenir si ya está manejado por onclick
+            // window.cerrarInfoMaquina(); // Ya se llama con onclick
+        }
+
+    });
+}
+
+attachDynamicEventListeners();
+
+// --- Muestra mensajes Flash ---
     const flash = document.getElementById('swal-message');
     if (flash) {
-        if (flash.dataset.mensaje) swalAgrow.fire({
-            title: '¡Éxito!',
-            text: flash.dataset.mensaje,
-            icon: 'success',
-            timer: 2500,
-            timerProgressBar: true
-        });
-        if (flash.dataset.error) swalAgrow.fire({
-             title: 'Error',
-             text: flash.dataset.error,
-             icon: 'error'
-
-        });
-    }
-
-    function updateMaxQuantityAndPrice() {
-        const harvestSelect = document.getElementById('harvestId');
-        const quantityInput = document.getElementById('quantitySold');
-        const priceInput = document.getElementById('pricePerUnitSold');
-        const quantityError = document.getElementById('quantityError');
-
-        if (!harvestSelect || !quantityInput || !quantityError) return;
-
-        const selectedOption = harvestSelect.options[harvestSelect.selectedIndex];
-
-        if (selectedOption && selectedOption.value) {
-            const available = parseInt(selectedOption.getAttribute('data-available'), 10);
-            const defaultPrice = parseFloat(selectedOption.getAttribute('data-price') || '0');
-
-            if (!isNaN(available) && available > 0) {
-                quantityInput.max = available;
-                quantityInput.placeholder = `Máximo disponible: ${available} kg`;
-                quantityInput.disabled = false;
-
-                // Ajustar valor si excede el máximo
-                if (parseInt(quantityInput.value, 10) > available) {
-                    quantityInput.value = available;
-                }
-
-                // Validar visualmente
-                validateQuantityInput();
-
-            } else {
-                quantityInput.max = 0;
-                quantityInput.placeholder = 'No disponible';
-                quantityInput.value = '';
-                quantityInput.disabled = true;
-                quantityError.style.display = 'none';
-            }
-        } else {
-            quantityInput.max = null;
-            quantityInput.placeholder = 'Seleccione cosecha primero';
-            quantityInput.value = '';
-            quantityInput.disabled = true;
-            quantityError.style.display = 'none';
+        if (flash.dataset.mensaje) swalAgrow.fire({ title: '¡Éxito!', text: flash.dataset.mensaje, icon: 'success', timer: 2500, timerProgressBar: true });
+        if (flash.dataset.error) swalAgrow.fire({ title: 'Error', text: flash.dataset.error, icon: 'error' });
         }
-         calculateAndDisplayTotalSale(); // Recalcular total al cambiar cosecha
-    }
 
-    function validateQuantityInput() {
-        const quantityInput = document.getElementById('quantitySold');
-         const quantityError = document.getElementById('quantityError');
-         if (!quantityInput || !quantityError) return;
-
-          const max = parseInt(quantityInput.max, 10);
-          const current = parseInt(quantityInput.value, 10);
-
-          if (!isNaN(max) && !isNaN(current) && current > max) {
-               quantityError.style.display = 'block';
-               quantityInput.classList.add('input-error');
-          } else {
-               quantityError.style.display = 'none';
-                quantityInput.classList.remove('input-error');
-          }
-           calculateAndDisplayTotalSale(); // Recalcular total al cambiar cantidad
-    }
-
-    const harvestSelect = document.getElementById('harvestId');
-    if (harvestSelect) {
-        harvestSelect.addEventListener('change', updateMaxQuantityAndPrice);
-        // Llamar una vez al cargar por si hay preselección
-        updateMaxQuantityAndPrice();
-    }
-
-    if (quantitySaleInput) {
-        quantitySaleInput.addEventListener('input', validateQuantityInput);
-    }
-
-});
+        });

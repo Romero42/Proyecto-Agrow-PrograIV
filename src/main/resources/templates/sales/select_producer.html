@@ -14,7 +14,6 @@
     <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
     <div class="form-container">
-        <!-- MODIFICADO: Título movido dentro del contenedor -->
         <div class="page-header">
             <div>
                 <h1 class="page-title">Registrar Venta - Paso 1</h1>
@@ -23,12 +22,10 @@
         </div>
 
         <form th:action="@{/sales/form}" method="get" id="selectProducerForm">
-            <!-- Campo oculto para pasar cosecha preseleccionada si existe -->
             <input type="hidden" name="preselectedHarvestId" th:value="${preselectedHarvestId}" />
 
             <div class="form-group">
                 <label for="producerId" class="form-label">Seleccionar Productor:</label>
-                <!-- MODIFICADO: Itera sobre sellableProducers -->
                 <select id="producerId" name="producerId" class="form-select" required>
                     <option value="" disabled th:selected="${preselectedProducerId == null}">-- Elige un productor --</option>
                     <option th:each="producer : ${sellableProducers}"
@@ -37,7 +34,7 @@
                             th:selected="${preselectedProducerId != null and producer.id_producer == preselectedProducerId}">
                     </option>
                 </select>
-                <!-- NUEVO: Texto informativo -->
+
                 <p class="form-info">Solo se muestran productores con cosechas que tienen stock disponible para la venta.</p>
             </div>
 

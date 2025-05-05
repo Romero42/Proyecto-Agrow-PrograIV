@@ -15,7 +15,7 @@
 
   <!-- Formulario de Venta (solo si hay productor) -->
   <div class="form-container" th:if="${producer != null}">
-    <!-- MODIFICADO: Título movido dentro del contenedor -->
+
     <div class="page-header">
       <div>
         <h1 class="page-title">Registrar Venta - Paso 2</h1>
@@ -34,14 +34,13 @@
         <a th:href="@{/sales/select-producer}">seleccionar otro productor</a>.</p>
     </div>
 
-    <!-- Mostrar info del productor SIN SOMBRA -->
-    <div class="producer-info-box"> <!-- Clase cambiada para quitar sombra -->
+    <!-- Mostrar info del productor -->
+    <div class="producer-info-box">
       <h3>Información del Productor</h3>
       <table class="detail-table">
         <tr><td>Nombre:</td><td th:text="${producer.producerName}"></td></tr>
         <tr><td>Teléfono:</td><td th:text="${producer.contactNumber}"></td></tr>
         <tr><td>Ciudad:</td><td th:text="${producer.city}"></td></tr>
-        <!-- NUEVO: Email añadido -->
         <tr><td>Correo:</td><td th:text="${producer.email}"></td></tr>
       </table>
     </div>
@@ -64,7 +63,7 @@
         </select>
       </div>
       <div class="form-group" th:unless="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
-        <!-- Mensaje ya se muestra arriba en info-card -->
+
       </div>
 
       <!-- Campos de venta (solo si hay cosechas) -->
@@ -80,13 +79,12 @@
           <input type="number" id="pricePerUnitSold" name="pricePerUnitSold" class="form-input" min="0.01" step="0.01" required placeholder="Ej: 150.50" title="Precio de venta por kg">
         </div>
 
-        <!-- NUEVO: Display para el total calculado -->
         <div id="totalSaleDisplay" style="margin-top: 15px; margin-bottom: 20px; font-weight: bold; font-size: 1.1em; color: var(--primary); text-align: right; border-top: 1px dashed var(--border-light); padding-top: 10px;">
-          <!-- El texto se rellenará con JS -->
         </div>
 
 
-        <hr style="margin: 20px 0; border-color: var(--border-lighter);">
+        <hr style="margin: 20px 0; border: none; border-top: 1px dashed var(--border-light);" />
+
         <h3 style="margin-bottom: 15px; color: var(--primary);">Datos del Comprador</h3>
 
         <div class="form-group">
@@ -145,6 +143,5 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/app.js}"></script>
-<!-- Script inline para actualizar max de cantidad eliminado, ahora está en app.js -->
 </body>
 </html>

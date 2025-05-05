@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -26,15 +27,6 @@
     </a>
   </div>
 
-  <!-- Puedes añadir filtros aquí si lo necesitas (por fecha, comprador, etc.) -->
-  <!--
-  <div class="filter-section">
-      <form th:action="@{/sales/list}" method="get" class="filter-row">
-          ... campos de filtro ...
-      </form>
-  </div>
-  -->
-
   <div class="info-card" th:if="${salesPage == null or salesPage.isEmpty()}">
     <span class="material-symbols-outlined icon">receipt_long</span>
     <h2>No hay ventas registradas</h2>
@@ -46,7 +38,6 @@
       <table>
         <thead>
         <tr>
-          <th>ID Venta</th>
           <th>Fecha</th>
           <th>Comprador</th>
           <th>Teléfono</th>
@@ -59,11 +50,10 @@
         </thead>
         <tbody>
         <tr th:each="sale : ${salesPage.content}">
-          <td th:text="${sale.idSale}"></td>
           <td th:text="${sale.saleDate != null ? #temporals.format(sale.saleDate, 'dd/MM/yyyy') : '-'}"></td>
           <td th:text="${sale.buyerName}"></td>
           <td th:text="${sale.buyerPhone}"></td>
-          <td th:text="${sale.harvest?.typeHarvest ?: 'N/A'} + ' (ID: ' + ${sale.harvest?.idHarvest ?: 'N/A'} + ')'"></td>
+          <td th:text="${sale.harvest?.typeHarvest}"></td>
           <td class="numeric-display" th:text="${#numbers.formatDecimal(sale.quantitySold, 1, 0, 'POINT')}"></td>
           <td class="price-display" th:attr="data-value=${sale.pricePerUnitSold}"></td>
           <td class="price-display" th:attr="data-value=${sale.totalSaleAmount}"></td>
@@ -72,17 +62,29 @@
               <a th:href="@{/sales/view(idSale=${sale.idSale})}" class="btns view-btns" title="Ver Detalles">
                 <span class="material-symbols-outlined icon">visibility</span>
               </a>
-              <!-- Aquí podrían ir botones de editar o cancelar venta si se implementa esa lógica -->
-              <!--
-              <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta (si aplica)">
-                  <span class="material-symbols-outlined icon">edit</span>
+              <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
+                <span class="material-symbols-outlined icon">edit</span>
               </a>
-               <form th:action="@{/sales/delete}" method="post" class="confirm-action" ... >
-                   <button type="submit" class="btns delete-btns" title="Cancelar Venta (si aplica)">
-                       <span class="material-symbols-outlined icon">cancel</span>
-                   </button>
-               </form>
-               -->
+              <a th:href="@{/sales/print-receipt(idSale=${sale.idSale})}"
+                 class="btns view-btns"
+                 style="background-color: #28a745; color: #fff;"
+                 title="Imprimir Recibo"
+                 target="_blank"
+                 data-message="¿Generar recibo para imprimir?"
+                 data-title="Confirmar Impresión"
+                 data-icon="info">
+                <span class="material-symbols-outlined icon">print</span>
+              </a>
+
+              <form th:action="@{/sales/delete}" method="post" class="confirm-action"
+                    data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
+                    data-title="Confirmar Eliminación"
+                    style="margin:0; padding:0; display:inline;">
+                <input type="hidden" name="idSale" th:value="${sale.idSale}" />
+                <button type="submit" class="btns delete-btns" title="Eliminar Venta">
+                  <span class="material-symbols-outlined icon">delete</span>
+                </button>
+              </form>
             </div>
           </td>
         </tr>
@@ -108,6 +110,7 @@
       </li>
     </ul>
   </div>
+
 
   <div style="margin-top: 20px;">
     <a th:href="@{/home}" class="btn btn-secondary">

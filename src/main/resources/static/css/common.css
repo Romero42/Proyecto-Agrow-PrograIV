@@ -540,3 +540,13 @@ body {
 
 /* Estilo para inputs con error */
 .form-input.input-error { border-color: var(--danger); }
+
+/* Animación de Spin para Loader AJAX */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

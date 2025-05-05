@@ -1,7 +1,10 @@
+
 package cr.ac.una.agrow.service;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
+import cr.ac.una.agrow.domain.Sale;
 import cr.ac.una.agrow.jpa.HarvestRepository;
+import cr.ac.una.agrow.jpa.SaleRepository;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +22,26 @@ public class HarvestService implements CRUD<Harvest> {
 
     private static final Logger LOG = Logger.getLogger(HarvestService.class.getName());
 
-
     @Autowired
     private HarvestRepository harvestRepository;
+
+    @Autowired
+    private SaleRepository saleRepository;
 
     @Override
     @Transactional
     public boolean save(Harvest harvest) {
-        try {
 
+        try {
+            // Si es nueva cosecha, inicializar disponible = total
             if (harvest.getIdHarvest() <= 0) {
                 harvest.setAvailableQuantity(harvest.getQuantityHarvested());
+            } else {
+                // Si se está editando, asegurarse que available no supere total
+                // La lógica de validación si total < vendidos está en el controller
+                if (harvest.getAvailableQuantity() > harvest.getQuantityHarvested()) {
+                    harvest.setAvailableQuantity(harvest.getQuantityHarvested()); // Corregir si es necesario
+                }
             }
 
             harvestRepository.save(harvest);
@@ -41,12 +53,33 @@ public class HarvestService implements CRUD<Harvest> {
     }
 
     @Override
-    @Transactional
+    @Transactional // Asegurar transacción para operaciones múltiples
     public void delete(Harvest harvest) {
+        if (harvest == null || harvest.getIdHarvest() <= 0) {
+            LOG.warning("Intento de eliminar cosecha nula o con ID inválido.");
+            return; // O lanzar excepción
+        }
         try {
+            // Verificar si hay ventas asociadas ANTES de intentar borrar la cosecha
+            List<Sale> associatedSales = saleRepository.findByHarvestIdHarvest(harvest.getIdHarvest());
+
+            if (!associatedSales.isEmpty()) {
+                LOG.info("Eliminando " + associatedSales.size() + " ventas asociadas a la cosecha ID: " + harvest.getIdHarvest());
+                // Eliminar las ventas asociadas PRIMERO
+                saleRepository.deleteAll(associatedSales);
+                // Forzar flush para asegurar que las ventas se borren antes que la cosecha si hay problemas de FK diferidos
+                saleRepository.flush();
+            }
+
+            // Ahora eliminar la cosecha
             harvestRepository.delete(harvest);
+            LOG.info("Cosecha ID: " + harvest.getIdHarvest() + " eliminada exitosamente.");
+
         } catch (DataAccessException ex) {
-            LOG.log(Level.SEVERE, "Error deleting harvest ID: " + harvest.getIdHarvest(), ex);
+            // Loguear el error específico
+            LOG.log(Level.SEVERE, "Error al eliminar cosecha ID: " + harvest.getIdHarvest() + " o sus ventas asociadas", ex);
+            // Relanzar como RuntimeException para asegurar rollback si algo falla
+            throw new RuntimeException("Error de base de datos al eliminar la cosecha o sus ventas.", ex);
         }
     }
 
@@ -122,7 +155,6 @@ public class HarvestService implements CRUD<Harvest> {
         }
     }
 
-    // Método para obtener cosechas disponibles por productor
     @Transactional(readOnly = true)
     public List<Harvest> getAvailableHarvestsByProducer(int producerId) {
         try {
@@ -133,7 +165,6 @@ public class HarvestService implements CRUD<Harvest> {
         }
     }
 
-    // Método para obtener TODAS las cosechas por productor
     @Transactional(readOnly = true)
     public List<Harvest> getAllHarvestsByProducer(int producerId) {
         try {
