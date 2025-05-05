@@ -240,6 +240,18 @@ body {
   animation: fadeIn 0.4s ease-out;
 }
 
+.form-container > .page-header {
+  border-bottom: none;
+  margin-bottom: 20px;
+  padding-bottom: 0;
+  text-align: left;
+
+}
+.form-container > .page-header > div {
+    display: block;
+    text-align: left;
+}
+
 .form-group { margin-bottom: 20px; }
 
 .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--label-text); font-size: 14px; }
@@ -503,3 +515,28 @@ body {
      background-color: var(--pagination-disabled-bg);
      color: var(--pagination-disabled-color);
 }
+
+/* Caja de info de productora */
+.producer-info-box {
+    background-color: var(--gray-lightest);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: none !important;
+}
+.producer-info-box h3 {
+    margin-bottom: 10px;
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-lighter);
+}
+.producer-info-box .detail-table { font-size: 14px; }
+.producer-info-box .detail-table td { padding: 8px 5px; }
+.producer-info-box .detail-table td:first-child { width: 25%; font-weight: 500;}
+
+
+/* Estilo para inputs con error */
+.form-input.input-error { border-color: var(--danger); }
