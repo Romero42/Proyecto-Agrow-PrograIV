@@ -1,0 +1,96 @@
+    <!DOCTYPE html>
+    <html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Formulario de Solicitud - Agrow</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    </head>
+    <body>
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1 class="page-title" th:text="${request.idrequest != null ? 'Nueva Solicitud' : 'Nueva Solicitud'}">Nueva Solicitud</h1>
+                <p class="page-subtitle">Complete el formulario para crear una nueva solicitud de producto.</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form th:action="@{/requests/save}" method="post" th:object="${request}">
+                <input type="hidden" th:field="*{idrequest}" />
+
+                <div class="form-group">
+                    <label class="form-label" for="name">Nombre Completo*</label>
+                    <input type="text" id="name" th:field="*{name}" class="form-input" placeholder="Nombre de quien solicita" required maxlength="100" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ. ]+$"/>
+                    <div class="form-info" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error en el nombre</div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="form-label" for="date">Fecha de Solicitud*</label>
+                    <input type="text" id="date" th:field="*{date}" class="form-input date-picker-dmy" placeholder="DD/MM/AAAA" required/>
+                    <div class="form-info" th:if="${#fields.hasErrors('date')}" th:errors="*{date}">Error en la fecha</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address">Dirección*</label>
+                    <input type="text" id="address" th:field="*{address}" class="form-input" placeholder="Dirección completa" required maxlength="200" />
+                    <div class="form-info" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error en la dirección</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="type">Tipo de Producto*</label>
+                    <input type="text" id="type" th:field="*{type}" class="form-input" placeholder="Producto que necesita" required maxlength="100" />
+                    <div class="form-info" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Error en el tipo</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="amount">Cantidad*</label>
+                    <input type="number" id="amount" th:field="*{amount}" class="form-input" placeholder="Cantidad requerida" required min="1" max="9999" />
+                    <div class="form-info" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Error en la cantidad</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="phone_number">Número de Teléfono*</label>
+                    <input type="tel" id="phone_number" th:field="*{phone_number}" class="form-input" placeholder="8888-8888" required pattern="[0-9]{4}-[0-9]{4}" title="Formato: 8888-8888" maxlength="9" />
+                    <div class="form-info">Formato: 8888-8888</div>
+                    <div class="form-info" th:if="${#fields.hasErrors('phone_number')}" th:errors="*{phone_number}">Error en el teléfono</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Estado de la solicitud</label>
+                    <select id="status" name="status" class="form-select" th:field="*{status}" required>
+                        <option value="" disabled th:selected="*{status == null}">Seleccione</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Aprobada">Aprobada</option>
+                        <option value="Rechazada">Rechazada</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Descripción</label>
+                    <textarea id="description" th:field="*{description}" class="form-input" placeholder="Detalles adicionales sobre su solicitud" rows="4" maxlength="500" required></textarea>
+                    <div class="form-info" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Error en la descripción</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Guardar </button>
+                    <a th:href="@{/requests/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Cancelar </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/app.js}"></script>
+    </body>
+    </html>
