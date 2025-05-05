@@ -1,11 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package cr.ac.una.agrow.service;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
 import cr.ac.una.agrow.jpa.HarvestRepository;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -13,73 +10,137 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author miste
- */
+
 @Service
 public class HarvestService implements CRUD<Harvest> {
+
+    private static final Logger LOG = Logger.getLogger(HarvestService.class.getName());
+
 
     @Autowired
     private HarvestRepository harvestRepository;
 
     @Override
+    @Transactional
     public boolean save(Harvest harvest) {
         try {
+
+            if (harvest.getIdHarvest() <= 0) {
+                harvest.setAvailableQuantity(harvest.getQuantityHarvested());
+            }
+
             harvestRepository.save(harvest);
             return true;
         } catch (DataAccessException ex) {
-            ex.printStackTrace();
+            LOG.log(Level.SEVERE, "Error saving harvest", ex);
             return false;
         }
     }
 
     @Override
+    @Transactional
     public void delete(Harvest harvest) {
         try {
             harvestRepository.delete(harvest);
         } catch (DataAccessException ex) {
-            ex.printStackTrace();
-            // Puedes agregar lógica adicional si deseas manejar el error
+            LOG.log(Level.SEVERE, "Error deleting harvest ID: " + harvest.getIdHarvest(), ex);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Harvest> getAll() {
-        return harvestRepository.findAll();
+        try {
+            return harvestRepository.findAll();
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting all harvests", ex);
+            return Collections.emptyList();
+        }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Harvest getById(int id) {
-        return harvestRepository.findById(id).orElse(null);
+        try {
+            return harvestRepository.findById(id).orElse(null);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting harvest by ID: " + id, ex);
+            return null;
+        }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Harvest> getHarvestByQuality(String quality) {
-        return harvestRepository.getByQuality(quality);
+        try {
+            return harvestRepository.getByQuality(quality);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting harvests by quality: " + quality, ex);
+            return Collections.emptyList();
+        }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Harvest> getHarvestByDestiny(String destiny) {
-        return harvestRepository.getByDestiny(destiny);
+        try {
+            return harvestRepository.getByDestiny(destiny);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting harvests by destiny: " + destiny, ex);
+            return Collections.emptyList();
+        }
     }
 
-    // New method for paged content
+    @Transactional(readOnly = true)
     public Page<Harvest> getAllPaged(Pageable pageable) {
-        return harvestRepository.findAll(pageable);
+        try {
+            return harvestRepository.findAll(pageable);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting all harvests paged", ex);
+            return Page.empty(pageable);
+        }
     }
 
-    // New method with pagination
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<Harvest> getHarvestByQualityPaged(String quality, Pageable pageable) {
-        return harvestRepository.getByQualityPaged(quality, pageable);
+        try {
+            return harvestRepository.getByQualityPaged(quality, pageable);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting harvests by quality paged: " + quality, ex);
+            return Page.empty(pageable);
+        }
     }
 
-    // New method with pagination
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<Harvest> getHarvestByDestinyPaged(String destiny, Pageable pageable) {
-        return harvestRepository.getByDestinyPaged(destiny, pageable);
+        try {
+            return harvestRepository.getByDestinyPaged(destiny, pageable);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting harvests by destiny paged: " + destiny, ex);
+            return Page.empty(pageable);
+        }
     }
 
+    // Método para obtener cosechas disponibles por productor
+    @Transactional(readOnly = true)
+    public List<Harvest> getAvailableHarvestsByProducer(int producerId) {
+        try {
+            return harvestRepository.findAvailableByProducerId(producerId);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting available harvests for producer ID: " + producerId, ex);
+            return Collections.emptyList();
+        }
+    }
+
+    // Método para obtener TODAS las cosechas por productor
+    @Transactional(readOnly = true)
+    public List<Harvest> getAllHarvestsByProducer(int producerId) {
+        try {
+            return harvestRepository.findAllByProducerId(producerId);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error getting all harvests for producer ID: " + producerId, ex);
+            return Collections.emptyList();
+        }
+    }
 }

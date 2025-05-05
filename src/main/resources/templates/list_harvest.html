@@ -98,9 +98,9 @@
                             <th>Tipo</th>
                             <th>Fecha Cosecha</th>
                             <th>Total (kg)</th>
+                            <th>Disponible (kg)</th>
                             <th>Calidad</th>
                             <th>Destino</th>
-                            <th>Registrado</th>
                             <th>Acciones</th>
                         </tr>
                         </thead>
@@ -110,20 +110,17 @@
                             <td th:text="${harvest.typeHarvest}"></td>
                             <td th:text="${harvest.dateHarvested != null ? #temporals.format(harvest.dateHarvested, 'dd/MM/yyyy') : '-'}"></td>
                             <td class="numeric-display" th:text="${#numbers.formatDecimal(harvest.quantityHarvested, 1, 0, 'POINT')}"></td>
+                            <!-- Mostrar Cantidad Disponible -->
+                            <td class="numeric-display" th:text="${#numbers.formatDecimal(harvest.availableQuantity, 1, 0, 'POINT')}"
+                                th:classappend="${harvest.availableQuantity <= 0} ? 'status-bajo' : ''"></td>
                             <td>
-                                            <span class="status"
-                                                  th:classappend="${#strings.equalsIgnoreCase(harvest.quality, 'Premium')} ? 'status-optimo' :
-                                                                 (${#strings.equalsIgnoreCase(harvest.quality, 'Estándar')} ? '' : 'status-bajo')"
-                                                  th:text="${harvest.quality}">
-                                            </span>
+                                <span class="status"
+                                      th:classappend="${#strings.equalsIgnoreCase(harvest.quality, 'Premium')} ? 'status-optimo' :
+                                                     (${#strings.equalsIgnoreCase(harvest.quality, 'Estándar')} ? '' : 'status-bajo')"
+                                      th:text="${harvest.quality}">
+                                </span>
                             </td>
                             <td th:text="${harvest.destiny}"></td>
-                            <td>
-                                            <span class="status"
-                                                  th:classappend="${harvest.registeredHarvest} ? 'status-optimo' : 'status-bajo'"
-                                                  th:text="${harvest.registeredHarvest ? 'Sí' : 'No'}">
-                                            </span>
-                            </td>
                             <td>
                                 <div class="action-buttons">
                                     <a th:href="@{/harvests/edit(idHarvest=${harvest.idHarvest})}" class="btns edit-btns" title="Editar Cosecha">
@@ -133,10 +130,17 @@
                                           data-message="¿Está seguro que desea eliminar esta cosecha?" data-title="Confirmar Eliminación"
                                           style="margin:0; padding:0; display:inline;">
                                         <input type="hidden" name="idHarvest" th:value="${harvest.idHarvest}" />
-                                        <button type="submit" class="btns delete-btns" title="Eliminar Cosecha">
+                                        <button type="submit" class="btns delete-btns" title="Eliminar Cosecha"
+                                                th:disabled="${harvest.availableQuantity < harvest.quantityHarvested}">
                                             <span class="material-symbols-outlined icon">delete</span>
                                         </button>
                                     </form>
+                                    <!-- Botón para ir a vender -->
+                                    <a th:if="${harvest.availableQuantity > 0}"
+                                       th:href="@{/sales/select-producer(preselectedProducerId=${harvest.id_producer}, preselectedHarvestId=${harvest.idHarvest})}"
+                                       class="btns btn-success" title="Vender esta cosecha">
+                                        <span class="material-symbols-outlined icon">shopping_cart</span>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -157,7 +161,6 @@
                     </li>
 
                     <!-- Números de página -->
-
                     <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${i == currentPage} ? 'active' : ''">
                         <a th:if="${i != currentPage}" href="#"
@@ -192,6 +195,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script> <!-- Contiene la función pageHarvest -->
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

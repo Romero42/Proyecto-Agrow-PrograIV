@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrar Venta - Agrow</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+  <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Registrar Venta - Paso 2</h1>
+      <p class="page-subtitle" th:if="${producer != null}">
+        Venta de cosecha para el productor: <strong th:text="${producer.producerName}"></strong>
+        (ID: <span th:text="${producer.id_producer}"></span>)
+      </p>
+      <p class="page-subtitle" th:if="${producer == null}">Error: Productor no especificado.</p>
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay cosechas disponibles -->
+  <div class="info-card" th:if="${infoMessage != null}">
+    <span class="material-symbols-outlined icon">inventory</span>
+    <h2 th:text="${infoMessage}"></h2>
+    <p>Puedes <a th:href="@{/harvests/form(producerId=${producer?.id_producer})}">registrar una nueva cosecha</a> para este productor o
+      <a th:href="@{/sales/select-producer}">seleccionar otro productor</a>.</p>
+  </div>
+
+
+  <!-- Formulario de Venta (solo si hay productor y cosechas disponibles o no) -->
+  <div class="form-container" th:if="${producer != null}">
+    <!-- Mostrar info del productor -->
+    <div class="detail-container" style="margin-bottom: 20px; padding: 15px; background-color: var(--gray-lightest);">
+      <h3 style="margin-bottom: 10px; color: var(--primary);">Información del Productor</h3>
+      <table class="detail-table" style="font-size: 14px;">
+        <tr><td style="width: 30%;">Nombre:</td><td th:text="${producer.producerName}"></td></tr>
+        <tr><td>Teléfono:</td><td th:text="${producer.contactNumber}"></td></tr>
+        <tr><td>Ciudad:</td><td th:text="${producer.city}"></td></tr>
+      </table>
+    </div>
+
+    <form th:action="@{/sales/process}" method="post" id="saleForm" class="confirm-action"
+          data-message="¿Confirmar el registro de esta venta?" data-title="Confirmar Venta">
+
+      <!-- Selección de Cosecha (solo si hay disponibles) -->
+      <div class="form-group" th:if="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <label for="harvestId" class="form-label">Cosecha a Vender:</label>
+        <select id="harvestId" name="harvestId" class="form-select" required onchange="updateMaxQuantity()">
+          <option value="" disabled th:selected="${preselectedHarvestId == null}">-- Seleccione una cosecha --</option>
+          <option th:each="harvest : ${availableHarvests}"
+                  th:value="${harvest.idHarvest}"
+                  th:text="${harvest.typeHarvest + ' (' + harvest.quality + ') - Disp: ' + harvest.availableQuantity + ' kg'}"
+                  th:attr="data-available=${harvest.availableQuantity}, data-price='1.00'"
+                  th:selected="${preselectedHarvestId != null and harvest.idHarvest == preselectedHarvestId}">
+          </option>
+          <!-- data-price puede ser un valor por defecto o venir de la cosecha si tuviera precio -->
+        </select>
+      </div>
+      <div class="form-group" th:unless="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <p>No hay cosechas disponibles para vender de este productor.</p>
+      </div>
+
+      <!-- Campos de venta (solo si hay cosechas) -->
+      <div th:if="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <div class="form-group">
+          <label for="quantitySold" class="form-label">Cantidad a Vender (kg):</label>
+          <input type="number" id="quantitySold" name="quantitySold" class="form-input" min="1" step="1" required placeholder="Ingrese cantidad entera" title="Cantidad entera a vender">
+          <p id="quantityError" style="color: var(--danger); font-size: 12px; margin-top: 5px; display: none;">La cantidad no puede exceder el disponible.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="pricePerUnitSold" class="form-label">Precio por Kg (CRC):</label>
+          <input type="number" id="pricePerUnitSold" name="pricePerUnitSold" class="form-input" min="0.01" step="0.01" required placeholder="Ej: 150.50" title="Precio de venta por kg">
+        </div>
+
+        <hr style="margin: 20px 0; border-color: var(--border-lighter);">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Datos del Comprador</h3>
+
+        <div class="form-group">
+          <label for="buyerName" class="form-label">Nombre del Comprador:</label>
+          <input type="text" id="buyerName" name="buyerName" class="form-input" required maxlength="100" placeholder="Nombre completo del cliente">
+        </div>
+
+        <div class="form-group">
+          <label for="buyerPhone" class="form-label">Teléfono del Comprador:</label>
+          <input type="tel" id="buyerPhone" name="buyerPhone" class="form-input" required pattern="[246789]\d{7}" maxlength="8" placeholder="Ej: 88776655" title="Número de 8 dígitos válido en CR">
+        </div>
+
+        <div class="form-group">
+          <label for="buyerAddress" class="form-label">Dirección del Comprador:</label>
+          <input type="text" id="buyerAddress" name="buyerAddress" class="form-input" maxlength="255" placeholder="Dirección de entrega o contacto">
+        </div>
+
+        <div class="form-group">
+          <label for="transportOption" class="form-label">Opción de Transporte:</label>
+          <input type="text" id="transportOption" name="transportOption" class="form-input" maxlength="100" placeholder="Ej: Retira cliente, Envío propio, Contratado...">
+          <p class="form-info">Indique cómo se realizará el transporte (provisional).</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined icon">shopping_cart_checkout</span> Registrar Venta
+          </button>
+          <a th:href="@{/sales/select-producer}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Cambiar Productor
+          </a>
+        </div>
+      </div>
+      <div th:unless="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <div class="form-actions">
+          <a th:href="@{/sales/select-producer}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Cambiar Productor
+          </a>
+        </div>
+      </div>
+
+
+    </form>
+  </div>
+
+  <!-- Botón para volver si hubo error al cargar productor -->
+  <div th:if="${producer == null}" style="margin-top: 20px;">
+    <a th:href="@{/sales/select-producer}" class="btn btn-secondary">
+      <span class="material-symbols-outlined icon">arrow_back</span> Volver a Selección
+    </a>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+<script>
+  function updateMaxQuantity() {
+      const harvestSelect = document.getElementById('harvestId');
+      const quantityInput = document.getElementById('quantitySold');
+      const priceInput = document.getElementById('pricePerUnitSold');
+      const quantityError = document.getElementById('quantityError');
+
+      const selectedOption = harvestSelect.options[harvestSelect.selectedIndex];
+
+      if (selectedOption && selectedOption.value) {
+          const available = parseInt(selectedOption.getAttribute('data-available'), 10);
+          const price = parseFloat(selectedOption.getAttribute('data-price') || '1.00'); // Usar precio si existe, sino 1.00
+
+          if (!isNaN(available) && available > 0) {
+              quantityInput.max = available;
+              quantityInput.placeholder = `Máximo: ${available} kg`;
+              quantityInput.disabled = false;
+
+              // Si el valor actual excede el nuevo máximo, ajustarlo (opcional)
+              if (parseInt(quantityInput.value, 10) > available) {
+                  quantityInput.value = available;
+              }
+
+              // Actualizar precio por unidad si viene del data attribute
+              if (priceInput && !isNaN(price) && price > 0) {
+                   // Descomentar si quieres que el precio se auto-rellene
+                  // priceInput.value = price.toFixed(2);
+              }
+
+
+              // Ocultar error si el valor es válido ahora
+              if (parseInt(quantityInput.value, 10) <= available) {
+                   quantityError.style.display = 'none';
+              }
+
+          } else {
+              // Si no hay disponible o no es número válido
+              quantityInput.max = 0;
+              quantityInput.placeholder = 'No disponible';
+              quantityInput.value = '';
+              quantityInput.disabled = true;
+              quantityError.style.display = 'none'; // Ocultar error si no se puede ingresar nada
+          }
+      } else {
+          // Si no se selecciona cosecha
+          quantityInput.max = null;
+          quantityInput.placeholder = 'Seleccione cosecha primero';
+          quantityInput.value = '';
+          quantityInput.disabled = true;
+          quantityError.style.display = 'none';
+      }
+  }
+
+   // Listener para validar cantidad al cambiarla manualmente
+   const quantityInput = document.getElementById('quantitySold');
+   if (quantityInput) {
+      quantityInput.addEventListener('input', function() {
+           const max = parseInt(this.max, 10);
+           const current = parseInt(this.value, 10);
+           const quantityError = document.getElementById('quantityError');
+
+           if (!isNaN(max) && !isNaN(current) && current > max) {
+                quantityError.style.display = 'block';
+                this.style.borderColor = 'var(--danger)'; // Resaltar error
+           } else {
+                quantityError.style.display = 'none';
+                 this.style.borderColor = 'var(--border-light)'; // Quitar resaltado
+           }
+      });
+   }
+
+
+  // Llamar a la función al cargar la página por si hay una cosecha preseleccionada
+  document.addEventListener('DOMContentLoaded', updateMaxQuantity);
+</script>
+</body>
+</html>
