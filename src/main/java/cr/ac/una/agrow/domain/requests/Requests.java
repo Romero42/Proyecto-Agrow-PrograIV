@@ -18,6 +18,7 @@ public class Requests {
     private String type;
     private double amount;
     private String phone_number;
+    private String status;
     private String description;
 
     private static final DateTimeFormatter FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -28,7 +29,7 @@ public class Requests {
     }
 
     public Requests(int idrequest, String name, LocalDate date, String address, String type,
-                    double amount, String phone_number, String description) {
+                    double amount, String phone_number, String status, String description) {
         this.idrequest = idrequest;
         this.name = name;
         this.date = date;
@@ -36,6 +37,7 @@ public class Requests {
         this.type = type;
         this.amount = amount;
         this.phone_number = phone_number;
+        this.status = status;
         this.description = description;
     }
 
@@ -113,6 +115,14 @@ public class Requests {
         this.phone_number = phone_number;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -131,6 +141,7 @@ public class Requests {
                 ", type='" + type + '\'' +
                 ", amount=" + amount +
                 ", phone_number='" + phone_number + '\'' +
+                ", status="+ status + '\'' +
                 ", description='" + description + '\'' +
                 '}';
     }

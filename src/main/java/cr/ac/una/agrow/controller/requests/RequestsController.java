@@ -28,7 +28,8 @@ public class RequestsController {
         if (search != null && !search.isEmpty()) {
             requests = requestService.searchName(search);
             model.addAttribute("searchTerm", search);
-        } else {
+        }
+        else {
             requests = requestService.getAll();
         }
 

@@ -49,6 +49,7 @@
                     <th>Tipo</th>
                     <th>Cantidad</th>
                     <th>Fecha</th>
+                    <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
@@ -58,6 +59,7 @@
                     <td th:text="${tempRequest.type}"></td>
                     <td class="numeric-display" th:text="${tempRequest.amount}"></td>
                     <td th:text="${tempRequest.getFormattedDate()}"></td>
+                    <td th:text="${tempRequest.status}"></td>
                     <td>
                         <div class="action-buttons">
                             <a th:href="@{/requests/view(id=${tempRequest.idrequest})}" class="btns view-btns" title="Ver Detalles"> <span class="material-symbols-outlined icon">visibility</span> </a>

@@ -11,4 +11,5 @@ public interface RequestsRepository extends JpaRepository<Requests, Integer> {
     // Find requests by name or type (for search functionality)
     @Query("SELECT r FROM Requests r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(r.type) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Requests> findByNameOrTypeContainingIgnoreCase(@Param("searchTerm") String searchTerm);
+
 }
