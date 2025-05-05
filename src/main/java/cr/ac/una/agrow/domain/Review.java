@@ -11,7 +11,7 @@ import java.time.LocalDate;
  * Modelo de entidad para las reseñas de ventas.
  */
 @Entity
-@Table(name = "sale_reviews")
+@Table(name = "tb_review")
 public class Review {
 
     @Id
