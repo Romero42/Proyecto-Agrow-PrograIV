@@ -39,11 +39,15 @@ public class Harvest {
     @Column(name = "id")
     private int idHarvest;
 
+    @Column(name = "type_harvest")
     private String typeHarvest;
+    @Column(name = "date_harvested")
     private LocalDate dateHarvested;
+    @Column(name = "quantity_harvested")
     private int quantityHarvested;
     private String quality;
     private String destiny;
+    @Column(name = "registered_harvest")
     private boolean registeredHarvest;
     private String description;
     private int id_producer;

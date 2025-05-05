@@ -27,13 +27,12 @@ public class Supplier {
     @Column(nullable = false, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "registrationDate", nullable = false)
     private LocalDate registrationDate;
 
     @Column(nullable = false)
     private boolean isActive;
 
-    // CHANGE: Keep double, use columnDefinition
     @Column(nullable = false, columnDefinition = "DECIMAL(12,2)")
     private double creditLimit;
 

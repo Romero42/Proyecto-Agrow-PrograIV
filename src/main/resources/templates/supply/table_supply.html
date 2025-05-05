@@ -44,7 +44,10 @@
                             </span>
                     </td>
                     <td th:text="${supply.unitType}"></td>
-                    <td class="price-display" th:attr="data-value=${supply.pricePerUnit}"></td>
+                    <td class="price-display"
+                        th:attr="data-value=${supply.pricePerUnit}"
+                        th:text="${#numbers.formatDecimal(supply.pricePerUnit, 1, 2, 'POINT')}">
+                    </td>
                     <td th:text="${supply.getFormattedExpirationDate()}"></td>
                     <td th:text="${supply.supplier?.companyName ?: 'N/A'}"></td>
                     <td>

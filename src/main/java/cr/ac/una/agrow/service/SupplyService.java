@@ -91,24 +91,14 @@ public class SupplyService {
 
     @Transactional(readOnly = true)
     public List<Supplier> getAllSuppliers() {
-        try {
-            return supplierRepository.findAllByOrderByCompanyNameAsc();
-        } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error accessing supplier list", e);
-            return List.of();
-        }
+        return supplierRepository.findAllByOrderByCompanyNameAsc();
     }
-
 
     @Transactional(readOnly = true)
     public Optional<Supplier> findSupplierById(Integer supplierId) {
         if (supplierId == null) return Optional.empty();
-        try {
-            return supplierRepository.findById(supplierId);
-        } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error accessing supplier ID: " + supplierId, e);
-            return Optional.empty();
-        }
+        // Quita el try-catch o relanza la excepción
+        return supplierRepository.findById(supplierId);
     }
 
 

@@ -97,61 +97,66 @@ public class HarvestController {
 
     @GetMapping("/list")
     public String listHarvests(Model model,
-            @RequestParam(value = "stateC", required = false) String state,
-            @RequestParam(value = "destinyC", required = false) String destiny,
-            @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
+                               @RequestParam(value = "stateC", required = false) String quality,
+                               @RequestParam(value = "destinyC", required = false) String destiny,
+                               @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
 
-        // Create a Pageable object for pagination
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-        Page<Harvest> harvests;
+        Page<Harvest> harvestsPage; // Renombrado para claridad
 
-        // Apply filters with pagination
-        if (state != null && !state.isEmpty()) {
-            harvests = service.getHarvestByQualityPaged(state, pageable);
-            model.addAttribute("stateC", state);
+        // Aplicar filtros y paginación
+        if (quality != null && !quality.isEmpty()) {
+            harvestsPage = service.getHarvestByQualityPaged(quality, pageable);
+            model.addAttribute("stateC", quality);
         } else if (destiny != null && !destiny.isEmpty()) {
-            harvests = service.getHarvestByDestinyPaged(destiny, pageable);
+            harvestsPage = service.getHarvestByDestinyPaged(destiny, pageable);
             model.addAttribute("destinyC", destiny);
         } else {
-            harvests = service.getAllPaged(pageable);
+            harvestsPage = service.getAllPaged(pageable);
         }
 
-        // Add pagination data to model
-        model.addAttribute("harvestList", harvests.getContent());
+        // Añadir datos de paginación al modelo
+        model.addAttribute("harvestList", harvestsPage.getContent());
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", harvests.getTotalPages());
-        model.addAttribute("totalItems", harvests.getTotalElements());
+        model.addAttribute("totalPages", harvestsPage.getTotalPages());
+        model.addAttribute("totalItems", harvestsPage.getTotalElements());
+        model.addAttribute("activeModule", "harvests"); // Para sidebar
+        model.addAttribute("activePage", "list");     // Para sidebar
 
         return "list_harvest";
     }
 
+    // Endpoint AJAX para paginación
     @GetMapping("/page")
     public String paginate(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(required = false) String stateC,
-            @RequestParam(required = false) String destinyC,
-            Model model) {
-        int pageSize = 5; // O el tamaño que uses para tu paginación
-        Pageable pageable = PageRequest.of(page, pageSize);
-        Page<Harvest> harvestPage;
+                           @RequestParam(required = false) String stateC,
+                           @RequestParam(required = false) String destinyC,
+                           Model model) {
 
-        // Aplicar filtros si existen
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<Harvest> harvestsPage; // Renombrado
+
         if (stateC != null && !stateC.isEmpty()) {
-            harvestPage = service.getHarvestByQualityPaged(stateC, pageable);
-            model.addAttribute("stateC", stateC); // Mantener estado del filtro
+            harvestsPage = service.getHarvestByQualityPaged(stateC, pageable);
+            model.addAttribute("stateC", stateC);
         } else if (destinyC != null && !destinyC.isEmpty()) {
-            harvestPage = service.getHarvestByDestinyPaged(destinyC, pageable);
-            model.addAttribute("destinyC", destinyC); // Mantener estado del filtro
+            harvestsPage = service.getHarvestByDestinyPaged(destinyC, pageable);
+            model.addAttribute("destinyC", destinyC);
         } else {
-            harvestPage = service.getAllPaged(pageable);
+            harvestsPage = service.getAllPaged(pageable);
         }
 
-        // Usar harvestList para coincidir con el nombre en list_harvest.html
-        model.addAttribute("harvestList", harvestPage.getContent());
-
-        // También puede ser útil incluir la información de paginación
+        // Pasar datos necesarios para el fragmento
+        model.addAttribute("harvestList", harvestsPage.getContent());
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", harvestsPage.getTotalPages());
+        model.addAttribute("totalItems", harvestsPage.getTotalElements());
+        model.addAttribute("stateC", stateC);
+        model.addAttribute("destinyC", destinyC);
 
-        return "fragments/harvest_table :: harvestTable";
+
+        // Devolver el fragmento que contiene la tabla Y la paginación
+        return "list_harvest :: harvestListContent";
     }
 
     @PostMapping("/delete")

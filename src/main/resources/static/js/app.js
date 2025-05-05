@@ -319,4 +319,105 @@ function producer(element){
     xhttp.send();
 }
 
+// Funcion para paginacion AJAX de Cosechas
+function pageHarvest(element) {
+    const page = element.getAttribute('data-page');
+    const stateC = element.getAttribute('data-state');
+    const destinyC = element.getAttribute('data-destiny');
+
+    const contentDiv = document.getElementById('harvest-list-content');
+    if (!contentDiv) {
+        console.error("Element with ID 'harvest-list-content' not found.");
+        swalAgrow.fire('Error', 'Error interno: Contenedor de tabla no encontrado.', 'error');
+        return;
+    }
+    contentDiv.style.opacity = '0.5';
+
+    const params = new URLSearchParams();
+    params.append('page', page);
+
+    if (stateC && stateC !== 'null' && stateC !== '') {
+        params.append('stateC', stateC);
+    }
+    if (destinyC && destinyC !== 'null' && destinyC !== '') {
+        params.append('destinyC', destinyC);
+    }
+
+    const url = `/harvests/page?${params.toString()}`;
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => {
+            if (!response.ok) {
+
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+
+            contentDiv.innerHTML = html;
+
+            attachConfirmHandlers();
+
+        })
+        .catch(error => {
+
+            console.error('Error fetching harvest page:', error);
+            swalAgrow.fire('Error', 'No se pudo cargar la página de cosechas solicitada. Verifique la conexión o inténtelo más tarde.', 'error');
+
+            contentDiv.innerHTML = '<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos. Por favor, actualice la página o inténtelo de nuevo.</p></div>';
+        })
+        .finally(() => {
+
+            contentDiv.style.opacity = '1';
+        });
+}
+
+
+// Funcion para paginacion AJAX de Suministros
+function pageSupplies(element) {
+    const page = element.getAttribute('data-page');
+    // Obtener valores de filtro actuales del formulario
+    const filterForm = document.getElementById('filter-form-supply');
+    const formData = filterForm ? new FormData(filterForm) : new FormData();
+
+    // Asegurar que el parámetro 'page' correcto se envíe
+    formData.set('page', page); // set sobrescribe si ya existe
+
+    const contentDiv = document.getElementById('supply-list-content');
+    if (!contentDiv) {
+        console.error("Element with ID 'supply-list-content' not found.");
+        swalAgrow.fire('Error', 'Error interno: Contenedor de tabla no encontrado.', 'error');
+        return;
+    }
+    contentDiv.style.opacity = '0.5'; // Indicate loading
+
+    // El endpoint correcto según SupplyController es /supplies/table
+    const url = `/supplies/table?${new URLSearchParams(formData).toString()}`;
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            // Reemplazar el contenido - El fragmento /supplies/table ya incluye tabla y paginación
+            contentDiv.innerHTML = html;
+            // Re-inicializar JS necesario para el nuevo contenido
+            formatPrices();
+            attachConfirmHandlers();
+            initFlatpickr(); // Si aplica
+        })
+        .catch(error => {
+            console.error('Error fetching supply page:', error);
+            swalAgrow.fire('Error', 'No se pudo cargar la página de suministros solicitada.', 'error');
+            contentDiv.innerHTML = '<p class="info-card">Error al cargar los datos. Intente de nuevo.</p>';
+        })
+        .finally(() => {
+            contentDiv.style.opacity = '1'; // Restore opacity
+        });
+}
+
 
