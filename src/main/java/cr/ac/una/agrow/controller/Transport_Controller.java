@@ -41,49 +41,41 @@ public class Transport_Controller {
         Pageable pageable = PageRequest.of(page, 5);
         Page<Transport> transportsPage;
 
-        // Manejo mejorado del parámetro estado
-        Boolean estadoBoolean = null;
-        if (estado != null && !estado.isEmpty()) {
-            try {
-                // Asegurar que solo acepte "true" o "false" como valores válidos
-                if (estado.equalsIgnoreCase("true") || estado.equalsIgnoreCase("false")) {
-                    estadoBoolean = Boolean.parseBoolean(estado);
-                }
-            } catch (IllegalArgumentException e) {
-
-            }
-        }
-
-        // Lógica de filtrado robusta
+        // Lógica de filtrado mejorada
         try {
-            if (estadoBoolean != null && destino != null && !destino.trim().isEmpty()) {
-                transportsPage = service.findByEstadoAndDestination(estadoBoolean, destino.trim(), pageable);
-            } else if (estadoBoolean != null) {
-                transportsPage = service.findByEstado(estadoBoolean, pageable);
-            } else if (destino != null && !destino.trim().isEmpty()) {
-                transportsPage = service.findByDestination(destino.trim(), pageable);
+            if (estado != null && destino != null && !destino.isEmpty()) {
+                transportsPage = service.findByEstadoAndDestination(
+                        Boolean.parseBoolean(estado),
+                        destino.trim(),
+                        pageable
+                );
+            } else if (estado != null) {
+                transportsPage = service.findByEstado(
+                        Boolean.parseBoolean(estado),
+                        pageable
+                );
+            } else if (destino != null && !destino.isEmpty()) {
+                transportsPage = service.findByDestination(
+                        destino.trim(),
+                        pageable
+                );
             } else {
                 transportsPage = service.getAllPaginated(pageable);
             }
         } catch (Exception e) {
             transportsPage = Page.empty(pageable);
-            model.addAttribute("error", "Ocurrió un error al filtrar los transportes");
+            model.addAttribute("error", "Error al filtrar los transportes");
         }
 
-        // Configuración común del modelo
+        // Preparar modelo
         model.addAttribute("transportes", transportsPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", transportsPage.getTotalPages());
-        model.addAttribute("estadoFiltro", estadoBoolean);
+        model.addAttribute("estadoFiltro", estado != null ? Boolean.parseBoolean(estado) : null);
         model.addAttribute("destinoBuscado", destino);
         model.addAttribute("cantidad", transportsPage.getTotalElements());
 
-        // Manejo de solicitudes AJAX
-        if (isAjaxRequest()) {
-            return "transport/transport_table :: contenido";
-        }
-
-        return "transport/list_transport";
+        return isAjaxRequest() ? "transport/transport_table :: contenido" : "transport/list_transport";
     }
 
 // Método auxiliar para detectar peticiones AJAX

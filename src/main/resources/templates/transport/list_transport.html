@@ -1,118 +1,119 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Listado de Transportes - Agrow</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-</head>
-<body>
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <head>
+        <title>Listado de Transportes - Agrow</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    </head>
+    <body>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="main-content">
-        <!-- Mensajes de éxito/error -->
-        <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div class="main-content">
+            <!-- Mensajes de éxito/error -->
+            <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-        <div class="page-header">
-            <h1 class="page-title">Listado de Transportes</h1>
-            <p class="page-subtitle" th:text="'Total registrados: ' + ${cantidad}"></p>
-        </div>
-
-        <div class="card-body" style="max-width: 100%; margin: auto;">
-            <div class="card-header">
-                <div class="header-actions">
-                    <a th:href="@{/transport/formulario-transporte}" class="btn btn-primary">
-                        <span class="material-symbols-outlined icon">add</span>
-                        Agregar Transporte
-                    </a>
-
-                    <div class="search-box">
-                        <input type="text" id="destinoFilter" name="destino" 
-                               placeholder="Buscar por destino..." 
-                               th:value="${destinoBuscado != null} ? ${destinoBuscado} : ''" />
-                        <button type="button" class="btn btn-search" id="searchButton">
-                            <span class="material-symbols-outlined icon">search</span>
-                        </button>
-                    </div>
-
-                    <div class="availability-filter">
-                        <a href="#" id="filterEnCamino" class="btn" 
-                           th:classappend="${estadoFiltro != null && estadoFiltro} ? 'btn-success' : 'btn-outline-success'">
-                            En Camino
-                        </a>
-                        <a href="#" id="filterEntregado" class="btn" 
-                           th:classappend="${estadoFiltro != null && !estadoFiltro} ? 'btn-danger' : 'btn-outline-danger'">
-                            Entregado
-                        </a>
-                        <button type="button" class="btn btn-secondary" id="refreshButton">
-                            <span class="material-symbols-outlined icon">refresh</span>
-                            Mostrar Todos
-                        </button>
-                    </div>
-                </div>
+            <div class="page-header">
+                <h1 class="page-title">Listado de Transportes</h1>
+                <p class="page-subtitle" th:text="'Total registrados: ' + ${cantidad}"></p>
             </div>
 
-            <div id="transport-list-content" th:replace="~{transport/transport_table :: contenido}"></div>
+            <div class="card-body" style="max-width: 100%; margin: auto;">
+                <div class="card-header">
+                    <div class="header-actions">
+                        <a th:href="@{/transport/formulario-transporte}" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">add</span>
+                            Agregar Transporte
+                        </a>
+
+                        <div class="search-box">
+                            <input type="text" id="destinoFilter" name="destino" 
+                                   placeholder="Buscar por destino..." 
+                                   th:value="${destinoBuscado != null} ? ${destinoBuscado} : ''" />
+                            <button type="button" class="btn btn-search" id="searchButton">
+                                <span class="material-symbols-outlined icon">search</span>
+                            </button>
+                        </div>
+
+                        <div class="availability-filter">
+                            <!-- Cambiado a button y con clases correctas -->
+                            <button id="filterEnCamino" class="btn btn-outline-success">
+                                En Camino
+                            </button>
+                            <button id="filterEntregado" class="btn btn-outline-danger">
+                                Entregado
+                            </button>
+                            <button id="refreshButton" class="btn btn-secondary">
+                                <span class="material-symbols-outlined icon">refresh</span>
+                                Mostrar Todos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="transport-list-content" th:replace="~{transport/transport_table :: contenido}"></div>
+            </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:src="@{/js/app.js}"></script>
-    <script th:src="@{/js/transport.js}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/app.js}"></script>
+        <script th:src="@{/js/transport.js}"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Función para manejar el filtrado
-            function applyFilters(estado = null, destino = null) {
-                const params = new URLSearchParams();
-                if (estado !== null) params.append("estado", estado);
-                if (destino) params.append("destino", destino);
-                
-                fetch(`/transport/filtrar?${params.toString()}`, {
-                    headers: {'X-Requested-With': 'XMLHttpRequest'}
-                })
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('transport-list-content').innerHTML = html;
-                })
-                .catch(error => console.error('Error:', error));
-            }
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Función para manejar el filtrado
+                function applyFilters(estado = null, destino = null) {
+                    const params = new URLSearchParams();
+                    if (estado !== null)
+                        params.append("estado", estado);
+                    if (destino)
+                        params.append("destino", destino);
 
-            // Eventos para los botones de filtro
-            document.getElementById('filterEnCamino').addEventListener('click', function(e) {
-                e.preventDefault();
-                applyFilters(true);
-            });
+                    fetch(`/transport/filtrar?${params.toString()}`, {
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    })
+                            .then(response => response.text())
+                            .then(html => {
+                                document.getElementById('transport-list-content').innerHTML = html;
+                            })
+                            .catch(error => console.error('Error:', error));
+                }
 
-            document.getElementById('filterEntregado').addEventListener('click', function(e) {
-                e.preventDefault();
-                applyFilters(false);
-            });
+                // Eventos para los botones de filtro
+                document.getElementById('filterEnCamino').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    applyFilters(true);
+                });
 
-            document.getElementById('refreshButton').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('destinoFilter').value = '';
-                applyFilters();
-            });
+                document.getElementById('filterEntregado').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    applyFilters(false);
+                });
 
-            document.getElementById('searchButton').addEventListener('click', function(e) {
-                e.preventDefault();
-                const destino = document.getElementById('destinoFilter').value;
-                applyFilters(null, destino);
-            });
+                document.getElementById('refreshButton').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.getElementById('destinoFilter').value = '';
+                    applyFilters();
+                });
 
-            // Debounce para búsqueda al escribir
-            let timeout;
-            document.getElementById('destinoFilter').addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(function() {
+                document.getElementById('searchButton').addEventListener('click', function (e) {
+                    e.preventDefault();
                     const destino = document.getElementById('destinoFilter').value;
                     applyFilters(null, destino);
-                }, 500);
+                });
+
+                // Debounce para búsqueda al escribir
+                let timeout;
+                document.getElementById('destinoFilter').addEventListener('input', function () {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function () {
+                        const destino = document.getElementById('destinoFilter').value;
+                        applyFilters(null, destino);
+                    }, 500);
+                });
             });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
