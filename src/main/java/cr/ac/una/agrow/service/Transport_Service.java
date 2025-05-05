@@ -83,7 +83,7 @@ public class Transport_Service implements CRUD<Transport> {
     }
 
     // Método combinado para filtros
-    public Page<Transport> findWithFilters(Boolean estado, String destino, Pageable pageable) {
+    public Page<Transport> findByEstadoAndDestination(Boolean estado, String destino, Pageable pageable) {
         if (estado != null && destino != null && !destino.isEmpty()) {
             return repo.findByEstadoAndTransportDestinationContainingIgnoreCase(estado, destino, pageable);
         } else if (estado != null) {
@@ -93,4 +93,11 @@ public class Transport_Service implements CRUD<Transport> {
         }
         return repo.findAll(pageable);
     }
+    public Page<Transport> findByEstado(Boolean estado, Pageable pageable) {
+    // Validación adicional en el servicio
+    if (estado == null) {
+        return getAllPaginated(pageable);
+    }
+    return repo.findByEstado(estado, pageable);
+}
 }

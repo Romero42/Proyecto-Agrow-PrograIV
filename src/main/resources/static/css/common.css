@@ -475,3 +475,88 @@ body {
     color: white;
     font-weight: bold;
 }
+
+/* Estilos para los botones de filtro */
+.availability-filter {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.availability-filter .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.availability-filter .btn-outline-success {
+    border: 1px solid #28a745;
+    color: #28a745;
+    background: transparent;
+}
+
+.availability-filter .btn-outline-success:hover {
+    background: #28a745;
+    color: white;
+}
+
+.availability-filter .btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+}
+
+.availability-filter .btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Estilos para la caja de búsqueda */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 4px;
+    padding: 0.3rem;
+    border: 1px solid #ced4da;
+}
+
+.search-box input {
+    border: none;
+    padding: 0.5rem;
+    outline: none;
+    width: 200px;
+}
+
+.search-box .btn-search {
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    padding: 0.5rem;
+}
+
+.search-box .btn-search:hover {
+    color: #495057;
+}
+
+/* Estilos para el estado */
+.status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-optimo {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}

@@ -2,6 +2,7 @@ package cr.ac.una.agrow.controller;
 
 import cr.ac.una.agrow.domain.Transport;
 import cr.ac.una.agrow.service.Transport_Service;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -25,16 +28,72 @@ public class Transport_Controller {
 
     @GetMapping("/list")
     public String listadoTransportes(Model model) {
-        Pageable pageable = PageRequest.of(0, 5);
-        Page<Transport> transportsPage = service.getAllPaginated(pageable);
+        return filtrarTransportes(model, null, null, 0);
+    }
 
-        model.addAttribute("validate", transportsPage.isEmpty() ? "No se encontraron transportes registrados" : null);
-        model.addAttribute("activeModule", "transport");
-        model.addAttribute("totalPages", transportsPage.getTotalPages());
+    @GetMapping("/filtrar")
+    public String filtrarTransportes(
+            Model model,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String destino,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Pageable pageable = PageRequest.of(page, 5);
+        Page<Transport> transportsPage;
+
+        // Manejo mejorado del parámetro estado
+        Boolean estadoBoolean = null;
+        if (estado != null && !estado.isEmpty()) {
+            try {
+                // Asegurar que solo acepte "true" o "false" como valores válidos
+                if (estado.equalsIgnoreCase("true") || estado.equalsIgnoreCase("false")) {
+                    estadoBoolean = Boolean.parseBoolean(estado);
+                }
+            } catch (IllegalArgumentException e) {
+
+            }
+        }
+
+        // Lógica de filtrado robusta
+        try {
+            if (estadoBoolean != null && destino != null && !destino.trim().isEmpty()) {
+                transportsPage = service.findByEstadoAndDestination(estadoBoolean, destino.trim(), pageable);
+            } else if (estadoBoolean != null) {
+                transportsPage = service.findByEstado(estadoBoolean, pageable);
+            } else if (destino != null && !destino.trim().isEmpty()) {
+                transportsPage = service.findByDestination(destino.trim(), pageable);
+            } else {
+                transportsPage = service.getAllPaginated(pageable);
+            }
+        } catch (Exception e) {
+            transportsPage = Page.empty(pageable);
+            model.addAttribute("error", "Ocurrió un error al filtrar los transportes");
+        }
+
+        // Configuración común del modelo
         model.addAttribute("transportes", transportsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", transportsPage.getTotalPages());
+        model.addAttribute("estadoFiltro", estadoBoolean);
+        model.addAttribute("destinoBuscado", destino);
         model.addAttribute("cantidad", transportsPage.getTotalElements());
 
+        // Manejo de solicitudes AJAX
+        if (isAjaxRequest()) {
+            return "transport/transport_table :: contenido";
+        }
+
         return "transport/list_transport";
+    }
+
+// Método auxiliar para detectar peticiones AJAX
+    private boolean isAjaxRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+        }
+        return false;
     }
 
     @GetMapping("/pageCurrent")
@@ -50,7 +109,7 @@ public class Transport_Controller {
         model.addAttribute("totalPages", transportsPage.getTotalPages());
         model.addAttribute("transportes", transportsPage.getContent());
 
-        return "transport/table_transport";
+        return "transport/list_transport";
     }
 
     @PostMapping("/guardar-transporte")
