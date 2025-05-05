@@ -1,10 +1,15 @@
 package cr.ac.una.agrow.domain.producer;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Entity
+@Table(name="producer")
 public class Producer {
 
+    @Id
     private int id_producer;
     private String producerName;
     private String contactNumber;

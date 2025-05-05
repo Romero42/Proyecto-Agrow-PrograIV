@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Productores - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Productores</h1>
+            <p class="page-subtitle">Total de productores registrados: <span
+                    th:text="${listP != null ? listP.size() : 0}">0</span></p>
+        </div>
+        <a th:href="@{/producers/form}" class="btn btn-primary"> <span
+                class="material-symbols-outlined icon">person_add</span> Agregar Productor </a>
+    </div>
+
+    <form id="filter-form-producer" th:action="@{/producers/list}" method="get" class="filter-section">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label" for="city">Filtrar por Provincia</label>
+                <select name="city" id="city" class="filter-input">
+                    <option value="" th:selected="${selectedCity == null or selectedCity == ''}">Seleccione una ciudad</option>
+                    <option value="Alajuela" th:selected="${#strings.equals(selectedCity,'Alajuela')}">Alajuela</option>
+                    <option value="Heredia" th:selected="${#strings.equals(selectedCity,'Heredia')}">Heredia</option>
+                    <option value="San Jose" th:selected="${#strings.equals(selectedCity,'San Jose')}">San José</option>
+                    <option value="Limon" th:selected="${#strings.equals(selectedCity,'Limon')}">Limón</option>
+                    <option value="Cartago" th:selected="${#strings.equals(selectedCity,'Cartago')}">Cartago</option>
+                    <option value="Puntarenas" th:selected="${#strings.equals(selectedCity,'Puntarenas')}">Puntarenas
+                    </option>
+                    <option value="Guanacaste" th:selected="${#strings.equals(selectedCity,'Guanacaste')}">Guanacaste
+                    </option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="id_producer">Buscar por Código </label>
+                <input type="number" name="id_producer" id="id_producer" th:value="${searchId}" class="filter-input"
+                       placeholder="Código (5 dígitos)" min="10000" max="99999"/>
+            </div>
+            <div class="filter-buttons">
+                <button type="submit" onclick="producer(this); return false;" class="btn btn-primary" th:attr="data-button=1"><span class="material-symbols-outlined icon">search</span>
+                    Filtrar
+                </button>
+                <a th:href="@{/producers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">refresh</span>
+                    Restablecer </a>
+            </div>
+        </div>
+    </form>
+
+    <div id="table-producer">
+        <div class="info-card" th:if="${validate != null}">
+            <span class="material-symbols-outlined icon">info</span>
+            <h2 th:text="${validate}">No se encontraron productores</h2>
+            <p>Intenta con otros filtros o <a th:href="@{/producers/form}">agrega nuevos productores</a>.</p>
+        </div>
+
+        <div class="table-container" th:unless="${validate != null or listP == null or listP.isEmpty()}">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Registro</th>
+                        <th>Tipo</th>
+                        <th>Correo</th>
+                        <th>Ciudad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tempProducer : ${listP}">
+                        <td th:text="${tempProducer.id_producer}"></td>
+                        <td th:text="${tempProducer.producerName}"></td>
+                        <td th:text="${tempProducer.contactNumber}"></td>
+                        <td th:text="${tempProducer.getFormattedRegistrationDate()}"></td>
+                        <td th:text="${tempProducer.producerType}"></td>
+                        <td th:text="${tempProducer.email}"></td>
+                        <td th:text="${tempProducer.city}"></td>
+                        <td><span class="status"
+                                  th:classappend="${tempProducer.isActive()} ? 'status-optimo' : 'status-bajo'"
+                                  th:text="${tempProducer.isActive()} ? 'Activo' : 'Inactivo'"></span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a th:href="@{/producers/information(id_producer=${tempProducer.id_producer})}"
+                                   class="btns view-btns" title="Ver Detalles"> <span
+                                        class="material-symbols-outlined icon">visibility</span> </a>
+                                <a th:href="@{/producers/edit(id_producer=${tempProducer.id_producer})}"
+                                   class="btns edit-btns" title="Editar"> <span class="material-symbols-outlined icon">edit</span>
+                                </a>
+                                <form th:action="@{/producers/delete}" method="post" class="confirm-action"
+                                      data-message="¿Eliminar este productor?" data-title="Confirmar Eliminación"
+                                      style="margin:0; padding:0; display:inline;">
+                                    <input type="hidden" name="id_producer" th:value="${tempProducer.id_producer}"/>
+                                    <button type="submit" class="btns delete-btns" title="Eliminar"><span
+                                            class="material-symbols-outlined icon">delete</span></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <input type="hidden" id="filter" th:value="${filter}"/>
+        <input type="hidden" id="lastCity" th:value="${lastCity}"/>
+        <div class="pagination" th:unless="${listP.isEmpty()}">
+            <ul>
+                <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
+                    <a th:href="'#'"
+                       onclick="producer(this); return false;"
+                       th:attr="data-page=${i}, data-button=0"
+                       th:text="${i + 1}"
+                       th:classappend="${i == 0} ? 'active'">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a th:href="@{/home}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span>
+            Volver a Inicio </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
