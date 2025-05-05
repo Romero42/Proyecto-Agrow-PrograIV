@@ -1,19 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package cr.ac.una.agrow.domain.transport;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- *
- * @author andre
- */
+@Entity
+@Table(name = "transport")
 public class Transport {
     
-    private int transportId;
+    
+    @Id   
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int transportId;   
     private int clientId;
     private int compraId;
     private boolean estado;
@@ -27,7 +25,10 @@ public class Transport {
     public Transport() {
     }
 
-    public Transport(int transportId, int clientId, int compraId, boolean estado, String transportOrigin, String transportDestination, LocalDate transportDate, LocalTime departureTime, LocalTime arrivalTime, double transportCost) {
+    public Transport(int transportId, int clientId, int compraId, boolean estado, 
+                   String transportOrigin, String transportDestination, 
+                   LocalDate transportDate, LocalTime departureTime, 
+                   LocalTime arrivalTime, double transportCost) {
         this.transportId = transportId;
         this.clientId = clientId;
         this.compraId = compraId;
@@ -40,6 +41,7 @@ public class Transport {
         this.transportCost = transportCost;
     }
 
+    // Getters y Setters (igual que antes)
     public int getTransportId() {
         return transportId;
     }
@@ -119,7 +121,19 @@ public class Transport {
     public void setTransportCost(double transportCost) {
         this.transportCost = transportCost;
     }
-    
-    
-    
+
+    @Override
+    public String toString() {
+        return "Transport{" + 
+               "transportId=" + transportId + 
+               ", clientId=" + clientId + 
+               ", compraId=" + compraId + 
+               ", estado=" + estado + 
+               ", transportOrigin=" + transportOrigin + 
+               ", transportDestination=" + transportDestination + 
+               ", transportDate=" + transportDate + 
+               ", departureTime=" + departureTime + 
+               ", arrivalTime=" + arrivalTime + 
+               ", transportCost=" + transportCost + '}';
+    }
 }
