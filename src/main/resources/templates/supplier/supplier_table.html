@@ -1,0 +1,47 @@
+<!-- Archivo: supplier/supplier_table.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Fragmento de tabla -->
+<div th:fragment="supplierTable">
+  <div th:if="${validate != null}" class="alert alert-info" role="alert">
+    <p th:text="${validate}"></p>
+  </div>
+
+  <div th:if="${!listS.isEmpty()}" class="table-container">
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Contacto</th>
+        <th>Empresa</th>
+        <th>Teléfono</th>
+        <th>Email</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="supplier : ${listS}">
+        <td th:text="${supplier.id}"></td>
+        <td th:text="${supplier.supplierName}"></td>
+        <td th:text="${supplier.companyName}"></td>
+        <td th:text="${supplier.phone}"></td>
+        <td th:text="${supplier.email}"></td>
+        <td class="actions-column">
+          <a th:href="@{/suppliers/view/{id}(id=${supplier.id})}" class="btn btn-sm btn-info">
+            <span class="material-symbols-outlined">visibility</span>
+          </a>
+          <a th:href="@{/suppliers/edit/{id}(id=${supplier.id})}" class="btn btn-sm btn-warning">
+            <span class="material-symbols-outlined">edit</span>
+          </a>
+          <button th:data-id="${supplier.id}" class="btn btn-sm btn-danger delete-btn">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

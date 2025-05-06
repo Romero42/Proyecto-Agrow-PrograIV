@@ -439,6 +439,22 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // fin de la función de paginación para Requests
 
+    // Función para manejar la paginación de proveedores
+    window.pageSuppliers = function(element) {
+        const page = element.getAttribute('data-page');
+        const currentUrl = new URL(window.location.href);
+        const searchParams = new URLSearchParams(currentUrl.search);
+
+        // Actualizar el parámetro de página
+        searchParams.set('page', page);
+
+        // Construir la URL para la solicitud AJAX
+        const ajaxUrl = `/suppliers/table?${searchParams.toString()}`;
+
+        // Ejecutar la petición AJAX
+        handleAjaxRequest(ajaxUrl, 'supplier-list-content');
+    };
+
 
     // --- Eventos Dinámicos para Contenido AJAX ---
     function attachDynamicEventListeners() {
@@ -464,7 +480,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (form.id === 'filter-form-request') {
                 contentId = 'request-list-content'; // ID del div que contiene la tabla de requests
                 actionUrl = '/requests/table';      // URL que devuelve el fragmento de la tabla
-
+            } else if (form.id === 'filter-form-supplier') {
+                contentId = 'supplier-list-content'; // ID del div que contendrá la tabla de proveedores
+                actionUrl = '/suppliers/table';      // URL que devuelve el fragmento de tabla
             } else {
                 console.warn('Formulario de filtro con ID no reconocido:', form.id);
                 return; // No hacer nada si el ID no coincide
@@ -504,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (container.id === 'tableData') window.pageRent(pgLink);
 
                     else if (container.id === 'request-list-content') window.pageRequests(pgLink); // Llama a la función de paginación de requests
+                    else if (container.id === 'supplier-list-content') window.pageSuppliers(pgLink); // Añadir para proveedores
 
                 }
             }

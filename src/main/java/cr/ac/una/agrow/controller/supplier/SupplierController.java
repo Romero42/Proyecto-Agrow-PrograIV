@@ -1,13 +1,14 @@
 package cr.ac.una.agrow.controller.supplier;
 
 import cr.ac.una.agrow.domain.supplier.Supplier;
-import cr.ac.una.agrow.data.supplier.DataSupplier;
-import cr.ac.una.agrow.service.supplier.SupplierService;
+import cr.ac.una.agrow.service.supplier.Supplier_Service; // Importa Supplier_Service
 import cr.ac.una.agrow.util.Util;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,24 +21,29 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/suppliers")
 public class SupplierController {
 
+    @Autowired
+    private Supplier_Service supplierService; // Inyecta Supplier_Service
+
     private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final int PAGE_SIZE = 5;
 
     @GetMapping("/list")
     public String listSuppliers(
             @RequestParam(value = "search", required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
             Model model) {
 
         List<Supplier> suppliers;
         String validationMessage = null;
 
         if (search != null && !search.trim().isEmpty()) {
-            suppliers = DataSupplier.findSuppliers(search.trim());
+            suppliers = supplierService.search(search.trim());
             if (suppliers.isEmpty()) {
                 validationMessage = "No se encontraron proveedores con el criterio: '" + search + "'";
             }
-            model.addAttribute("searchTerm", search.trim());
+            model.addAttribute("search", search.trim());
         } else {
-            suppliers = DataSupplier.getAllSuppliers();
+            suppliers = supplierService.getAll();
             if (suppliers.isEmpty()) {
                 validationMessage = "No hay proveedores registrados.";
             }
@@ -48,6 +54,35 @@ public class SupplierController {
         model.addAttribute("activeModule", "supplier");
         model.addAttribute("activePage", "list");
         return "supplier/supplier_list";
+    }
+
+    @GetMapping("/table")
+    public String supplierTable(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        List<Supplier> suppliers;
+        String validationMessage = null;
+
+        if (search != null && !search.trim().isEmpty()) {
+            suppliers = supplierService.search(search.trim());
+            if (suppliers.isEmpty()) {
+                validationMessage = "No se encontraron proveedores con el criterio: '" + search + "'";
+            }
+            model.addAttribute("search", search.trim());
+        } else {
+            suppliers = supplierService.getAll();
+            if (suppliers.isEmpty()) {
+                validationMessage = "No hay proveedores registrados.";
+            }
+        }
+
+        model.addAttribute("listS", suppliers);
+        model.addAttribute("validate", validationMessage);
+        // No necesitas incluir activeModule y activePage porque solo estás actualizando la tabla
+
+        return "supplier/supplier_table :: supplierTable";
     }
 
     @GetMapping("/form")
@@ -73,7 +108,7 @@ public class SupplierController {
             @RequestParam("creditLimit") String creditLimitStr,
             RedirectAttributes redirectAttributes) {
 
-        String error = SupplierService.validateSupplierData(supplierIdStr, supplierName, companyName, phoneNumberStr, email, registrationDateStr, creditLimitStr);
+        String error = Supplier_Service.validateSupplierData(supplierIdStr, supplierName, companyName, phoneNumberStr, email, registrationDateStr, creditLimitStr); // Usa Supplier_Service
         if (error != null) {
             redirectAttributes.addFlashAttribute("error", error);
             Supplier supplierData = createSupplierFromStrings(supplierIdStr, supplierName, companyName, phoneNumberStr, email, null, isActive, creditLimitStr);
@@ -98,16 +133,17 @@ public class SupplierController {
 
         Supplier supplier = new Supplier(supplierIdentification, supplierName.trim(), companyName.trim(), phoneNumber, email.trim(), registrationDate, isActive, creditLimit);
 
-        String resultMessage = DataSupplier.saveSupplier(supplier);
+        String resultMessage = String.valueOf(supplierService.save(supplier)); // Usa supplierService
         String[] parts = Util.arraySplit(resultMessage);
         int typeMsg = Integer.parseInt(parts[0]);
         String message = parts[1];
 
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
+        boolean success = supplierService.save(supplier);
+        if (success) {
+            redirectAttributes.addFlashAttribute("mensaje", "Proveedor guardado exitosamente.");
             return "redirect:/suppliers/list";
         } else {
-            redirectAttributes.addFlashAttribute("error", message);
+            redirectAttributes.addFlashAttribute("error", "Error al guardar el proveedor.");
             redirectAttributes.addFlashAttribute("supplier", supplier);
             redirectAttributes.addFlashAttribute("registrationDateStr", registrationDateStr);
             return "redirect:/suppliers/form";
@@ -120,7 +156,7 @@ public class SupplierController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = DataSupplier.getSupplierById(id);
+        Supplier supplier = supplierService.getById(id); // Usa supplierService
         if (supplier == null) {
             redirectAttributes.addFlashAttribute("error", "Proveedor con ID " + id + " no encontrado.");
             return "redirect:/suppliers/list";
@@ -145,7 +181,7 @@ public class SupplierController {
 
         String supplierIdStr = String.valueOf(supplierIdentification);
 
-        String error = SupplierService.validateSupplierData(supplierIdStr, supplierName, companyName, phoneNumberStr, email, registrationDateStr, creditLimitStr);
+        String error = Supplier_Service.validateSupplierData(supplierIdStr, supplierName, companyName, phoneNumberStr, email, registrationDateStr, creditLimitStr); // Usa Supplier_Service
         if (error != null) {
             redirectAttributes.addFlashAttribute("error", error);
             return "redirect:/suppliers/edit?id=" + supplierIdentification;
@@ -163,18 +199,17 @@ public class SupplierController {
 
         Supplier supplier = new Supplier(supplierIdentification, supplierName.trim(), companyName.trim(), phoneNumber, email.trim(), registrationDate, isActive, creditLimit);
 
-        String resultMessage = DataSupplier.updateSupplier(supplier);
-        String[] parts = Util.arraySplit(resultMessage);
-        int typeMsg = Integer.parseInt(parts[0]);
-        String message = parts[1];
 
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
+        boolean success = supplierService.save(supplier);
+        if (success) {
+            redirectAttributes.addFlashAttribute("mensaje", "Proveedor guardado exitosamente.");
+           return "redirect:/suppliers/list";
         } else {
-            redirectAttributes.addFlashAttribute("error", message);
+            redirectAttributes.addFlashAttribute("error", "Error al guardar el proveedor.");
+            redirectAttributes.addFlashAttribute("supplier", supplier);
+            redirectAttributes.addFlashAttribute("registrationDateStr", registrationDateStr);
             return "redirect:/suppliers/edit?id=" + supplierIdentification;
         }
-        return "redirect:/suppliers/list";
     }
 
     @PostMapping("/delete")
@@ -182,16 +217,13 @@ public class SupplierController {
             @RequestParam("id") int id,
             RedirectAttributes redirectAttributes) {
 
-        String resultMessage = DataSupplier.deleteSupplier(id);
-        String[] parts = Util.arraySplit(resultMessage);
-        int typeMsg = Integer.parseInt(parts[0]);
-        String message = parts[1];
-
-        if (typeMsg == 1) {
-            redirectAttributes.addFlashAttribute("mensaje", message);
-        } else {
-            redirectAttributes.addFlashAttribute("error", message);
+        Supplier supplier = supplierService.getById(id); // Usa supplierService
+        if (supplier == null) {
+            redirectAttributes.addFlashAttribute("error", "Proveedor no encontrado con ID: " + id);
+            return "redirect:/suppliers/list";
         }
+        supplierService.delete(supplier); // Usa supplierService
+        redirectAttributes.addFlashAttribute("mensaje", "Proveedor eliminado exitosamente.");
         return "redirect:/suppliers/list";
     }
 
@@ -201,7 +233,7 @@ public class SupplierController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = DataSupplier.getSupplierById(id);
+        Supplier supplier = supplierService.getById(id); // Usa supplierService
         if (supplier == null) {
             redirectAttributes.addFlashAttribute("error", "Proveedor con ID " + id + " no encontrado.");
             return "redirect:/suppliers/list";
