@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" th:href="@{/css/common.css}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <!-- Opcional: Incluir SweetAlert2 si lo usas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -17,7 +19,7 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">Gestión de Proveedores</h1>
-            <p class="page-subtitle">Visualiza y administra los proveedores. Total: <span th:text="${listS != null ? listS.size() : 0}">0</span></p>
+            <p class="page-subtitle">Visualiza y administra los proveedores. Total: <span th:text="${totalItems != null ? totalItems : (listS != null ? listS.size() : 0)}">0</span></p>
         </div>
         <a th:href="@{/suppliers/form}" class="btn btn-primary"> <span class="material-symbols-outlined icon">add_business</span> Agregar Proveedor </a>
     </div>
@@ -37,67 +39,15 @@
 
     <!-- Contenedor que se actualizará con AJAX -->
     <div id="supplier-list-content">
-        <!-- Este es el contenido inicial que también se usará como fragmento -->
-        <div th:fragment="supplierTable">
-            <div class="info-card" th:if="${validate != null}">
-                <span class="material-symbols-outlined icon">info</span>
-                <h2 th:text="${validate}">No se encontraron proveedores</h2>
-                <p>Intenta con otro término o <a th:href="@{/suppliers/form}">agrega un nuevo proveedor</a>.</p>
-            </div>
-
-            <div class="table-container" th:unless="${validate != null or listS == null or listS.isEmpty()}">
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Empresa</th> <th>Contacto</th> <th>Teléfono</th> <th>Correo</th> <th>Registro</th> <th>Estado</th> <th>Crédito</th> <th>Acciones</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="tempSupplier : ${listS}">
-                            <td th:text="${tempSupplier.companyName}"></td>
-                            <td th:text="${tempSupplier.supplierName}"></td>
-                            <td th:text="${tempSupplier.getFormattedPhoneNumber()}"></td>
-                            <td th:text="${tempSupplier.email}"></td>
-                            <td th:text="${tempSupplier.getFormattedRegistrationDate()}"></td>
-                            <td> <span class="status" th:classappend="${tempSupplier.isActive()} ? 'status-optimo' : 'status-bajo'" th:text="${tempSupplier.isActive()} ? 'Activo' : 'Inactivo'"></span> </td>
-                            <td class="price-display" th:attr="data-value=${tempSupplier.creditLimit}"></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a th:href="@{/suppliers/view(id=${tempSupplier.supplierIdentification})}" class="btns view-btns" title="Ver Detalles"> <span class="material-symbols-outlined icon">visibility</span> </a>
-                                    <a th:href="@{/suppliers/edit(id=${tempSupplier.supplierIdentification})}" class="btns edit-btns" title="Editar Proveedor"> <span class="material-symbols-outlined icon">edit</span> </a>
-                                    <form th:action="@{/suppliers/delete}" method="post" class="confirm-action" data-message="¿Eliminar este proveedor?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
-                                        <input type="hidden" name="id" th:value="${tempSupplier.supplierIdentification}" />
-                                        <button type="submit" class="btns delete-btns" title="Eliminar Proveedor"> <span class="material-symbols-outlined icon">delete</span> </button>
-                                    </form>
-                                    <a th:href="@{/supplies/form(supplierId=${tempSupplier.supplierIdentification})}" class="btns add-supply-btn" title="Agregar Suministro"> <span class="material-symbols-outlined icon">add_shopping_cart</span> </a>
-                                    <a th:href="@{/supplies/list(supplierId=${tempSupplier.supplierIdentification})}" class="btns view-supply-btn" title="Ver Suministros"> <span class="material-symbols-outlined icon">inventory_2</span> </a>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Añadimos paginación si es necesario -->
-                <div class="pagination" th:if="${totalPages > 1}">
-                    <ul>
-                        <li th:class="${currentPage == 0 ? 'disabled' : ''}">
-                            <a href="#" th:data-page="${currentPage - 1}" th:class="${currentPage == 0 ? 'disabled' : ''}">Anterior</a>
-                        </li>
-                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:class="${currentPage == i ? 'active' : ''}">
-                            <a href="#" th:data-page="${i}" th:text="${i + 1}"></a>
-                        </li>
-                        <li th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                            <a href="#" th:data-page="${currentPage + 1}" th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">Siguiente</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        <!-- Incluir el fragmento de tabla de proveedores -->
+        <div th:replace="~{supplier/supplier_table :: supplierTable}"></div>
     </div>
 
     <div style="margin-top: 20px;">
         <a th:href="@{/home}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio </a>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

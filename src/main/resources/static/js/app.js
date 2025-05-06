@@ -439,23 +439,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // fin de la función de paginación para Requests
 
-    // Función para manejar la paginación de proveedores
-    window.pageSuppliers = function(element) {
-        const page = element.getAttribute('data-page');
-        const currentUrl = new URL(window.location.href);
-        const searchParams = new URLSearchParams(currentUrl.search);
+// Corrección de la función de paginación para proveedores
+window.pageSuppliers = function(link) {
+    if (!link) return;
+    const page = link.getAttribute('data-page'); // Obtener la página del enlace
 
-        // Actualizar el parámetro de página
-        searchParams.set('page', page);
+    // Usa el formulario de filtro si existe
+    const form = document.getElementById('filter-form-supplier');
+    const formData = form ? new FormData(form) : new FormData();
 
-        // Construir la URL para la solicitud AJAX
-        const ajaxUrl = `/suppliers/table?${searchParams.toString()}`;
+    // Siempre establece la página solicitada
+    formData.set('page', page);
 
-        // Ejecutar la petición AJAX
-        handleAjaxRequest(ajaxUrl, 'supplier-list-content');
-    };
+    // Asegurarse de incluir el término de búsqueda si existe
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam && !formData.has('search')) {
+        formData.set('search', searchParam);
+    }
 
+    console.log("Cargando página de proveedores:", page); // Depuración
+    console.log("URL:", `/suppliers/table?${new URLSearchParams(formData).toString()}`); // Depuración
 
+    // Llama a handleAjaxRequest con la URL del fragmento y el ID del contenedor
+    handleAjaxRequest(
+       `/suppliers/table?${new URLSearchParams(formData).toString()}`,
+       'supplier-list-content'
+    );
+    return false; // Prevenir comportamiento predeterminado del enlace
+};
     // --- Eventos Dinámicos para Contenido AJAX ---
     function attachDynamicEventListeners() {
         document.body.addEventListener('submit', function(event) {

@@ -9,6 +9,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,35 +23,66 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class SupplierController {
 
     @Autowired
-    private Supplier_Service supplierService; // Inyecta Supplier_Service
+    private Supplier_Service supplierService;
 
     private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final int PAGE_SIZE = 5;
+    private void prepareModelListPaginated(Model model, String search, int page) {
+        Page<Supplier> supplierPage;
+        String validationMessage = null;
 
-    @GetMapping("/list")
-    public String listSuppliers(
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            Model model) {
+        if (search != null && !search.trim().isEmpty()) {
+            supplierPage = supplierService.searchPagination(search.trim(), page, PAGE_SIZE);
+            if (supplierPage.isEmpty()) {
+                validationMessage = "No se encontraron proveedores con el criterio: '" + search + "'";
+            }
+            model.addAttribute("search", search.trim());
+        } else {
+            supplierPage = supplierService.getAllPaginated(page, PAGE_SIZE);
+            if (supplierPage.isEmpty() && page ==0) {
+                validationMessage = "No hay proveedores registrados.";
+            } else if (supplierPage.isEmpty()) {
+                validationMessage = "La página está vacía";
+            }
+        }
+        model.addAttribute("listS", supplierPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", supplierPage.getTotalPages());
+        model.addAttribute("totalItems", supplierPage.getTotalElements());
+        model.addAttribute("validate", validationMessage);
 
+    }
+
+    private void prepareModelForList(Model model, String search) {
         List<Supplier> suppliers;
         String validationMessage = null;
 
         if (search != null && !search.trim().isEmpty()) {
             suppliers = supplierService.search(search.trim());
             if (suppliers.isEmpty()) {
-                validationMessage = "No se encontraron proveedores con el criterio: '" + search + "'";
+                validationMessage = "No se encontraron proveedores con: '" + search.trim() + "'";
             }
             model.addAttribute("search", search.trim());
         } else {
             suppliers = supplierService.getAll();
             if (suppliers.isEmpty()) {
                 validationMessage = "No hay proveedores registrados.";
-            }
-        }
 
-        model.addAttribute("listS", suppliers);
-        model.addAttribute("validate", validationMessage);
+            }
+
+            model.addAttribute("listS", suppliers);
+            model.addAttribute("validate", validationMessage);
+
+        }
+    }
+
+    @GetMapping("/list")
+    public String listSuppliers(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+            prepareModelListPaginated(model, search, page);
         model.addAttribute("activeModule", "supplier");
         model.addAttribute("activePage", "list");
         return "supplier/supplier_list";
@@ -62,26 +94,7 @@ public class SupplierController {
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
-        List<Supplier> suppliers;
-        String validationMessage = null;
-
-        if (search != null && !search.trim().isEmpty()) {
-            suppliers = supplierService.search(search.trim());
-            if (suppliers.isEmpty()) {
-                validationMessage = "No se encontraron proveedores con el criterio: '" + search + "'";
-            }
-            model.addAttribute("search", search.trim());
-        } else {
-            suppliers = supplierService.getAll();
-            if (suppliers.isEmpty()) {
-                validationMessage = "No hay proveedores registrados.";
-            }
-        }
-
-        model.addAttribute("listS", suppliers);
-        model.addAttribute("validate", validationMessage);
-        // No necesitas incluir activeModule y activePage porque solo estás actualizando la tabla
-
+        prepareModelListPaginated(model, search, page);
         return "supplier/supplier_table :: supplierTable";
     }
 
