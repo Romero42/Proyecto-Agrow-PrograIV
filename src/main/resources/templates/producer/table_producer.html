@@ -59,16 +59,33 @@
 
 <input type="hidden" id="filter" th:value="${filter}"/>
 <input type="hidden" id="lastCity" th:value="${lastCity}"/>
+
 <div th:unless="${list}">
     <div class="pagination" th:unless="${listP.isEmpty()}">
         <ul>
-            <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
+            <!-- Flecha izquierda -->
+            <li th:classappend="${currentPage == 0} ? 'disabled'">
+                <a th:if="${currentPage > 0}" href="#"
+                   th:attr="data-page=${currentPage - 1}, data-button=0"
+                   onclick="producer(this); return false;">«</a>
+                <span th:unless="${currentPage > 0}">«</span>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
                 <a th:href="'#'"
                    onclick="producer(this); return false;"
                    th:attr="data-page=${i}, data-button=0"
                    th:text="${i + 1}"
-                   th:classappend="${i == currentPage} ? 'active'">
+                   >
                 </a>
+            </li>
+
+            <!-- Flecha derecha -->
+            <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a th:if="${currentPage < totalPages - 1}" href="#"
+                   th:attr="data-page=${currentPage + 1}, data-button=0"
+                   onclick="producer(this); return false;">»</a>
+                <span th:unless="${currentPage < totalPages - 1}">»</span>
             </li>
         </ul>
     </div>

@@ -32,6 +32,7 @@ public class ProducerController {
     public String listProducers( @RequestParam(value = "city", required = false) String city, @RequestParam(value = "id_producer", required = false) Integer id,
             Model model, @RequestParam(defaultValue = "-1") int page) {
 
+
         Pageable pageable;
         if(page == -1) {
             pageable = PageRequest.of(0, 5);

@@ -43,6 +43,7 @@ public class MachineryRental_Controller {
         }
 
         model.addAttribute("validate", message);
+        model.addAttribute("currentPage", 0);
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("totalPages", rentsPage.getTotalPages());
         model.addAttribute("rents",rentsPage.getContent());
