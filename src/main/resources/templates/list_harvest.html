@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Listado de Cosechas - Agrow</title>
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Listado de Cosechas - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    </head>
+    <body>
 
-<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-<div class="main-content">
+        <div class="main-content">
 
-    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-    <!-- Encabezado de la página -->
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Gestión de Cosechas</h1>
-            <p class="page-subtitle">
-                Visualiza, filtra y administra tus cosechas. Total:
-                <span th:text="${totalItems != null ? totalItems : 0}">0</span>
-            </p>
-        </div>
-        <a th:href="@{/harvests/form}" class="btn btn-primary">
-            <span class="material-symbols-outlined icon">agriculture</span> Registrar Cosecha
-        </a>
-    </div>
-
-    <!-- Filtros -->
-    <form id="filter-form-harvest" th:action="@{/harvests/table}" method="get" class="filter-section">
-        <div class="filter-row">
-            <!-- Filtro por Calidad -->
-            <div class="filter-group">
-                <label class="filter-label" for="qualityFilter">Filtrar por Calidad</label>
-                <select id="qualityFilter" name="quality" class="filter-input">
-                    <option value="" th:selected="${quality == null or quality == ''}">Todas</option>
-                    <option value="Premium" th:selected="${#strings.equals(quality, 'Premium')}">Premium</option>
-                    <option value="Estándar" th:selected="${#strings.equals(quality, 'Estándar')}">Estándar</option>
-                    <option value="Secundaria" th:selected="${#strings.equals(quality, 'Secundaria')}">Secundaria</option>
-                </select>
-            </div>
-
-            <!-- Filtro por Destino -->
-            <div class="filter-group">
-                <label class="filter-label" for="destinyFilter">Filtrar por Destino</label>
-                <input type="text" id="destinyFilter" name="destiny" th:value="${destiny}"
-                       class="filter-input" placeholder="Ej: Mercado local, Exportación..." maxlength="100" />
-            </div>
-
-            <input type="hidden" name="page" value="0">
-
-            <div class="filter-buttons">
-                <button type="submit" class="btn btn-primary">
-                    <span class="material-symbols-outlined icon">filter_alt</span> Filtrar
-                </button>
-                <a th:href="@{/harvests/list}" class="btn btn-secondary" title="Quitar todos los filtros">
-                    <span class="material-symbols-outlined icon">refresh</span> Restablecer
+            <!-- Encabezado de la página -->
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Gestión de Cosechas</h1>
+                    <p class="page-subtitle">
+                        Visualiza, filtra y administra tus cosechas. Total:
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
+                    </p>
+                </div>
+                <a th:href="@{/harvests/form}" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">agriculture</span> Registrar Cosecha
                 </a>
             </div>
+
+            <!-- Filtros -->
+            <form id="filter-form-harvest" th:action="@{/harvests/table}" method="get" class="filter-section">
+                <div class="filter-row">
+                    <!-- Filtro por Calidad -->
+                    <div class="filter-group">
+                        <label class="filter-label" for="qualityFilter">Filtrar por Calidad</label>
+                        <select id="qualityFilter" name="quality" class="filter-input">
+                            <option value="" th:selected="${quality == null or quality == ''}">Todas</option>
+                            <option value="Premium" th:selected="${#strings.equals(quality, 'Premium')}">Premium</option>
+                            <option value="Estándar" th:selected="${#strings.equals(quality, 'Estándar')}">Estándar</option>
+                            <option value="Secundaria" th:selected="${#strings.equals(quality, 'Secundaria')}">Secundaria</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Destino -->
+                    <div class="filter-group">
+                        <label class="filter-label" for="destinyFilter">Filtrar por Destino</label>
+                        <input type="text" id="destinyFilter" name="destiny" th:value="${destiny}"
+                               class="filter-input" placeholder="Ej: Mercado local, Exportación..." maxlength="100" />
+                    </div>
+
+                    <input type="hidden" name="page" value="0">
+
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">filter_alt</span> Filtrar
+                        </button>
+                        <a th:href="@{/harvests/list}" class="btn btn-secondary" title="Quitar todos los filtros">
+                            <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Contenedor de la tabla de cosechas -->
+            <div id="harvest-list-content">
+                <div th:replace="~{harvest/table_harvest :: harvestListContent}"></div>
+            </div>
+
+            <!-- Volver a inicio -->
+            <div style="margin-top: 20px;">
+                <a th:href="@{/home}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
+                </a>
+            </div>
+
         </div>
-    </form>
 
-    <!-- Contenedor de la tabla de cosechas -->
-    <div id="harvest-list-content">
-        <div th:replace="~{harvest/table_harvest :: harvestListContent}"></div>
-    </div>
-
-    <!-- Volver a inicio -->
-    <div style="margin-top: 20px;">
-        <a th:href="@{/home}" class="btn btn-secondary">
-            <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
-        </a>
-    </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script>
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/harvest.js}"></script>
+    </body>
 </html>

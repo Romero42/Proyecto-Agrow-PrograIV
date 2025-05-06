@@ -18,28 +18,23 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer reviewId;
-
     private String reviewerName;
-    
-
     private String reviewType; // Tipos: Venta Directa, Distribución, Exportación, etc.
     private Double rating;
     private String comment;
     private LocalDate reviewDate;
     private Boolean verified; // Indica si la reseña ha sido verificada
     private Boolean recommendationStatus; // Indica si el cliente recomendaría nuestros productos/servicios
-    
-    
+
     // Constructor vacío
     public Review() {
         this.reviewDate = LocalDate.now();
         this.verified = false;
         this.recommendationStatus = false;
     }
-    
-    // Constructor con parámetros
-    public Review(String reviewerName, String reviewType, Double rating, String comment, 
-                 LocalDate reviewDate, Boolean verified, Boolean recommendationStatus) {
+
+    public Review(Integer reviewId, String reviewerName, String reviewType, Double rating, String comment, LocalDate reviewDate, Boolean verified, Boolean recommendationStatus) {
+        this.reviewId = reviewId;
         this.reviewerName = reviewerName;
         this.reviewType = reviewType;
         this.rating = rating;
@@ -48,19 +43,6 @@ public class Review {
         this.verified = verified;
         this.recommendationStatus = recommendationStatus;
     }
-    /*
-    // Constructor con parámetros incluyendo sale
-    public Review(String reviewerName, String reviewType, Double rating, String comment, 
-                 LocalDate reviewDate, Boolean verified, Boolean recommendationStatus, Sale sale) {
-        this.reviewerName = reviewerName;
-        this.reviewType = reviewType;
-        this.rating = rating;
-        this.comment = comment;
-        this.reviewDate = reviewDate;
-        this.verified = verified;
-        this.recommendationStatus = recommendationStatus;
-        this.sale = sale;
-    }*/
 
     // Getters y Setters
     public Integer getReviewId() {
@@ -126,12 +108,4 @@ public class Review {
     public void setRecommendationStatus(Boolean recommendationStatus) {
         this.recommendationStatus = recommendationStatus;
     }
-    /*
-    public Sale getSale() {
-        return sale;
-    }
-
-    public void setSale(Sale sale) {
-        this.sale = sale;
-    }*/
 }

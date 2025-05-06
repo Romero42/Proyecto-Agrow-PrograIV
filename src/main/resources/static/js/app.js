@@ -522,4 +522,134 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-}); // Fin de DOMContentLoaded
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar el datepicker para campos de fecha
+    if (document.getElementById('reviewDate')) {
+        flatpickr("#reviewDate", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
+    }
+    
+    // Manejo de la selección de estrellas para calificación
+    const ratingStars = document.getElementById('ratingStars');
+    const ratingValue = document.getElementById('ratingValue');
+    
+    if (ratingStars && ratingValue) {
+        // Inicializar las estrellas según el valor existente
+        const initialRating = parseFloat(ratingValue.value) || 0;
+        updateStars(initialRating);
+        
+        // Agregar eventos a las estrellas
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseFloat(this.getAttribute('data-value'));
+                ratingValue.value = value;
+                updateStars(value);
+            });
+            
+            star.addEventListener('mouseover', function() {
+                const value = parseFloat(this.getAttribute('data-value'));
+                highlightStars(value);
+            });
+            
+            star.addEventListener('mouseout', function() {
+                const selectedValue = parseFloat(ratingValue.value) || 0;
+                updateStars(selectedValue);
+            });
+        });
+    }
+
+    // Función para actualizar la visualización de las estrellas según el valor
+    function updateStars(value) {
+        if (!ratingStars) return;
+        
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            const starValue = parseFloat(star.getAttribute('data-value'));
+            star.classList.remove('selected');
+            
+            if (starValue <= value) {
+                star.classList.add('selected');
+            }
+        });
+    }
+    
+    // Función para resaltar estrellas en hover
+    function highlightStars(value) {
+        if (!ratingStars) return;
+        
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            const starValue = parseFloat(star.getAttribute('data-value'));
+            star.classList.remove('selected');
+            
+            if (starValue <= value) {
+                star.classList.add('selected');
+            }
+        });
+    }
+    
+    // Manejo de confirmaciones para eliminación
+    const confirmForms = document.querySelectorAll('.confirm-action');
+    confirmForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = this.getAttribute('data-message') || '¿Está seguro de realizar esta acción?';
+            const title = this.getAttribute('data-title') || 'Confirmar acción';
+            
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    });
+    
+    // Mostrar mensajes de alerta
+    const swalMessage = document.getElementById('swal-message');
+    if (swalMessage) {
+        const mensaje = swalMessage.getAttribute('data-mensaje');
+        const error = swalMessage.getAttribute('data-error');
+        
+        if (mensaje && mensaje !== '') {
+            Swal.fire({
+                title: '¡Operación exitosa!',
+                text: mensaje,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+        
+        if (error && error !== '') {
+            Swal.fire({
+                title: '¡Error!',
+                text: error,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    }
+});
