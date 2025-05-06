@@ -6,35 +6,33 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
+@Repository
 public interface Transport_Repository extends JpaRepository<Transport, Integer> {
 
-    // Métodos básicos de paginación
-    Page<Transport> findAll(Pageable pageable);
-
-    // Filtros esenciales
-    Page<Transport> findByEstado(boolean estado, Pageable pageable);
-
+    // Consulta básica por estado
+    Page<Transport> findByEstado(Boolean estado, Pageable pageable);
+    
+    // Consulta básica por destino (case insensitive)
     Page<Transport> findByTransportDestinationContainingIgnoreCase(String destino, Pageable pageable);
-
+    
+    // Consulta combinada estado + destino
     Page<Transport> findByEstadoAndTransportDestinationContainingIgnoreCase(
-            boolean estado, String destino, Pageable pageable);
+            Boolean estado, String destino, Pageable pageable);
 
-    // Consultas específicas
+   @Query("SELECT t FROM Transport t WHERE " +
+       "(:estado IS NULL OR t.estado = :estado) AND " +
+       "(:destino IS NULL OR LOWER(t.transportDestination) LIKE LOWER(CONCAT('%', :destino, '%')))")
+Page<Transport> findByFilters(
+        @Param("estado") Boolean estado,
+        @Param("destino") String destino,
+        Pageable pageable);
+
+    // Consultas adicionales
     @Query("SELECT t FROM Transport t WHERE t.clientId = :clientId")
     Page<Transport> findByClientId(@Param("clientId") int clientId, Pageable pageable);
 
-    @Query("SELECT t FROM Transport t WHERE t.compraId = :compraId")
-    Page<Transport> findByCompraId(@Param("compraId") int compraId, Pageable pageable);
-
-    @Query("SELECT t FROM Transport t WHERE t.clientId = :clientId AND t.estado = :estado")
-    Page<Transport> findByClientIdAndEstado(
-            @Param("clientId") int clientId,
-            @Param("estado") boolean estado,
-            Pageable pageable);
-
-    @Query("SELECT t FROM Transport t WHERE t.estado = :estado")
-    Page<Transport> findByEstado(@Param("estado") Boolean estado, Pageable pageable);
+    @Query("SELECT COUNT(t) FROM Transport t WHERE t.estado = true")
+    long countEnCamino();
 }

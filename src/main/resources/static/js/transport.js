@@ -1,11 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const FILTERS = {
-        EN_CAMINO: 'true',
-        ENTREGADO: 'false',
+        EN_CAMINO: true,
+        ENTREGADO: false,
         TODOS: null
     };
 
-    // Elementos del DOM
     const elements = {
         tableContainer: document.getElementById("transport-list-content"),
         filterEnCamino: document.getElementById("filterEnCamino"),
@@ -15,28 +14,27 @@ document.addEventListener('DOMContentLoaded', function() {
         searchButton: document.getElementById("searchButton")
     };
 
-    // Estado actual
     let currentState = {
-        estado: null,
-        destino: null,
+        estado: FILTERS.TODOS,
+        destino: elements.destinoFilter ? elements.destinoFilter.value : "",
         page: 0
     };
 
-    // Función para mostrar carga
     function showLoading() {
-        elements.tableContainer.innerHTML = `
-            <tr>
-                <td colspan="11" class="text-center py-4">
-                    <i class="fas fa-spinner fa-spin me-2"></i>
-                    Cargando transportes...
-                </td>
-            </tr>
-        `;
-        elements.tableContainer.style.opacity = '0.7';
+        if (elements.tableContainer) {
+            elements.tableContainer.innerHTML = `
+                <tr>
+                    <td colspan="11" class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Cargando transportes...
+                    </td>
+                </tr>`;
+        }
     }
 
-    // Función para aplicar filtros
     async function applyFilters() {
+        if (!elements.tableContainer) return;
+        
         showLoading();
         
         const params = new URLSearchParams();
@@ -49,113 +47,164 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
             });
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+            if (!response.ok) throw new Error(`Error ${response.status}`);
+            
             const html = await response.text();
             elements.tableContainer.innerHTML = html;
-            elements.tableContainer.style.opacity = '1';
             updateActiveButtons();
             setupPaginationEvents();
+            setupDeleteButtons();
+            
         } catch (error) {
             console.error("Error al filtrar:", error);
             elements.tableContainer.innerHTML = `
                 <tr>
                     <td colspan="11" class="text-center text-danger py-4">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error al cargar los transportes
+                        Error al cargar los datos
                     </td>
-                </tr>
-            `;
-            elements.tableContainer.style.opacity = '1';
+                </tr>`;
         }
     }
 
-    // Actualizar botones activos
     function updateActiveButtons() {
         if (elements.filterEnCamino && elements.filterEntregado) {
-            // Resetear ambos
-            elements.filterEnCamino.classList.remove('btn-success');
-            elements.filterEnCamino.classList.add('btn-outline-success');
-            elements.filterEntregado.classList.remove('btn-danger');
-            elements.filterEntregado.classList.add('btn-outline-danger');
-            
-            // Activar el correspondiente
+            elements.filterEnCamino.className = 'btn btn-outline-success';
+            elements.filterEntregado.className = 'btn btn-outline-danger';
+
             if (currentState.estado === FILTERS.EN_CAMINO) {
-                elements.filterEnCamino.classList.remove('btn-outline-success');
-                elements.filterEnCamino.classList.add('btn-success');
+                elements.filterEnCamino.className = 'btn btn-success';
             } else if (currentState.estado === FILTERS.ENTREGADO) {
-                elements.filterEntregado.classList.remove('btn-outline-danger');
-                elements.filterEntregado.classList.add('btn-danger');
+                elements.filterEntregado.className = 'btn btn-danger';
             }
         }
     }
 
-    // Configurar eventos de paginación
     function setupPaginationEvents() {
-        document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+        const paginationLinks = document.querySelectorAll('.pagination a[data-page]');
+        paginationLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                currentState.page = link.getAttribute('data-page');
-                applyFilters();
+                const page = link.getAttribute('data-page');
+                if (page) {
+                    currentState.page = parseInt(page);
+                    applyFilters();
+                }
             });
         });
     }
 
-    // Inicializar eventos
-    function initializeEvents() {
-        // Botón En Camino
-        elements.filterEnCamino?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentState.estado = FILTERS.EN_CAMINO;
-            currentState.destino = null;
-            currentState.page = 0;
-            elements.destinoFilter.value = '';
-            applyFilters();
-        });
-
-        // Botón Entregado
-        elements.filterEntregado?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentState.estado = FILTERS.ENTREGADO;
-            currentState.destino = null;
-            currentState.page = 0;
-            elements.destinoFilter.value = '';
-            applyFilters();
-        });
-
-        // Botón Mostrar Todos
-        elements.refreshButton?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentState.estado = FILTERS.TODOS;
-            currentState.destino = null;
-            currentState.page = 0;
-            elements.destinoFilter.value = '';
-            applyFilters();
-        });
-
-        // Botón Buscar
-        elements.searchButton?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentState.estado = FILTERS.TODOS;
-            currentState.destino = elements.destinoFilter.value;
-            currentState.page = 0;
-            applyFilters();
-        });
-
-        // Búsqueda al escribir
-        let timeout;
-        elements.destinoFilter?.addEventListener('input', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                currentState.estado = FILTERS.TODOS;
-                currentState.destino = elements.destinoFilter.value;
-                currentState.page = 0;
-                applyFilters();
-            }, 500);
+    function setupDeleteButtons() {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                confirmDelete(this);
+            });
         });
     }
 
-    // Inicializar
-    initializeEvents();
-    applyFilters(); // Carga inicial
+    function confirmDelete(form) {
+        Swal.fire({
+            title: '¿Eliminar transporte?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        applyFilters();
+                        showToast('Transporte eliminado', 'success');
+                    } else {
+                        showToast('Error al eliminar', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function showToast(message, type) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        
+        Toast.fire({
+            icon: type,
+            title: message
+        });
+    }
+
+    function initializeEvents() {
+        if (elements.filterEnCamino) {
+            elements.filterEnCamino.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentState.estado = currentState.estado === FILTERS.EN_CAMINO ? FILTERS.TODOS : FILTERS.EN_CAMINO;
+                currentState.page = 0;
+                applyFilters();
+            });
+        }
+
+        if (elements.filterEntregado) {
+            elements.filterEntregado.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentState.estado = currentState.estado === FILTERS.ENTREGADO ? FILTERS.TODOS : FILTERS.ENTREGADO;
+                currentState.page = 0;
+                applyFilters();
+            });
+        }
+
+        if (elements.refreshButton) {
+            elements.refreshButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentState.estado = FILTERS.TODOS;
+                currentState.destino = "";
+                currentState.page = 0;
+                if (elements.destinoFilter) elements.destinoFilter.value = "";
+                applyFilters();
+            });
+        }
+
+        if (elements.searchButton && elements.destinoFilter) {
+            elements.searchButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentState.destino = elements.destinoFilter.value.trim();
+                currentState.page = 0;
+                applyFilters();
+            });
+
+            let timeout;
+            elements.destinoFilter.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    currentState.destino = elements.destinoFilter.value.trim();
+                    currentState.page = 0;
+                    applyFilters();
+                }, 500);
+            });
+        }
+    }
+
+    if (elements.tableContainer) {
+        initializeEvents();
+        applyFilters();
+    }
 });

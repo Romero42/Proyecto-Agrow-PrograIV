@@ -7,97 +7,85 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class Transport_Service implements CRUD<Transport> {
+@Transactional
+public class Transport_Service {
 
     @Autowired
     private Transport_Repository repo;
 
-    // Operaciones CRUD básicas
-    @Override
-    public boolean save(Transport transport) {
+    // ============ OPERACIONES CRUD BÁSICAS ============ //
+    
+    public Transport save(Transport transport) {
         try {
-            repo.save(transport);
-            return true;
+            return repo.save(transport);
         } catch (DataAccessException ex) {
-            ex.printStackTrace(); // Log del error
-            return false;
+            throw new RuntimeException("Error al guardar transporte", ex);
         }
     }
 
-    @Override
-    public void delete(Transport transport) {
-        // Implementación vacía como en el original
-    }
-
-    public boolean deleteById(int id) {
-        if (!repo.existsById(id)) {
-            return false;
-        }
+    public boolean deleteById(Integer id) {
+        if (!repo.existsById(id)) return false;
+        
         try {
             repo.deleteById(id);
             return true;
-        } catch (Exception e) {
-            e.printStackTrace(); // Log del error
-            return false;
+        } catch (DataAccessException ex) {
+            throw new RuntimeException("Error al eliminar transporte ID: " + id, ex);
         }
     }
 
-    @Override
+    @Transactional(readOnly = true)
+    public Optional<Transport> getById(Integer id) {
+        return repo.findById(id);
+    }
+
+    @Transactional(readOnly = true)
     public List<Transport> getAll() {
         return repo.findAll();
     }
 
-    @Override
-    public Transport getById(int id) {
-        return repo.findById(id).orElse(null);
-    }
-
-    public boolean update(Transport transport) {
-        try {
-            if (repo.existsById(transport.getTransportId())) {
-                repo.save(transport);
-                return true;
-            }
-            return false;
-        } catch (DataAccessException ex) {
-            ex.printStackTrace(); // Log del error
-            return false;
-        }
-    }
-
-    // Métodos de paginación y filtros
+    // ============ MÉTODOS DE PAGINACIÓN Y FILTROS ============ //
+    
+    @Transactional(readOnly = true)
     public Page<Transport> getAllPaginated(Pageable pageable) {
         return repo.findAll(pageable);
     }
 
-    public Page<Transport> findByEstado(boolean estado, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<Transport> findByFilters(Boolean estado, String destino, Pageable pageable) {
+        return repo.findByFilters(estado, destino, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Transport> findByEstado(Boolean estado, Pageable pageable) {
         return repo.findByEstado(estado, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<Transport> findByDestination(String destino, Pageable pageable) {
         return repo.findByTransportDestinationContainingIgnoreCase(destino, pageable);
     }
 
-    // Método combinado para filtros
+    @Transactional(readOnly = true)
     public Page<Transport> findByEstadoAndDestination(Boolean estado, String destino, Pageable pageable) {
-        if (estado != null && destino != null && !destino.isEmpty()) {
-            return repo.findByEstadoAndTransportDestinationContainingIgnoreCase(estado, destino, pageable);
-        } else if (estado != null) {
-            return repo.findByEstado(estado, pageable);
-        } else if (destino != null && !destino.isEmpty()) {
-            return repo.findByTransportDestinationContainingIgnoreCase(destino, pageable);
-        }
-        return repo.findAll(pageable);
+        return repo.findByEstadoAndTransportDestinationContainingIgnoreCase(estado, destino, pageable);
     }
-    public Page<Transport> findByEstado(Boolean estado, Pageable pageable) {
-    // Validación adicional en el servicio
-    if (estado == null) {
-        return getAllPaginated(pageable);
+
+    // ============ MÉTODOS ADICIONALES ÚTILES ============ //
+    
+    @Transactional(readOnly = true)
+    public boolean existsById(Integer id) {
+        return repo.existsById(id);
     }
-    return repo.findByEstado(estado, pageable);
-}
+
+    @Transactional(readOnly = true)
+    public long countEnCamino() {
+        return repo.countEnCamino();
+    }
 }

@@ -1,65 +1,69 @@
-<!-- transport_table.html -->
 <div th:fragment="contenido">
-    <div class="detail-container">
-        <div class="table-responsive">
-            <table class="detail-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Compra</th>
-                        <th>Estado</th>
-                        <th>Origen</th>
-                        <th>Destino</th>
-                        <th>Fecha</th>
-                        <th>Hora Salida</th>
-                        <th>Hora Llegada</th>
-                        <th>Costo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="transporte : ${transportes}">
-                        <td th:text="${transporte.transportId}"></td>
-                        <td>
-                            <span th:if="${clientesMap != null}" 
-                                  th:text="${clientesMap.get(transporte.clientId)?.nombre} + ' (ID: ' + ${transporte.clientId} + ')'">
-                            </span>
-                        </td>
-                        <td th:text="'Compra #' + ${transporte.compraId}"></td>
-                        <td>
-                            <span class="status"
-                                  th:classappend="${transporte.estado} ? 'status-optimo' : 'status-danger'"
-                                  th:text="${transporte.estado ? 'En Camino' : 'Entregado'}">
-                            </span>
-                        </td>
-                        <td th:text="${transporte.transportOrigin}"></td>
-                        <td th:text="${transporte.transportDestination}"></td>
-                        <td th:text="${#temporals.format(transporte.transportDate, 'dd/MM/yyyy')}"></td>
-                        <td th:text="${#temporals.format(transporte.departureTime, 'HH:mm')}"></td>
-                        <td th:text="${#temporals.format(transporte.arrivalTime, 'HH:mm')}"></td>
-                        <td class="price-display" th:attr="data-value=${transporte.transportCost}"></td>
-                        <td>
-                            <div class="action-buttons">
-                                <a th:href="@{/transport/editar-transporte(id=${transporte.transportId})}" class="btn btn-warning">
-                                    <span class="material-symbols-outlined icon">edit</span>
-                                </a>
-                                <form th:action="@{/transport/eliminar-transporte}" method="post" class="confirm-action" 
-                                      data-message="¿Eliminar este transporte?" style="display:inline;">
-                                    <input type="hidden" name="transportId" th:value="${transporte.transportId}" />
-                                    <button type="submit" class="btn btn-danger">
-                                        <span class="material-symbols-outlined icon">delete</span>
-                                    </button>
-                                </form>
-                                <a th:href="@{/transport/detalles-transporte(id=${transporte.transportId})}" class="btn btn-info">
-                                    <span class="material-symbols-outlined icon">visibility</span>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Compra</th>
+                    <th>Estado</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Fecha</th>
+                    <th>Hora Salida</th>
+                    <th>Hora Llegada</th>
+                    <th>Costo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Mensaje si no hay datos -->
+                <tr th:if="${transportes.empty}">
+                    <td colspan="11" class="text-center py-4 text-muted">
+                        No se encontraron transportes
+                    </td>
+                </tr>
+                
+                <!-- Filas de datos -->
+                <tr th:each="transporte : ${transportes}">
+                    <td th:text="${transporte.transportId}"></td>
+                    <td th:text="${transporte.clientId} + (${clientesMap?.get(transporte.clientId)?.nombre} ? ' - ' + ${clientesMap.get(transporte.clientId).nombre} : '')"></td>
+                    <td th:text="'#' + ${transporte.compraId}"></td>
+                    <td>
+                        <span class="status" 
+                              th:classappend="${transporte.estado} ? 'status-optimo' : 'status-danger'"
+                              th:text="${transporte.estado ? 'En Camino' : 'Entregado'}">
+                        </span>
+                    </td>
+                    <td th:text="${transporte.transportOrigin}"></td>
+                    <td th:text="${transporte.transportDestination}"></td>
+                    <td th:text="${#temporals.format(transporte.transportDate, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${#temporals.format(transporte.departureTime, 'HH:mm')}"></td>
+                    <td th:text="${#temporals.format(transporte.arrivalTime, 'HH:mm')}"></td>
+                    <td th:text="${'₡' + #numbers.formatDecimal(transporte.transportCost, 1, 2, 'COMMA')}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/transport/editar-transporte(id=${transporte.transportId})}" 
+                               class="btn btn-warning btn-sm" title="Editar">
+                                <span class="material-symbols-outlined icon">edit</span>
+                            </a>
+                            <form th:action="@{/transport/eliminar-transporte}" method="post" 
+                                  class="d-inline confirm-action" 
+                                  data-message="¿Eliminar este transporte?">
+                                <input type="hidden" name="transportId" th:value="${transporte.transportId}" />
+                                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                    <span class="material-symbols-outlined icon">delete</span>
+                                </button>
+                            </form>
+                            <a th:href="@{/transport/detalles-transporte(id=${transporte.transportId})}" 
+                               class="btn btn-info btn-sm" title="Detalles">
+                                <span class="material-symbols-outlined icon">visibility</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <!-- Paginación -->
