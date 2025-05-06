@@ -1,4 +1,4 @@
-<!-- Fragmento que contiene la tabla de solicitudes -->
+
 <div th:fragment="requestTableContent" xmlns:th="http://www.thymeleaf.org">
 
     <!-- Mensaje cuando no hay solicitudes -->
@@ -10,7 +10,7 @@
         </p>
     </div>
 
-    <!-- Tabla de solicitudes -->
+
     <div class="table-container" th:unless="${validate != null or listR == null or listR.isEmpty()}">
         <div class="table-responsive">
             <table>
@@ -72,5 +72,33 @@
             </table>
         </div>
     </div>
+    <!-- Componente de paginación -->
+    <div class="d-flex justify-content-center mt-3">
+        <div class="pagination" th:if="${totalPages > 1}">
+            <ul>
+                <!-- Botón Anterior -->
+                <li th:class="${currentPage == 0 ? 'disabled' : ''}">
+                    <a href="#" th:attr="data-page=${currentPage - 1}"
+                       onclick="pageRequests(this); return false;">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
 
+                <!-- Páginas numéricas  -->
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:class="${currentPage == i ? 'active' : ''}">
+                    <a href="#" th:attr="data-page=${i}"
+                       onclick="pageRequests(this); return false;" th:text="${i + 1}"></a>
+                </li>
+
+                <!-- Botón Siguiente -->
+                <li th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a href="#" th:attr="data-page=${currentPage + 1}"
+                       onclick="pageRequests(this); return false;">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>

@@ -3,6 +3,7 @@ package cr.ac.una.agrow.controller.requests;
 import cr.ac.una.agrow.domain.requests.Requests;
 import cr.ac.una.agrow.service.requests.RequestsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,14 +19,41 @@ public class RequestsController {
 
     @Autowired
     private RequestsService requestService;
+    private static final int PAGE_SIZE = 5;
 
-    // Prepara la lista de solicitudes y el mensaje de validación
+    private void prepareModelForListPaginated(Model model, String search, int page) {
+        Page<Requests> requestsPage;
+        String validateMsg = null;
+
+        if (search != null && !search.trim().isEmpty()) {
+            requestsPage = requestService.searchNamePaginated(search.trim(), page, PAGE_SIZE);
+            if (requestsPage.isEmpty()) {
+                validateMsg = "No se encontraron solicitudes con: '" + search.trim() + "'";
+            }
+            model.addAttribute("searchTerm", search.trim());
+        } else {
+            requestsPage = requestService.getAllPaginated(page, PAGE_SIZE);
+            if (requestsPage.isEmpty() && page == 0) {
+                validateMsg = "No hay solicitudes registradas.";
+            } else if (requestsPage.isEmpty()) {
+                // Si la página solicitada está vacía pero no es la primera, redirigir a la primera página
+                validateMsg = "La página solicitada está vacía.";
+            }
+        }
+
+        model.addAttribute("listR", requestsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", requestsPage.getTotalPages());
+        model.addAttribute("totalItems", requestsPage.getTotalElements());
+        model.addAttribute("validate", validateMsg);
+    }
+
     private void prepareModelForList(Model model, String search) {
         List<Requests> requests;
         String validateMsg = null;
 
         if (search != null && !search.trim().isEmpty()) {
-            requests = requestService.searchName(search.trim());
+            requests = requestService.search(search.trim());
             if (requests.isEmpty()) {
                 validateMsg = "No se encontraron solicitudes con: '" + search.trim() + "'";
             }
@@ -42,16 +70,24 @@ public class RequestsController {
     }
 
     @GetMapping("/list")
-    public String listRequests(@RequestParam(required = false) String search, Model model) {
-        prepareModelForList(model, search);
+    public String listRequests(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        prepareModelForListPaginated(model, search, page);
         model.addAttribute("activeModule", "requests");
         model.addAttribute("activePage", "list");
         return "requests/requests_list";
     }
 
     @GetMapping("/table")
-    public String getRequestsTable(@RequestParam(required = false) String search, Model model) {
-        prepareModelForList(model, search);
+    public String getRequestsTable(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        prepareModelForListPaginated(model, search, page);
         return "requests/table_requests :: requestTableContent";
     }
 

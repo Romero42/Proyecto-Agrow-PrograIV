@@ -412,22 +412,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (infoDiv) infoDiv.innerHTML = "";
     };
 
+    //paginacion requests
     window.pageRequests = function(link) {
         if (!link) return;
         const page = link.getAttribute('data-page');
-        // Usa el formulario de filtro si existe, si no, crea uno vacío para añadir 'page'
+
+        // Usa el formulario de filtro si existe
         const form = document.getElementById('filter-form-request');
         const formData = form ? new FormData(form) : new FormData();
+
         // Siempre establece la página solicitada
-        formData.set('page', page); // Asegúrate de que el controlador maneje 'page'
+        formData.set('page', page);
+
+        // Asegurarse de incluir el término de búsqueda si existe
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        if (searchParam && !formData.has('search')) {
+            formData.set('search', searchParam);
+        }
 
         // Llama a handleAjaxRequest con la URL del fragmento y el ID del contenedor
         handleAjaxRequest(
-            `/requests/table?${new URLSearchParams(formData).toString()}`, // URL para obtener la tabla
-            'request-list-content' // ID del div que contiene la tabla
+            `/requests/table?${new URLSearchParams(formData).toString()}`,
+            'request-list-content'
         );
     };
-    // *** FIN: Función de paginación para Requests ***
+    // fin de la función de paginación para Requests
 
 
     // --- Eventos Dinámicos para Contenido AJAX ---
