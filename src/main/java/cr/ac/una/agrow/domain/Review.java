@@ -25,7 +25,9 @@ public class Review {
     private LocalDate reviewDate;
     private Boolean verified; // Indica si la reseña ha sido verificada
     private Boolean recommendationStatus; // Indica si el cliente recomendaría nuestros productos/servicios
-
+    
+    private Integer idSale;
+    
     // Constructor vacío
     public Review() {
         this.reviewDate = LocalDate.now();
@@ -44,6 +46,17 @@ public class Review {
         this.recommendationStatus = recommendationStatus;
     }
 
+    public Review(Integer reviewId, String reviewerName, String reviewType, Double rating, String comment, LocalDate reviewDate, Boolean verified, Boolean recommendationStatus, Integer idSale) {
+        this.reviewId = reviewId;
+        this.reviewerName = reviewerName;
+        this.reviewType = reviewType;
+        this.rating = rating;
+        this.comment = comment;
+        this.reviewDate = reviewDate;
+        this.verified = verified;
+        this.recommendationStatus = recommendationStatus;
+        this.idSale = idSale;
+    }
     // Getters y Setters
     public Integer getReviewId() {
         return reviewId;
@@ -108,4 +121,14 @@ public class Review {
     public void setRecommendationStatus(Boolean recommendationStatus) {
         this.recommendationStatus = recommendationStatus;
     }
+
+    public Integer getIdSale() {
+        return idSale;
+    }
+
+    public void setIdSale(Integer idSale) {
+        this.idSale = idSale;
+    }
+    
+    
 }

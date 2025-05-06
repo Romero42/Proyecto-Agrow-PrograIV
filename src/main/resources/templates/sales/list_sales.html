@@ -65,6 +65,9 @@
               <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
                 <span class="material-symbols-outlined icon">edit</span>
               </a>
+              <a th:href="@{/reviews/form/sale/{id}(id=${sale.idSale})}" class="btns edit-btns" title="Registrar Reseña">
+                    <span class="material-symbols-outlined icon">star</span>
+              </a>
               <a th:href="@{/sales/print-receipt(idSale=${sale.idSale})}"
                  class="btns view-btns"
                  style="background-color: #28a745; color: #fff;"

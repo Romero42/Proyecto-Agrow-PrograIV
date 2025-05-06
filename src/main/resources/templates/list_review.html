@@ -23,9 +23,6 @@
                         <span th:text="${reviewList != null ? reviewList.size() : 0}">0</span>
                     </p>
                 </div>
-                <a th:href="@{/reviews/form}" class="btn btn-primary">
-                    <span class="material-symbols-outlined icon">rate_review</span> Registrar Reseña
-                </a>
             </div>
 
             <!-- Filtros para reseñas -->
@@ -58,7 +55,7 @@
                 <div class="info-card" th:if="${reviewList == null or reviewList.isEmpty()}">
                     <span class="material-symbols-outlined icon">rate_review</span>
                     <h2>No se encontraron reseñas</h2>
-                    <p>Intenta con otros filtros o <a th:href="@{/reviews/form}">registra una nueva reseña</a>.</p>
+                    <p>Intenta con otros filtros.</p>
                 </div>
 
                 <div class="table-container" th:unless="${reviewList == null or reviewList.isEmpty()}">
@@ -130,7 +127,6 @@
                     </div>
                 </div>
             </div>
-
             <div style="margin-top: 20px;">
                 <a th:href="@{/home}" class="btn btn-secondary">
                     <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio

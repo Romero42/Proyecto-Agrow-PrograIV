@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Formulario de Reseña - Agrow</title>
+        <title>Editar Reseña - Agrow</title>
         <link rel="stylesheet" th:href="@{/css/common.css}" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
@@ -56,6 +56,22 @@
                 margin-top: 10px;
                 gap: 10px;
             }
+            /* Estilo para el campo de ID de venta */
+            .sale-id-info {
+                background-color: #f8f9fa;
+                padding: 10px 15px;
+                border-radius: 6px;
+                border-left: 4px solid var(--primary);
+                margin-bottom: 20px;
+            }
+            .sale-id-info .sale-id-label {
+                font-weight: 600;
+                margin-right: 10px;
+            }
+            .sale-id-info .sale-id-value {
+                font-family: monospace;
+                font-size: 0.95em;
+            }
         </style>
     </head>
     <body>
@@ -65,20 +81,24 @@
         <div class="main-content">
             <div class="page-header">
                 <div>
-                    <h1 class="page-title" th:text="${review.reviewId != null ? 'Editar Reseña' : 'Registrar Nueva Reseña'}">Registrar Nueva Reseña</h1>
-                    <p class="page-subtitle">Completa el formulario con la información de la reseña</p>
+                    <h1 class="page-title">Editar Reseña</h1>
+                    <p class="page-subtitle">Modifica la información de la reseña</p>
                 </div>
+            </div>
+
+            <!-- Mensaje de alerta para errores -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <form th:action="@{/reviews/save}" th:object="${review}" method="post" class="form-container">
                 <input type="hidden" th:field="*{reviewId}" />
-                
-                <!-- Comentario: Aquí está el campo para mostrar el ID de venta relacionada con la reseña -->
-                <!-- Este campo se agregará cuando se implemente la funcionalidad de relacionar reseñas con ventas -->
+
                 <div class="sale-id-info">
                     <span class="sale-id-label">Codigo de Venta:</span>
                     <span class="sale-id-value" th:text="${review.idSale != null ? review.idSale : 'No asociado'}">No asociado</span>
-                    <!-- Considera agregar un campo oculto si necesitas enviarlo al servidor -->
+                    <!-- Campo oculto para enviar el idSale al servidor -->
                     <input type="hidden" th:field="*{idSale}" />
                 </div>
 
@@ -116,10 +136,11 @@
 
                 <div class="form-group">
                     <label class="form-label" for="reviewDate">Fecha de Reseña</label>
-                    <input type="text" th:field="*{reviewDate}" class="form-input" id="reviewDate" 
+                    <input type="text" th:field="*{reviewDate}" class="form-input" id="reviewDate"
                            placeholder="DD/MM/YYYY" required />
                     <div class="form-info" th:if="${#fields.hasErrors('reviewDate')}" th:errors="*{reviewDate}"></div>
                 </div>
+
 
                 <div class="form-group">
                     <label class="form-label" for="comment">Comentario</label>

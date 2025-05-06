@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import cr.ac.una.agrow.domain.Review;
+import cr.ac.una.agrow.domain.Sale;
+import cr.ac.una.agrow.service.SaleService;
 import cr.ac.una.agrow.service.review.ReviewService;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * Controlador para gestionar las reseñas en el sistema Agrow
@@ -28,17 +31,19 @@ public class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
+    @Autowired
+    private SaleService saleService;
+
     /**
      * Muestra la lista de todas las reseñas
      *
      * @param model Modelo para la vista
      * @return Vista de listado de reseñas
      */
-    
     @GetMapping("/list")
     public String listReviews(Model model,
             @RequestParam(value = "minRating", required = false) String minRating) {
-        
+
         List<Review> reviewList = reviewService.findAll();
         if (minRating != null) {
             reviewList = reviewService.getMinRatingReviews(Integer.parseInt(minRating));
@@ -56,13 +61,25 @@ public class ReviewController {
      * @param model Modelo para la vista
      * @return Vista del formulario de reseña
      */
-    @GetMapping("/form")
-    public String showForm(Model model) {
+    @GetMapping("/form/sale/{saleId}")
+    public String showFormWithSale(@PathVariable Integer saleId, Model model) {
         // Crear una nueva instancia de reseña con valores predeterminados
         Review review = new Review();
         review.setReviewDate(LocalDate.now());
         review.setVerified(false);
         review.setRecommendationStatus(false);
+        review.setIdSale(saleId); // Asociar el ID de venta a la reseña
+
+        // Opcionalmente, podrías cargar información adicional de la venta para mostrarla en el formulario
+        Optional<Sale> optionalSale = saleService.getSaleById(saleId);
+        if (optionalSale.isPresent()) {
+            Sale sale = optionalSale.get();
+            model.addAttribute("sale", sale);
+
+            // También podrías precargar algunos datos de la venta en la reseña
+            // Por ejemplo, si conoces el nombre del cliente que realizó la compra:
+            review.setReviewerName(sale.getBuyerName());
+        }
 
         model.addAttribute("review", review);
         return "form_review";
@@ -81,15 +98,13 @@ public class ReviewController {
             @RequestParam Integer reviewId,
             Model model,
             RedirectAttributes redirectAttributes) {
-
         Optional<Review> optionalReview = reviewService.findById(reviewId);
-
         if (optionalReview.isPresent()) {
             model.addAttribute("review", optionalReview.get());
-            return "reviews/form";
+            return "edit_review"; // Cambia a tu nueva plantilla
         } else {
             redirectAttributes.addFlashAttribute("error", "La reseña no fue encontrada");
-            return "redirect:/list_review";
+            return "redirect:/reviews/list";
         }
     }
 
@@ -111,10 +126,10 @@ public class ReviewController {
 
         if (optionalReview.isPresent()) {
             model.addAttribute("review", optionalReview.get());
-            return "reviews/view";
+            return "view";
         } else {
             redirectAttributes.addFlashAttribute("error", "La reseña no fue encontrada");
-            return "redirect:/view";
+            return "view";
         }
     }
 
@@ -166,7 +181,7 @@ public class ReviewController {
         if (review.getRecommendationStatus() == null) {
             review.setRecommendationStatus(false);
         }
-
+        
         // Guardar la reseña
         try {
             reviewService.save(review);
@@ -175,7 +190,7 @@ public class ReviewController {
             redirectAttributes.addFlashAttribute("error", "Error al guardar la reseña: " + e.getMessage());
         }
 
-        return "list_review";
+        return "redirect:/reviews/list";
     }
 
     /**
@@ -202,6 +217,6 @@ public class ReviewController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al eliminar la reseña: " + e.getMessage());
         }
-        return "list_review";
+        return "redirect:/reviews/list";
     }
 }

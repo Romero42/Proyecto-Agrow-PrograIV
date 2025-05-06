@@ -167,8 +167,8 @@
                     </div>
                 </div>
 
-                <div th:if="${review.sale != null}" class="mt-4">
-                    <p><strong>Venta asociada:</strong> <a th:href="@{/sales/view(saleId=${review.sale.saleId})}" th:text="'#' + ${review.sale.saleId} + ' - ' + ${review.sale.customerName}"></a></p>
+                <div th:if="${review.idSale != null}" class="review-type">
+                    <p><strong>Venta asociada:</strong> <a th:href="@{/sales/view(idSale=${review.idSale})}" th:text="'#' + ${review.idSale} + ' - ' + ${review.reviewerName}" class="btn btn-primary"></a></p>
                 </div>
             </div>
 

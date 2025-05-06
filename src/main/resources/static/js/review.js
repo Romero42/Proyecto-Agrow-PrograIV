@@ -240,3 +240,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+document.querySelector('form').addEventListener('submit', function(e) {
+    const dateValue = document.getElementById('reviewDate').value.trim();
+    if (!dateValue) {
+        e.preventDefault();
+        Swal.fire('Error', 'Debe seleccionar una fecha de reseña.', 'error');
+    }
+});
+
+
