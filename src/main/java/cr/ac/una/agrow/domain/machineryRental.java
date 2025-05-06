@@ -13,6 +13,8 @@ public class machineryRental {
 
     private String renterName;
     private String address;
+
+    @Column(name = "contactNumber")
     private String contactNumber;
     private LocalDate rentStartDay;
     private LocalDate rentFinalDay;

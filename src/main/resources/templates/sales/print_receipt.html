@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Recibo Venta #' + ${sale?.idSale ?: 'N/A'} + ' - Agrow'">Recibo - Agrow</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            line-height: 1.5;
+            font-size: 12pt; /* Standard print size */
+            color: #000;
+            background-color: #fff;
+        }
+        .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        .receipt-container img {
+               max-width: 150px;
+               max-height: 40px;
+             }
+            .header {
+                text-align: center !important;
+            }
+            .header img {
+                display: inline-block !important;
+                margin-bottom: 10px !important;
+            }
+             .receipt-container img {
+               max-width: 150px;
+               max-height: 40px;
+             }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #1a5a1d;
+        }
+        .header p {
+             margin: 5px 0 0 0;
+             font-style: italic;
+             font-size: 0.9em;
+             color: #555;
+        }
+        .details, .items, .summary, .footer {
+            margin-bottom: 20px;
+        }
+        .details p, .footer p {
+            margin: 3px 0;
+            font-size: 0.95em;
+        }
+        .details strong, .footer strong {
+            display: inline-block;
+            min-width: 120px; /* Align labels */
+        }
+        .items table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .items th, .items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+        .items th {
+            background-color: #f2f2f2;
+        }
+        .items .numeric, .summary .numeric {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .summary {
+             margin-top: 20px;
+             padding-top: 10px;
+             border-top: 1px dashed #ccc;
+             text-align: right;
+        }
+        .summary p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+         .summary strong {
+             font-weight: bold;
+         }
+         .footer {
+             text-align: center;
+             font-size: 0.85em;
+             color: #777;
+             border-top: 1px solid #eee;
+             padding-top: 10px;
+         }
+         .print-info {
+             font-size: 0.8em;
+             color: #999;
+             margin-bottom: 10px;
+         }
+
+         @media print {
+            body {
+                margin: 0.5cm;
+                font-size: 11pt;
+            }
+            .receipt-container {
+                 border: none;
+                 box-shadow: none;
+                 margin: 0;
+                 padding: 0;
+                 max-width: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-info { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="receipt-container" th:if="${sale != null}">
+    <div class="header">
+        
+        <img th:src="@{/img/logo.svg}" alt="Agrow Logo"/>
+        <h1>Agrow</h1>
+        <p>Crecimiento Agrícola</p>
+    </div>
+
+    <div class="details">
+        <h2>Recibo de Venta</h2>
+        <p><strong>Recibo #:</strong> <span th:text="${sale.idSale}"></span></p>
+        <p><strong>Fecha Venta:</strong> <span th:text="${sale.saleDate != null ? #temporals.format(sale.saleDate, 'dd/MM/yyyy') : '-'}"></span></p>
+        <p><strong>Fecha Impresión:</strong> <span id="printDateTime">--/--/---- --:--</span></p>
+        <hr style="border: none; border-top: 1px dashed #eee; margin: 10px 0;">
+        <p><strong>Comprador:</strong> <span th:text="${sale.buyerName}"></span></p>
+        <p><strong>Teléfono:</strong> <span th:text="${sale.buyerPhone ?: '-'}"></span></p>
+        <p th:if="${sale.buyerAddress != null and !sale.buyerAddress.isEmpty()}"><strong>Dirección:</strong> <span th:text="${sale.buyerAddress}"></span></p>
+    </div>
+
+    <div class="items">
+        <h3>Detalle</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad (kg)</th>
+                <th>Precio/kg (CRC)</th>
+                <th class="numeric">Subtotal (CRC)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${sale.harvest?.typeHarvest ?: 'N/A'} + ' (' + ${sale.harvest?.quality ?: 'N/A'} + ')'">Producto</td>
+                <td class="numeric" th:text="${#numbers.formatDecimal(sale.quantitySold, 1, 0, 'POINT')}">0</td>
+                <td class="numeric" th:text="${#numbers.formatDecimal(sale.pricePerUnitSold, 1, 2, 'COMMA')}">0.00</td>
+                <td class="numeric" th:text="${#numbers.formatDecimal(sale.totalSaleAmount, 1, 2, 'COMMA')}">0.00</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary">
+        <p><strong>Total Venta: <span th:text="${#numbers.formatDecimal(sale.totalSaleAmount, 1, 2, 'COMMA')}">0.00</span> CRC</strong></p>
+    </div>
+
+    <div class="details" th:if="${sale.transportOption != null and !sale.transportOption.isEmpty()}">
+        <p><strong>Transporte:</strong> <span th:text="${sale.transportOption}"></span></p>
+    </div>
+
+    <div class="footer">
+        <p>¡Gracias por su compra!</p>
+        <p>Generado por Sistema Agrow</p>
+    </div>
+
+</div>
+
+<div class="receipt-container" th:unless="${sale != null}">
+    <h1>Error</h1>
+    <p>No se encontró la venta solicitada para generar el recibo.</p>
+    <button onclick="window.close();" class="no-print">Cerrar</button>
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format prices/currency on the print page (if needed, but using Thymeleaf format usually suffices)
+        const formatColonesPrint = val => {
+            const num = parseFloat(val);
+            if (isNaN(num)) return '---';
+            return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 2 }).format(num);
+        };
+
+         // Set print date/time
+        const now = new Date();
+        const formattedDateTime = now.toLocaleDateString('es-CR') + ' ' + now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+        const printDateTimeElem = document.getElementById('printDateTime');
+        if(printDateTimeElem) {
+            printDateTimeElem.textContent = formattedDateTime;
+        }
+
+        // Automatically trigger print dialog
+        window.print();
+
+    });
+</script>
+
+</body>
+</html>

@@ -1,164 +1,96 @@
+
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Listado de Cosechas - Agrow</title>
-        <link rel="stylesheet" th:href="@{/css/common.css}" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-    </head>
-    <body>
-        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Listado de Cosechas - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+</head>
+<body>
 
-        <div class="main-content">
-            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Gestión de Cosechas</h1>
-                    <p class="page-subtitle">
-                        Visualiza, filtra y administra tus cosechas. Total: 
-                        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
-                    </p>
-                </div>
-                <a th:href="@{/harvests/form}" class="btn btn-primary">
-                    <span class="material-symbols-outlined icon">agriculture</span> Registrar Cosecha
-                </a>
-            </div>
+<div class="main-content">
 
-            <!-- FILTROS -->
-            <div class="filter-section">
-                <!-- Filtro por Estado -->
-                <form th:action="@{/harvests/list}" method="get" class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label" for="stateC">Filtrar por Estado</label>
-                        <select id="stateC" name="stateC" class="filter-input">
-                            <option value="" selected disabled>Seleccione</option>
-                            <option value="Premium" th:selected="${stateC == 'Premium'}">Premium</option>
-                            <option value="Estandar" th:selected="${stateC == 'Estandar'}">Estandar</option>
-                            <option value="Secundaria" th:selected="${stateC == 'Secundaria'}">Secundaria</option>
-                        </select>
-                    </div>
-                    <input type="hidden" id="page" name="page" value="0">
-                    <div class="filter-buttons">
-                        <button type="submit" class="btn btn-primary">
-                            <span class="material-symbols-outlined icon">search</span> Filtrar
-                        </button>
-                        <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                            <span class="material-symbols-outlined icon">refresh</span> Restablecer
-                        </a>
-                    </div>
-                </form>
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-                <!-- Filtro por Destino -->
-                <form th:action="@{/harvests/list}" method="get" class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label" for="destinyC">Filtrar por Destino</label>
-                        <input type="text" id="destinyC" name="destinyC" th:value="${destinyC}" 
-                               class="filter-input" placeholder="Ej: Mercado local..." maxlength="100" />
-                    </div>
-                    <input type="hidden" id="page" name="page" value="0">
-                    <div class="filter-buttons">
-                        <button type="submit" class="btn btn-primary">
-                            <span class="material-symbols-outlined icon">search</span> Filtrar
-                        </button>
-                        <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                            <span class="material-symbols-outlined icon">refresh</span> Restablecer
-                        </a>
-                    </div>
-                </form>
-            </div>
-
-            <div id="harvest-list-content">
-                <!-- Este div contendrá la tabla actualizada por AJAX -->
-                <div th:fragment="harvestTable">
-                    <div class="info-card" th:if="${harvestList == null or harvestList.isEmpty()}">
-                        <span class="material-symbols-outlined icon">eco</span>
-                        <h2>No se encontraron cosechas</h2>
-                        <p>Intenta con otros filtros o <a th:href="@{/harvests/form}">registra una nueva cosecha</a>.</p>
-                    </div>
-                    <div class="table-container" th:unless="${harvestList == null or harvestList.isEmpty()}">
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Tipo</th>
-                                        <th>Fecha de Cosechado</th>
-                                        <th>Total (kg)</th>
-                                        <th>Calidad</th>
-                                        <th>Destino</th>
-                                        <th>Registrado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="tempList : ${harvestList}">
-                                        <td th:text="${tempList.idHarvest}"></td>
-                                        <td th:text="${tempList.typeHarvest}"></td>
-                                        <td th:text="${tempList.dateHarvested}"></td>
-                                        <td class="numeric-display" th:text="${#numbers.formatDecimal(tempList.quantityHarvested, 1, 2, 'POINT')}"></td>
-                                        <td>
-                                            <span class="status" 
-                                                  th:classappend="${#strings.equals(tempList.quality, 'Premium')} ? 'status-optimo' : 
-                                                  (${#strings.equals(tempList.quality, 'Estándar')} ? '' : 'status-bajo')" 
-                                                  th:text="${tempList.quality}">
-                                            </span>
-                                        </td>
-                                        <td th:text="${tempList.destiny}"></td>
-                                        <td>
-                                            <span class="status" 
-                                                  th:classappend="${tempList.registeredHarvest} ? 'status-optimo' : 'status-bajo'" 
-                                                  th:text="${tempList.registeredHarvest ? 'Sí' : 'No'}">
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <a th:href="@{/harvests/edit(idHarvest=${tempList.idHarvest})}" class="btns edit-btns" title="Editar">
-                                                    <span class="material-symbols-outlined icon">edit</span>
-                                                </a>
-                                                <form th:action="@{/harvests/delete}" method="post" class="confirm-action" data-message="¿Eliminar esta cosecha?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
-                                                    <input type="hidden" name="idHarvest" th:value="${tempList.idHarvest}" />
-                                                    <button type="submit" class="btns delete-btns" title="Eliminar">
-                                                        <span class="material-symbols-outlined icon">delete</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Paginación -->
-            <div class="pagination" th:if="${totalPages > 0}">
-                <ul>
-                    <li th:each="i : ${#numbers.sequence(0, totalPages-1)}">
-                        <a href="javascript:void(0)"
-                           onclick="pageHarvest(this); return false;"
-                           th:attr="data-page=${i}, 
-                                    data-state=${stateC != null ? stateC : ''}, 
-                                    data-destiny=${destinyC != null ? destinyC : ''}"
-                           th:text="${i + 1}"
-                           th:classappend="${i == currentPage} ? 'active'">
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div style="margin-top: 20px;">
-                <a th:href="@{/home}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
-                </a>
-            </div>
+    <!-- Encabezado de la página -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Cosechas</h1>
+            <p class="page-subtitle">
+                Visualiza, filtra y administra tus cosechas. Total:
+                <span th:text="${totalItems != null ? totalItems : 0}">0</span>
+            </p>
         </div>
+        <a th:href="@{/harvests/form}" class="btn btn-primary">
+            <span class="material-symbols-outlined icon">agriculture</span> Registrar Cosecha
+        </a>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script th:src="@{/js/app.js}"></script>
-    </body>
+    <!-- Sección de filtros-->
+    <div class="filter-section">
+        <!-- Formulario de filtro por Estado -->
+        <form th:action="@{/harvests/page}" method="get" class="filter-row" id="filter-form-state">
+            <div class="filter-group">
+                <label class="filter-label" for="stateCFilter">Filtrar por Calidad</label>
+                <select id="stateCFilter" name="stateC" class="filter-input">
+                    <option value="" selected>Todas</option>
+                    <option value="Premium" th:selected="${#strings.equals(stateC, 'Premium')}">Premium</option>
+                    <option value="Estándar" th:selected="${#strings.equals(stateC, 'Estándar')}">Estándar</option>
+                    <option value="Secundaria" th:selected="${#strings.equals(stateC, 'Secundaria')}">Secundaria</option>
+                </select>
+            </div>
+            <input type="hidden" name="page" value="0">
+            <div class="filter-buttons">
+                <!-- Botón ahora usa AJAX vía app.js -->
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">filter_alt</span> Filtrar Calidad
+                </button>
+                <a th:href="@{/harvests/list}" class="btn btn-secondary" title="Quitar todos los filtros">
+                    <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                </a>
+            </div>
+        </form>
+
+        <!-- Formulario de filtro por Destino -->
+        <form th:action="@{/harvests/page}" method="get" class="filter-row" style="margin-top: 15px;" id="filter-form-destiny">
+            <div class="filter-group">
+                <label class="filter-label" for="destinyCFilter">Filtrar por Destino</label>
+                <input type="text" id="destinyCFilter" name="destinyC" th:value="${destinyC}"
+                       class="filter-input" placeholder="Ej: Mercado local, Exportación..." maxlength="100" />
+            </div>
+            <input type="hidden" name="page" value="0"> <!-- AJAX empieza en pag 0 -->
+            <div class="filter-buttons">
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">search</span> Buscar Destino
+                </button>
+                <a th:href="@{/harvests/list}" class="btn btn-secondary" title="Quitar todos los filtros">
+                    <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div id="harvest-list-content">
+        <div th:replace="~{harvest/table_harvest :: harvestListContent}"></div>
+    </div>
+
+    <!-- Botón de regreso -->
+    <div style="margin-top: 20px;">
+        <a th:href="@{/home}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
+        </a>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
 </html>

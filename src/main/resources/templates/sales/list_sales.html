@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listado de Ventas - Agrow</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+  <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Historial de Ventas</h1>
+      <p class="page-subtitle">
+        Listado de todas las ventas registradas. Total:
+        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
+      </p>
+    </div>
+    <a th:href="@{/sales/select-producer}" class="btn btn-primary">
+      <span class="material-symbols-outlined icon">add_shopping_cart</span> Registrar Nueva Venta
+    </a>
+  </div>
+
+  <div class="info-card" th:if="${salesPage == null or salesPage.isEmpty()}">
+    <span class="material-symbols-outlined icon">receipt_long</span>
+    <h2>No hay ventas registradas</h2>
+    <p>Aún no se ha registrado ninguna venta. Puedes <a th:href="@{/sales/select-producer}">registrar una nueva venta</a>.</p>
+  </div>
+
+  <div class="table-container" th:unless="${salesPage == null or salesPage.isEmpty()}">
+    <div class="table-responsive">
+      <table>
+        <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Comprador</th>
+          <th>Teléfono</th>
+          <th>Cosecha (Tipo)</th>
+          <th>Cantidad (kg)</th>
+          <th>Precio Unit.</th>
+          <th>Total Venta</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="sale : ${salesPage.content}">
+          <td th:text="${sale.saleDate != null ? #temporals.format(sale.saleDate, 'dd/MM/yyyy') : '-'}"></td>
+          <td th:text="${sale.buyerName}"></td>
+          <td th:text="${sale.buyerPhone}"></td>
+          <td th:text="${sale.harvest?.typeHarvest}"></td>
+          <td class="numeric-display" th:text="${#numbers.formatDecimal(sale.quantitySold, 1, 0, 'POINT')}"></td>
+          <td class="price-display" th:attr="data-value=${sale.pricePerUnitSold}"></td>
+          <td class="price-display" th:attr="data-value=${sale.totalSaleAmount}"></td>
+          <td>
+            <div class="action-buttons">
+              <a th:href="@{/sales/view(idSale=${sale.idSale})}" class="btns view-btns" title="Ver Detalles">
+                <span class="material-symbols-outlined icon">visibility</span>
+              </a>
+              <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
+                <span class="material-symbols-outlined icon">edit</span>
+              </a>
+              <a th:href="@{/sales/print-receipt(idSale=${sale.idSale})}"
+                 class="btns view-btns"
+                 style="background-color: #28a745; color: #fff;"
+                 title="Imprimir Recibo"
+                 target="_blank"
+                 data-message="¿Generar recibo para imprimir?"
+                 data-title="Confirmar Impresión"
+                 data-icon="info">
+                <span class="material-symbols-outlined icon">print</span>
+              </a>
+
+              <form th:action="@{/sales/delete}" method="post" class="confirm-action"
+                    data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
+                    data-title="Confirmar Eliminación"
+                    style="margin:0; padding:0; display:inline;">
+                <input type="hidden" name="idSale" th:value="${sale.idSale}" />
+                <button type="submit" class="btns delete-btns" title="Eliminar Venta">
+                  <span class="material-symbols-outlined icon">delete</span>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
+    <ul>
+      <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
+        <a th:if="${currentPage > 0}" th:href="@{/sales/list(page=${currentPage - 1})}">«</a>
+        <span th:unless="${currentPage > 0}">«</span>
+      </li>
+      <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active' : ''">
+        <a th:if="${i != currentPage}" th:href="@{/sales/list(page=${i})}" th:text="${i + 1}"></a>
+        <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
+      </li>
+      <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
+        <a th:if="${currentPage < totalPages - 1}" th:href="@{/sales/list(page=${currentPage + 1})}">»</a>
+        <span th:unless="${currentPage < totalPages - 1}">»</span>
+      </li>
+    </ul>
+  </div>
+
+
+  <div style="margin-top: 20px;">
+    <a th:href="@{/home}" class="btn btn-secondary">
+      <span class="material-symbols-outlined icon">home</span> Ir a Inicio
+    </a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

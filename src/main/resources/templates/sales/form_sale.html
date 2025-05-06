@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrar Venta - Agrow</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+  <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+  <!-- Formulario de Venta (solo si hay productor) -->
+  <div class="form-container" th:if="${producer != null}">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Registrar Venta - Paso 2</h1>
+        <p class="page-subtitle">
+          Venta de cosecha para el productor: <strong th:text="${producer.producerName}"></strong>
+          (ID: <span th:text="${producer.id_producer}"></span>)
+        </p>
+      </div>
+    </div>
+
+    <!-- Mensaje si no hay cosechas disponibles -->
+    <div class="info-card" th:if="${infoMessage != null}">
+      <span class="material-symbols-outlined icon">inventory</span>
+      <h2 th:text="${infoMessage}"></h2>
+      <p>Puedes <a th:href="@{/harvests/form(producerId=${producer?.id_producer})}">registrar una nueva cosecha</a> para este productor o
+        <a th:href="@{/sales/select-producer}">seleccionar otro productor</a>.</p>
+    </div>
+
+    <!-- Mostrar info del productor -->
+    <div class="producer-info-box">
+      <h3>Información del Productor</h3>
+      <table class="detail-table">
+        <tr><td>Nombre:</td><td th:text="${producer.producerName}"></td></tr>
+        <tr><td>Teléfono:</td><td th:text="${producer.contactNumber}"></td></tr>
+        <tr><td>Ciudad:</td><td th:text="${producer.city}"></td></tr>
+        <tr><td>Correo:</td><td th:text="${producer.email}"></td></tr>
+      </table>
+    </div>
+
+    <form th:action="@{/sales/process}" method="post" id="saleForm" class="confirm-action"
+          data-message="¿Confirmar el registro de esta venta?" data-title="Confirmar Venta">
+
+      <!-- Selección de Cosecha (solo si hay disponibles) -->
+      <div class="form-group" th:if="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <label for="harvestId" class="form-label">Cosecha a Vender:</label>
+        <!-- MODIFICADO: onchange eliminado, la lógica está en app.js -->
+        <select id="harvestId" name="harvestId" class="form-select" required>
+          <option value="" disabled th:selected="${preselectedHarvestId == null}">-- Seleccione una cosecha --</option>
+          <option th:each="harvest : ${availableHarvests}"
+                  th:value="${harvest.idHarvest}"
+                  th:text="${harvest.typeHarvest + ' (' + harvest.quality + ') - Disp: ' + harvest.availableQuantity + ' kg'}"
+                  th:attr="data-available=${harvest.availableQuantity}, data-price='1.00'"
+                  th:selected="${preselectedHarvestId != null and harvest.idHarvest == preselectedHarvestId}">
+          </option>
+        </select>
+      </div>
+      <div class="form-group" th:unless="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+
+      </div>
+
+      <!-- Campos de venta (solo si hay cosechas) -->
+      <div th:if="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <div class="form-group">
+          <label for="quantitySold" class="form-label">Cantidad a Vender (kg):</label>
+          <input type="number" id="quantitySold" name="quantitySold" class="form-input" min="1" step="1" required placeholder="Ingrese cantidad entera" title="Cantidad entera a vender">
+          <p id="quantityError" style="color: var(--danger); font-size: 12px; margin-top: 5px; display: none;">La cantidad no puede exceder el disponible.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="pricePerUnitSold" class="form-label">Precio por Kg (CRC):</label>
+          <input type="number" id="pricePerUnitSold" name="pricePerUnitSold" class="form-input" min="0.01" step="0.01" required placeholder="Ej: 150.50" title="Precio de venta por kg">
+        </div>
+
+        <div id="totalSaleDisplay" style="margin-top: 15px; margin-bottom: 20px; font-weight: bold; font-size: 1.1em; color: var(--primary); text-align: right; border-top: 1px dashed var(--border-light); padding-top: 10px;">
+        </div>
+
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px dashed var(--border-light);" />
+
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Datos del Comprador</h3>
+
+        <div class="form-group">
+          <label for="buyerName" class="form-label">Nombre del Comprador:</label>
+          <input type="text" id="buyerName" name="buyerName" class="form-input" required maxlength="100" placeholder="Nombre completo del cliente">
+        </div>
+
+        <div class="form-group">
+          <label for="buyerPhone" class="form-label">Teléfono del Comprador:</label>
+          <input type="tel" id="buyerPhone" name="buyerPhone" class="form-input" required pattern="[246789]\d{7}" maxlength="8" placeholder="Ej: 88776655" title="Número de 8 dígitos válido en CR">
+        </div>
+
+        <div class="form-group">
+          <label for="buyerAddress" class="form-label">Dirección del Comprador:</label>
+          <input type="text" id="buyerAddress" name="buyerAddress" class="form-input" maxlength="255" placeholder="Dirección de entrega o contacto">
+        </div>
+
+        <div class="form-group">
+          <label for="transportOption" class="form-label">Opción de Transporte:</label>
+          <input type="text" id="transportOption" name="transportOption" class="form-input" maxlength="100" placeholder="Ej: Retira cliente, Envío propio, Contratado...">
+          <p class="form-info">Indique cómo se realizará el transporte.</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined icon">shopping_cart_checkout</span> Registrar Venta
+          </button>
+          <a th:href="@{/sales/select-producer}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Cambiar Productor
+          </a>
+        </div>
+      </div>
+      <div th:unless="${availableHarvests != null and not #lists.isEmpty(availableHarvests)}">
+        <!-- Botón solo si no hay cosechas -->
+        <div class="form-actions">
+          <a th:href="@{/sales/select-producer}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Cambiar Productor
+          </a>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Mensaje y botón para volver si hubo error al cargar productor -->
+  <div th:if="${producer == null}" class="info-card">
+    <span class="material-symbols-outlined icon">error</span>
+    <h2>Error al cargar productor</h2>
+    <p>No se pudo encontrar la información del productor solicitado.</p>
+    <a th:href="@{/sales/select-producer}" class="btn btn-secondary" style="margin-top: 15px;">
+      <span class="material-symbols-outlined icon">arrow_back</span> Volver a Selección
+    </a>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
