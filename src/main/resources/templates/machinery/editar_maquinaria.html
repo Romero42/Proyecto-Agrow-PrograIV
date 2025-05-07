@@ -112,6 +112,10 @@
                             Cancelar
                         </a>
                     </div>
+
+                    <div th:if="${_csrf != null}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    </div>
                 </form>
             </div>
         </div>

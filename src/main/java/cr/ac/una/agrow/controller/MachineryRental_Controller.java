@@ -2,7 +2,7 @@ package cr.ac.una.agrow.controller;
 
 import cr.ac.una.agrow.domain.machinery.Machinery;
 import cr.ac.una.agrow.domain.machineryRental;
-import cr.ac.una.agrow.service.machinery.MachineryDB;
+import cr.ac.una.agrow.service.MachineryService;
 import cr.ac.una.agrow.service.machineryR_Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,12 +19,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.NoSuchElementException;
 @Controller
 @RequestMapping("rent")
 public class MachineryRental_Controller {
 
-    private final MachineryDB machineryDB = new MachineryDB();
+    @Autowired
+    private MachineryService machineryService;
 
     @Autowired
     private machineryR_Service service;
@@ -92,12 +93,11 @@ public class MachineryRental_Controller {
         return "redirect:/rent/list";
     }
 
-    //envia los datos de las maquinas disponibles a la vista de agregar
+     //envia los datos de las maquinas disponibles a la vista de agregar
     @GetMapping("saveView")
-    public String saveView(Model model){
+    public String saveView(Model model) {
 
-        LinkedList<Machinery> maquinas = machineryDB.filtrarPorDisponibilidad(true);
-
+        LinkedList<Machinery> maquinas = new LinkedList<>(machineryService.getByDisponibilidad(true));
 
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("list", maquinas);
@@ -154,16 +154,37 @@ public class MachineryRental_Controller {
 
     //envia y carga las maquinas disponible en la vista de actualizar
     @GetMapping("editView")
-    public String editView(Model model, int id_machinaryrental, int id_maquina){
+    public String editView(Model model,
+            @RequestParam("id_machinaryrental") int idMachinaryRental,
+            @RequestParam("id_maquina") int idMaquina) {
 
-        LinkedList<Machinery> maquinas = machineryDB.filtrarPorDisponibilidad(true);
-        maquinas.add(machineryDB.obtenerMachineryPorId(id_maquina));
+        try {
+            // 1. Obtener máquinas disponibles
+            List<Machinery> maquinas = new LinkedList<>(machineryService.getByDisponibilidad(true));
 
-        model.addAttribute("machinery", service.getById(id_machinaryrental));
-        model.addAttribute("activeModule", "machineryRental");
-        model.addAttribute("list", maquinas);
+            // 2. Añadir la máquina actual (aunque no esté disponible)
+            Machinery maquinaActual = machineryService.getMachineryById(idMaquina)
+                    .orElseThrow(() -> new RuntimeException("Máquina no encontrada"));
+            if (!maquinas.contains(maquinaActual)) {
+                maquinas.add(maquinaActual);
+            }
 
-        return "machineryRental/update_machineryR";
+            // 3. Obtener el alquiler
+            machineryRental rental = service.getById(idMachinaryRental);
+            if (rental == null) {
+                throw new RuntimeException("Alquiler no encontrado");
+            }
+
+            // 4. Agregar atributos al modelo
+            model.addAttribute("machinery", rental);
+            model.addAttribute("activeModule", "machineryRental");
+            model.addAttribute("list", maquinas);
+
+            return "machineryRental/update_machineryR";
+
+        } catch (Exception e) {
+            return "redirect:/rent/list?error=" + e.getMessage();
+        }
     }
 
     //se envia una pagina dependiendo de el filtro solicitado
@@ -226,8 +247,9 @@ public class MachineryRental_Controller {
 
     //envia los datos de la maquina solicitada
     @GetMapping("viewMaquina")
-    public String viewMaquinaA(Model model, @RequestParam int id_maquina){
-        Machinery m = machineryDB.obtenerMachineryPorId(id_maquina);
+    public String viewMaquinaA(Model model, @RequestParam int id_maquina) {
+        Machinery m = machineryService.getMachineryById(id_maquina)
+                .orElseThrow(() -> new NoSuchElementException("Máquina no encontrada con ID: " + id_maquina));
 
         model.addAttribute("maquina", m);
         model.addAttribute("rental", true);
@@ -237,10 +259,10 @@ public class MachineryRental_Controller {
     }
 
     //actualiza el estado de una maquina en la bd
-    public void updateStatusMachine(int id_machinery, boolean status){
-
-        Machinery m = machineryDB.obtenerMachineryPorId(id_machinery);
+    public void updateStatusMachine(int id_machinery, boolean status) {
+        Machinery m = machineryService.getMachineryById(id_machinery)
+                .orElseThrow(() -> new NoSuchElementException("Máquina no encontrada con ID: " + id_machinery));
         m.setDisponibilidad(status);
-        machineryDB.actualizarMachinery(m);
+        machineryService.updateMachinery(m);
     }
 }
