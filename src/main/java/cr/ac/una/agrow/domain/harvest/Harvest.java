@@ -41,7 +41,7 @@ public class Harvest {
     private int quantityHarvested;
 
     @Column(name = "available_quantity")
-    private int availableQuantity;
+    private Integer availableQuantity;
 
     @Column(name = "quality")
     private String quality;

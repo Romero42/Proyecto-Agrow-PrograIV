@@ -18,10 +18,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer reviewId;
-
     private String reviewerName;
-    
-
     private String reviewType; // Tipos: Venta Directa, Distribución, Exportación, etc.
     private Double rating;
     private String comment;
@@ -29,6 +26,7 @@ public class Review {
     private Boolean verified; // Indica si la reseña ha sido verificada
     private Boolean recommendationStatus; // Indica si el cliente recomendaría nuestros productos/servicios
     
+    private Integer idSale;
     
     // Constructor vacío
     public Review() {
@@ -36,10 +34,9 @@ public class Review {
         this.verified = false;
         this.recommendationStatus = false;
     }
-    
-    // Constructor con parámetros
-    public Review(String reviewerName, String reviewType, Double rating, String comment, 
-                 LocalDate reviewDate, Boolean verified, Boolean recommendationStatus) {
+
+    public Review(Integer reviewId, String reviewerName, String reviewType, Double rating, String comment, LocalDate reviewDate, Boolean verified, Boolean recommendationStatus) {
+        this.reviewId = reviewId;
         this.reviewerName = reviewerName;
         this.reviewType = reviewType;
         this.rating = rating;
@@ -48,10 +45,9 @@ public class Review {
         this.verified = verified;
         this.recommendationStatus = recommendationStatus;
     }
-    /*
-    // Constructor con parámetros incluyendo sale
-    public Review(String reviewerName, String reviewType, Double rating, String comment, 
-                 LocalDate reviewDate, Boolean verified, Boolean recommendationStatus, Sale sale) {
+
+    public Review(Integer reviewId, String reviewerName, String reviewType, Double rating, String comment, LocalDate reviewDate, Boolean verified, Boolean recommendationStatus, Integer idSale) {
+        this.reviewId = reviewId;
         this.reviewerName = reviewerName;
         this.reviewType = reviewType;
         this.rating = rating;
@@ -59,9 +55,8 @@ public class Review {
         this.reviewDate = reviewDate;
         this.verified = verified;
         this.recommendationStatus = recommendationStatus;
-        this.sale = sale;
-    }*/
-
+        this.idSale = idSale;
+    }
     // Getters y Setters
     public Integer getReviewId() {
         return reviewId;
@@ -126,12 +121,14 @@ public class Review {
     public void setRecommendationStatus(Boolean recommendationStatus) {
         this.recommendationStatus = recommendationStatus;
     }
-    /*
-    public Sale getSale() {
-        return sale;
+
+    public Integer getIdSale() {
+        return idSale;
     }
 
-    public void setSale(Sale sale) {
-        this.sale = sale;
-    }*/
+    public void setIdSale(Integer idSale) {
+        this.idSale = idSale;
+    }
+    
+    
 }

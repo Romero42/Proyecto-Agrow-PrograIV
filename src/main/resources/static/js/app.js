@@ -336,6 +336,98 @@ document.addEventListener('DOMContentLoaded', () => {
         handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
     };
 
+    // Paginación/Filtro para Productores (sin cambios)
+    window.producer = function(button) {
+        if (!button) return;
+        const isFilter = button.getAttribute('data-button') === '1';
+        const page = isFilter ? '0' : button.getAttribute('data-page');
+        const form = document.getElementById('filter-form-producer');
+        const formData = new FormData(form || new FormData());
+        formData.set('page', page);
+        const idProd = form?.querySelector('#id_producer')?.value;
+        const city = form?.querySelector('#city');
+        if (idProd) {
+            formData.delete('city');
+            if (city) city.value = '';
+        } else {
+            formData.delete('id_producer');
+        }
+        handleAjaxRequest(`/producers/list?${new URLSearchParams(formData).toString()}`, 'table-producer');
+    };
+
+    // --- Funciones para Alquiler de Maquinaria --- (sin cambios)
+    window.pageRent = function(link) {
+        if (!link) return;
+        const page = link.getAttribute('data-page');
+        const params = new URLSearchParams(getCurrentRentFilters());
+        params.set('page', page);
+        const endpoint = (params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina'))
+            ? '/rent/tableFilter'
+            : '/rent/pageCurrent';
+        handleAjaxRequest(`${endpoint}?${params.toString()}`, 'tableData');
+    };
+
+    window.filterRent = function(button) {
+        if (!button) return;
+        const params = new URLSearchParams(getCurrentRentFilters());
+        params.set('page', '0');
+        const start = params.get('rentStartDay');
+        const end = params.get('rentFinalDay');
+        const id = params.get('id_maquina');
+        if ((start && id) || (end && id) || (start && end && id)) {
+            swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez (rango de fechas o código de máquina).", "error");
+            return;
+        }
+        if (start && end && start > end) {
+            swalAgrow.fire("Error", "La fecha de inicio no puede ser posterior a la fecha final.", "error");
+            return;
+        }
+        if (!start && !end && !id) {
+            swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
+            return;
+        }
+        handleAjaxRequest(`/rent/tableFilter?${params.toString()}`, 'tableData');
+    };
+
+    function getCurrentRentFilters() {
+        const form = document.getElementById('filter-form-rent');
+        const params = new URLSearchParams();
+        if (!form) return params;
+        const start = form.querySelector('#rentStartDay')?.value; if (start) params.append('rentStartDay', start);
+        const end = form.querySelector('#rentFinalDay')?.value; if (end) params.append('rentFinalDay', end);
+        const id = form.querySelector('#id_maquina')?.value;    if (id) params.append('id_maquina', id);
+        return params;
+    }
+
+    window.viewMaquina = function(link) {
+        if (!link) return;
+        const machineId = link.getAttribute('data-id');
+        const infoDiv = document.getElementById('infoMaquina');
+        if (infoDiv && machineId) {
+            handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
+        }
+    };
+    window.cerrarInfoMaquina = function() {
+        const infoDiv = document.getElementById('infoMaquina');
+        if (infoDiv) infoDiv.innerHTML = "";
+    };
+
+    window.pageRequests = function(link) {
+        if (!link) return;
+        const page = link.getAttribute('data-page');
+        // Usa el formulario de filtro si existe, si no, crea uno vacío para añadir 'page'
+        const form = document.getElementById('filter-form-request');
+        const formData = form ? new FormData(form) : new FormData();
+        // Siempre establece la página solicitada
+        formData.set('page', page); // Asegúrate de que el controlador maneje 'page'
+
+        // Llama a handleAjaxRequest con la URL del fragmento y el ID del contenedor
+        handleAjaxRequest(
+            `/requests/table?${new URLSearchParams(formData).toString()}`, // URL para obtener la tabla
+            'request-list-content' // ID del div que contiene la tabla
+        );
+    };
+    // *** FIN: Función de paginación para Requests ***
 
 
     // --- Eventos Dinámicos para Contenido AJAX ---
@@ -357,7 +449,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (form.id === 'filter-form-producer') {
                 contentId = 'table-producer'; actionUrl = '/producers/list';
             } else if (form.id === 'filter-form-rent') {
+                contentId = 'tableData'; actionUrl = '/rent/tableFilter';
 
+            } else if (form.id === 'filter-form-request') {
+                contentId = 'request-list-content'; // ID del div que contiene la tabla de requests
+                actionUrl = '/requests/table';      // URL que devuelve el fragmento de la tabla
 
             } else {
                 console.warn('Formulario de filtro con ID no reconocido:', form.id);
@@ -367,6 +463,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(form);
             formData.set('page', '0'); // Al filtrar, siempre ir a la página 0
 
+            // Lógica específica para Producer (sin cambios)
+            if (form.id === 'filter-form-producer') {
+                const idInput = form.querySelector('#id_producer');
+                if (idInput?.value) formData.delete('city');
+                else formData.delete('id_producer');
+            }
             // Lógica específica para Rent (sin cambios)
             if (form.id === 'filter-form-rent') {
                 const s = formData.get('rentStartDay'), e = formData.get('rentFinalDay'), m = formData.get('id_maquina');
@@ -389,7 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (container.id === 'harvest-list-content') window.pageHarvests(pgLink);
                     else if (container.id === 'supply-list-content') window.pageSupplies(pgLink);
                     else if (container.id === 'table-producer') window.producer(pgLink);
+                    else if (container.id === 'tableData') window.pageRent(pgLink);
 
+                    else if (container.id === 'request-list-content') window.pageRequests(pgLink); // Llama a la función de paginación de requests
 
                 }
             }
@@ -418,9 +522,134 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-}); // Fin de DOMContentLoaded
+});
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar el datepicker para campos de fecha
+    if (document.getElementById('reviewDate')) {
+        flatpickr("#reviewDate", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
+    }
 
+    // Manejo de la selección de estrellas para calificación
+    const ratingStars = document.getElementById('ratingStars');
+    const ratingValue = document.getElementById('ratingValue');
 
+    if (ratingStars && ratingValue) {
+        // Inicializar las estrellas según el valor existente
+        const initialRating = parseFloat(ratingValue.value) || 0;
+        updateStars(initialRating);
 
+        // Agregar eventos a las estrellas
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseFloat(this.getAttribute('data-value'));
+                ratingValue.value = value;
+                updateStars(value);
+            });
 
+            star.addEventListener('mouseover', function() {
+                const value = parseFloat(this.getAttribute('data-value'));
+                highlightStars(value);
+            });
+
+            star.addEventListener('mouseout', function() {
+                const selectedValue = parseFloat(ratingValue.value) || 0;
+                updateStars(selectedValue);
+            });
+        });
+    }
+
+    // Función para actualizar la visualización de las estrellas según el valor
+    function updateStars(value) {
+        if (!ratingStars) return;
+
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            const starValue = parseFloat(star.getAttribute('data-value'));
+            star.classList.remove('selected');
+
+            if (starValue <= value) {
+                star.classList.add('selected');
+            }
+        });
+    }
+
+    // Función para resaltar estrellas en hover
+    function highlightStars(value) {
+        if (!ratingStars) return;
+
+        const stars = ratingStars.querySelectorAll('.star');
+        stars.forEach(star => {
+            const starValue = parseFloat(star.getAttribute('data-value'));
+            star.classList.remove('selected');
+
+            if (starValue <= value) {
+                star.classList.add('selected');
+            }
+        });
+    }
+
+    // Manejo de confirmaciones para eliminación
+    const confirmForms = document.querySelectorAll('.confirm-action');
+    confirmForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const message = this.getAttribute('data-message') || '¿Está seguro de realizar esta acción?';
+            const title = this.getAttribute('data-title') || 'Confirmar acción';
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    });
+
+    // Mostrar mensajes de alerta
+    const swalMessage = document.getElementById('swal-message');
+    if (swalMessage) {
+        const mensaje = swalMessage.getAttribute('data-mensaje');
+        const error = swalMessage.getAttribute('data-error');
+
+        if (mensaje && mensaje !== '') {
+            Swal.fire({
+                title: '¡Operación exitosa!',
+                text: mensaje,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+
+        if (error && error !== '') {
+            Swal.fire({
+                title: '¡Error!',
+                text: error,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    }
+});

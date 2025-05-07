@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gestión de Reseñas - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Gestión de Reseñas</h1>
+                    <p class="page-subtitle">
+                        Visualiza, filtra y administra las reseñas de clientes. Total: 
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Filtros para reseñas -->
+            <form id="filter-form-review" th:action="@{/reviews/table}" method="get" class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label" for="minRating">Calificación Mínima</label>
+                        <select id="minRating" name="minRating" class="filter-input">
+                            <option value="" selected>Todas</option>
+                            <option value="1" th:selected="${rating == 1}">1 estrella</option>
+                            <option value="2" th:selected="${rating == 2}">2 estrellas</option>
+                            <option value="3" th:selected="${rating == 3}">3 estrellas</option>
+                            <option value="4" th:selected="${rating == 4}">4 estrellas</option>
+                            <option value="5" th:selected="${rating == 5}">5 estrellas</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="page" value="0">
+
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined icon">search</span> Filtrar
+                        </button>
+                        <a th:href="@{/reviews/list}" class="btn btn-secondary">
+                            <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Contenedor de la tabla de reseñas -->
+            <div id="review-list-content">
+                <div th:replace="~{review/table_review :: reviewListContent}"></div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a th:href="@{/home}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
+                </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/review.js}"></script>
+    </body>
+</html>

@@ -75,8 +75,13 @@
                 Usuarios
             </a>
 
-        </div>
-    </div>
+                    <!-- Enlace Reseñas -->
+                    <a th:href="@{/reviews/list}" th:classappend="${activeModule == 'review'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">rate_review</span>
+                        Reseñas
+                    </a>
+                </div>
+            </div>
 
 </div>
 </body>
