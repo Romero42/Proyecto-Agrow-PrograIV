@@ -1,84 +1,84 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Agregar Proveedor - Agrow</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-</head>
-<body>
+    <head>
+        <title>Agregar Proveedor - Agrow</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    </head>
+    <body>
 
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="main-content">
-        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-        <form method="post"
-              th:action="@{/suppliers/save}"
-              th:object="${supplier}"
-              class="form-container confirm-action"
-              data-message="¿Guardar este nuevo proveedor?"
-              data-title="Confirmar Registro">
+            <form method="post"
+                  th:action="@{/suppliers/save}"
+                  th:object="${supplier}"
+                  class="form-container confirm-action"
+                  data-message="¿Guardar este nuevo proveedor?"
+                  data-title="Confirmar Registro">
 
-            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
-                <h1 class="page-title">Registrar Nuevo Proveedor</h1>
-            </div>
+                <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                    <h1 class="page-title">Registrar Nuevo Proveedor</h1>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="supplierIdentification">Identificación (ID):</label>
-                <input class="form-input" type="number" id="supplierIdentification" name="supplierIdentification" th:value="*{supplierIdentification > 0 ? supplierIdentification : ''}" min="10000" max="999999999999999" placeholder="Ej: 102340567 (5-15 dígitos)" title="ID numérico único (5-15 dígitos)" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="supplierIdentification">Identificación (ID):</label>
+                    <input class="form-input" type="number" id="supplierIdentification" name="supplierIdentification" th:value="*{supplierIdentification > 0 ? supplierIdentification : ''}" min="10000" max="999999999999999" placeholder="Ej: 102340567 (5-15 dígitos)" title="ID numérico único (5-15 dígitos)" required />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="supplierName">Nombre del Contacto:</label>
-                <input class="form-input" type="text" id="supplierName" name="supplierName" th:value="*{supplierName}" maxlength="100" placeholder="Ej: Ana Rodríguez" title="Nombre de contacto (letras, puntos, espacios)" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ.\s]+" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="supplierName">Nombre del Contacto:</label>
+                    <input class="form-input" type="text" id="supplierName" name="supplierName" th:value="*{supplierName}" maxlength="100" placeholder="Ej: Ana Rodríguez" title="Nombre de contacto (letras, puntos, espacios)" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ.\s]+" required />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="companyName">Nombre de la Empresa:</label>
-                <input class="form-input" type="text" id="companyName" name="companyName" th:value="*{companyName}" maxlength="100" placeholder="Ej: Agroinsumos del Valle S.A." title="Nombre comercial o razón social" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="companyName">Nombre de la Empresa:</label>
+                    <input class="form-input" type="text" id="companyName" name="companyName" th:value="*{companyName}" maxlength="100" placeholder="Ej: Agroinsumos del Valle S.A." title="Nombre comercial o razón social" required />
+                </div>
 
-             <div class="form-group">
-                <label class="form-label" for="phoneNumber">Número de Teléfono:</label>
-                <input class="form-input" type="tel" id="phoneNumber" name="phoneNumber" th:value="*{phoneNumber > 0 ? phoneNumber : ''}" pattern="[246789]\d{7}" maxlength="8" placeholder="Ej: 88776655" title="Número de 8 dígitos válido en CR" required />
-            </div>
+                 <div class="form-group">
+                    <label class="form-label" for="phoneNumber">Número de Teléfono:</label>
+                    <input class="form-input" type="tel" id="phoneNumber" name="phoneNumber" th:value="*{phoneNumber > 0 ? phoneNumber : ''}" pattern="[246789]\d{7}" maxlength="8" placeholder="Ej: 88776655" title="Número de 8 dígitos válido en CR" required />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="email">Correo Electrónico:</label>
-                <input class="form-input" type="email" id="email" name="email" th:value="*{email}" maxlength="100" placeholder="ventas@agroinsumos.com" title="Correo electrónico válido" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Correo Electrónico:</label>
+                    <input class="form-input" type="email" id="email" name="email" th:value="*{email}" maxlength="100" placeholder="ventas@agroinsumos.com" title="Correo electrónico válido" required />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="registrationDate">Fecha de Registro:</label>
-                 <input type="text" id="registrationDate" name="registrationDate" class="form-input date-picker-iso" th:value="${registrationDateStr != null ? registrationDateStr : ''}" placeholder="yyyy-mm-dd" title="Fecha de registro (obligatoria, no futura)" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="registrationDate">Fecha de Registro:</label>
+                     <input type="text" id="registrationDate" name="registrationDate" class="form-input date-picker-iso" th:value="${registrationDateStr != null ? registrationDateStr : ''}" placeholder="yyyy-mm-dd" title="Fecha de registro (obligatoria, no futura)" required />
+                </div>
 
-            <div class="form-group">
-                 <label class="form-label">¿Proveedor Activo?</label>
-                 <div>
-                     <label style="margin-right: 15px;"> <input type="radio" name="isActive" value="true" required th:checked="*{isActive}"> Sí </label>
-                     <label> <input type="radio" name="isActive" value="false" required th:checked="!*{isActive}"> No </label>
-                 </div>
-                 <p class="form-info">Marcar 'Sí' si el proveedor está operativo.</p>
-            </div>
+                <div class="form-group">
+                     <label class="form-label">¿Proveedor Activo?</label>
+                     <div>
+                         <label style="margin-right: 15px;"> <input type="radio" name="isActive" value="true" required th:checked="*{isActive}"> Sí </label>
+                         <label> <input type="radio" name="isActive" value="false" required th:checked="!*{isActive}"> No </label>
+                     </div>
+                     <p class="form-info">Marcar 'Sí' si el proveedor está operativo.</p>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="creditLimit">Límite de Crédito (CRC):</label>
-                <input class="form-input" type="number" id="creditLimit" name="creditLimit" th:value="*{creditLimit >= 0 ? #numbers.formatDecimal(creditLimit, 1, 2, 'POINT') : '0.00'}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 500000.00" title="Límite de crédito en colones (0 o más)" required />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="creditLimit">Límite de Crédito (CRC):</label>
+                    <input class="form-input" type="number" id="creditLimit" name="creditLimit" th:value="*{creditLimit >= 0 ? #numbers.formatDecimal(creditLimit, 1, 2, 'POINT') : '0.00'}" step="0.01" min="0" max="99999999.99" placeholder="Ej: 500000.00" title="Límite de crédito en colones (0 o más)" required />
+                </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Guardar Proveedor </button>
-                <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span> Cancelar </a>
-            </div>
-        </form>
-    </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Guardar Proveedor </button>
+                    <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span> Cancelar </a>
+                </div>
+            </form>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:src="@{/js/app.js}"></script>
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="/js/supplier.js"></script>
+    </body>
 </html>

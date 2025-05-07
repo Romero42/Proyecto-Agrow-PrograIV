@@ -1,0 +1,97 @@
+<!-- Archivo: supplier/supplier_table.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <div th:fragment="supplierTable">
+            <div class="info-card" th:if="${validate != null}">
+                <span class="material-symbols-outlined icon">info</span>
+                <h2 th:text="${validate}">No se encontraron proveedores</h2>
+                <p>Intenta con otro término o <a th:href="@{/suppliers/form}">agrega un nuevo proveedor</a>.</p>
+            </div>
+
+            <div class="table-container" th:unless="${validate != null or listS == null or listS.isEmpty()}">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Correo</th>
+                            <th>Registro</th>
+                            <th>Estado</th>
+                            <th>Crédito</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="tempSupplier : ${listS}">
+                            <td th:text="${tempSupplier.companyName}"></td>
+                            <td th:text="${tempSupplier.supplierName}"></td>
+                            <td th:text="${tempSupplier.getFormattedPhoneNumber()}"></td>
+                            <td th:text="${tempSupplier.email}"></td>
+                            <td th:text="${tempSupplier.getFormattedRegistrationDate()}"></td>
+                            <td><span class="status"
+                                      th:classappend="${tempSupplier.isActive()} ? 'status-optimo' : 'status-bajo'"
+                                      th:text="${tempSupplier.isActive()} ? 'Activo' : 'Inactivo'"></span></td>
+                            <td class="price-display" th:attr="data-value=${tempSupplier.creditLimit}"></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a th:href="@{/suppliers/view(id=${tempSupplier.supplierIdentification})}"
+                                       class="btns view-btns" title="Ver Detalles"><span class="material-symbols-outlined icon">visibility</span></a>
+                                    <a th:href="@{/suppliers/edit(id=${tempSupplier.supplierIdentification})}"
+                                       class="btns edit-btns" title="Editar Proveedor"><span
+                                            class="material-symbols-outlined icon">edit</span></a>
+                                    <form th:action="@{/suppliers/delete}" method="post" class="confirm-action"
+                                          data-message="¿Eliminar este proveedor?" data-title="Confirmar Eliminación"
+                                          style="margin:0; padding:0; display:inline;">
+                                        <input type="hidden" name="id" th:value="${tempSupplier.supplierIdentification}"/>
+                                        <button type="submit" class="btns delete-btns" title="Eliminar Proveedor"><span
+                                                class="material-symbols-outlined icon">delete</span></button>
+                                    </form>
+                                    <a th:href="@{/supplies/form(supplierId=${tempSupplier.supplierIdentification})}"
+                                       class="btns add-supply-btn" title="Agregar Suministro"><span
+                                            class="material-symbols-outlined icon">add_shopping_cart</span></a>
+                                    <a th:href="@{/supplies/list(supplierId=${tempSupplier.supplierIdentification})}"
+                                       class="btns view-supply-btn" title="Ver Suministros"><span
+                                            class="material-symbols-outlined icon">inventory_2</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- paginación -->
+                <div class="d-flex justify-content-center mt-3">
+                    <div class="pagination" th:if="${totalPages > 1}">
+                        <ul>
+
+                            <li th:class="${currentPage == 0 ? 'disabled' : ''}">
+                                <a href="#" th:attr="data-page=${currentPage - 1}"
+                                   onclick="pageSuppliers(this); return false;">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+
+                            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:class="${currentPage == i ? 'active' : ''}">
+                                <a href="#" th:attr="data-page=${i}"
+                                   onclick="pageSuppliers(this); return false;" th:text="${i + 1}"></a>
+                            </li>
+
+
+                            <li th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a href="#" th:attr="data-page=${currentPage + 1}"
+                                   onclick="pageSuppliers(this); return false;">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

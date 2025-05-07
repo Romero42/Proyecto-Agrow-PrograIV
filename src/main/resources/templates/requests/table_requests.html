@@ -1,7 +1,6 @@
-<!-- Fragmento que contiene la tabla de solicitudes -->
+
 <div th:fragment="requestTableContent" xmlns:th="http://www.thymeleaf.org">
 
-    <!-- Mensaje cuando no hay solicitudes -->
     <div class="info-card" th:if="${validate != null}">
         <span class="material-symbols-outlined icon">info</span>
         <h2 th:text="${validate}">No se encontraron solicitudes</h2>
@@ -10,7 +9,7 @@
         </p>
     </div>
 
-    <!-- Tabla de solicitudes -->
+
     <div class="table-container" th:unless="${validate != null or listR == null or listR.isEmpty()}">
         <div class="table-responsive">
             <table>
@@ -30,11 +29,10 @@
                     <td th:text="${tempRequest.type}"></td>
                     <td class="numeric-display"
                         th:text="${#numbers.formatDecimal(tempRequest.amount, 1, 0, 'POINT')}">
-                        <!-- Formatear cantidad como entero -->
                     </td>
                     <td th:text="${tempRequest.getFormattedDate()}"></td>
 
-                    <!-- Estilos según estado -->
+                    <!-- estilos de los estados -->
                     <td>
                             <span class="status"
                                   th:classappend="${#strings.equalsIgnoreCase(tempRequest.status, 'Aprobada')} ? 'status-optimo' :
@@ -72,5 +70,33 @@
             </table>
         </div>
     </div>
+    <!-- paginación -->
+    <div class="d-flex justify-content-center mt-3">
+        <div class="pagination" th:if="${totalPages > 1}">
+            <ul>
 
+                <li th:class="${currentPage == 0 ? 'disabled' : ''}">
+                    <a href="#" th:attr="data-page=${currentPage - 1}"
+                       onclick="pageRequests(this); return false;">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:class="${currentPage == i ? 'active' : ''}">
+                    <a href="#" th:attr="data-page=${i}"
+                       onclick="pageRequests(this); return false;" th:text="${i + 1}"></a>
+                </li>
+
+
+                <li th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a href="#" th:attr="data-page=${currentPage + 1}"
+                       onclick="pageRequests(this); return false;">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
