@@ -44,7 +44,8 @@
                         <span class="material-symbols-outlined icon">edit</span> Editar
                     </a>
                     <form th:action="@{/transport/delete}" method="post" class="confirm-action" 
-                          data-message="¿Eliminar este transporte?" data-title="Confirmar Eliminación">
+                          data-title="Confirmar Eliminación"
+                          data-message="¿Estás seguro de que deseas eliminar este transporte?">
                         <input type="hidden" name="idTransport" th:value="*{idTransport}" />
                         <button type="submit" class="btn btn-danger">
                             <span class="material-symbols-outlined icon">delete</span> Eliminar
@@ -66,5 +67,8 @@
                 </a>
             </div>
         </div>
+
+        <!-- Importa tu script personalizado -->
+        <script th:src="@{/js/transport.js}"></script>
     </body>
 </html>

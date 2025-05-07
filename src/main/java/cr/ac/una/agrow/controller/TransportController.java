@@ -89,7 +89,7 @@ public class TransportController {
                 .orElseThrow(() -> new RuntimeException("Transporte no encontrado"));
 
         model.addAttribute("transport", transport);
-        model.addAttribute("transportTypes", Arrays.asList("Camión", "Furgón", "Pickup", "Motocicleta", "Otro"));
+        model.addAttribute("transportTypes", Arrays.asList("Camión de carga", "Furgón de carga", "Pickup de la empresa", "Barco"));
         return "transport/edit";
     }
 

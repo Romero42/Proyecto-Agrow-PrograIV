@@ -15,13 +15,15 @@
 <div class="main-content">
     <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-    <form method="POST" th:action="@{/transport/register}" class="form-container">
+    <form method="POST" th:action="@{/transport/register}" class="form-container confirm-action" 
+          data-title="¿Registrar transporte?" 
+          data-message="¿Estás seguro de que deseas registrar este transporte?">
         <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
             <h1 class="page-title">Registrar Transporte</h1>
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="transport_date">Fecha de Transporte:</label>
+            <label class="form-label" for="transport_date">Fecha de registro del Transporte:</label>
             <input type="date" id="transport_date" name="transportDate" class="form-input" required
                    th:value="${transport?.transportDate}"/>
         </div>
@@ -30,9 +32,10 @@
             <label class="form-label" for="transport_type">Tipo de Transporte:</label>
             <select id="transport_type" name="transportType" class="form-select" required>
                 <option value="">Seleccione un tipo</option>
-                <option value="Camión">Camión</option>
-                <option value="Moto">Moto</option>
-                <option value="Bicicleta">Bicicleta</option>
+                <option value="Camión de carga">Camión de carga</option>
+                <option value="Furgón de carga">Furgón de carga</option>
+                <option value="Barco">Barco</option>
+                <option value="Pickup de la empresa">Pickup de la empresa</option>
             </select>
         </div>
 
@@ -78,6 +81,5 @@
     </form>
 </div>
 
-<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/transport.js}"></script>
 </body>
-</html>

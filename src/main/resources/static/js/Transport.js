@@ -1,10 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Funciones Específicas de Transporte ---
+    // ================================
+    // === LÓGICA ESPECÍFICA: TRANSPORTE
+    // ================================
+
     function calculateAndDisplayTotalTransport() {
         const quantityInput = document.getElementById('quantityTransported');
         const priceInput = document.getElementById('pricePerUnitTransport');
         const totalDisplay = document.getElementById('totalTransportDisplay');
-        if (!quantityInput || !priceInput || !totalDisplay) return;
+        if (!quantityInput || !priceInput || !totalDisplay)
+            return;
 
         const quantity = parseInt(quantityInput.value, 10);
         const price = parseFloat(priceInput.value);
@@ -19,10 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatColones(value) {
+        return value.toLocaleString('es-CR', {style: 'currency', currency: 'CRC'});
+    }
+
     function validateQuantityInput() {
         const quantityInput = document.getElementById('quantityTransported');
         const quantityError = document.getElementById('quantityError');
-        if (!quantityInput || !quantityError) return true;
+        if (!quantityInput || !quantityError)
+            return true;
 
         const maxAttr = quantityInput.getAttribute('max');
         const max = maxAttr ? parseInt(maxAttr, 10) : null;
@@ -50,51 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    // --- Confirmación antes de enviar ---
-    function handleTransportFormSubmit(event) {
-        event.preventDefault(); // Evitar el envío inmediato
-
-        // Primero validamos la cantidad
-        if (!validateQuantityInput()) {
-            Swal.fire({
-                title: 'Error de Validación',
-                text: 'Por favor, corrija la cantidad transportada.',
-                icon: 'error',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-
-        // Mostramos confirmación antes de enviar
-        Swal.fire({
-            title: '¿Está seguro de realizar los cambios?',
-            text: 'Esta acción no se puede deshacer.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, guardar cambios',
-            cancelButtonText: 'Cancelar',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Si confirma, mostramos mensaje de éxito y luego enviamos el formulario
-                Swal.fire({
-                    title: 'ÉXITO',
-                    text: 'Los cambios se han guardado correctamente.',
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar'
-                }).then(() => {
-                    event.target.submit(); // Envío del formulario después de confirmar
-                });
-            }
-        });
-    }
-
-    const editTransportForm = document.getElementById('editTransportForm');
-    if (editTransportForm) {
-        editTransportForm.addEventListener('submit', handleTransportFormSubmit);
-    }
-
-    // Listener para calcular automáticamente al modificar valores
+    // Validación y cálculo al cambiar cantidad o precio
     const quantityTransportedInput = document.getElementById('quantityTransported');
     const pricePerUnitTransportInput = document.getElementById('pricePerUnitTransport');
 
@@ -108,4 +73,58 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pricePerUnitTransportInput) {
         pricePerUnitTransportInput.addEventListener('input', calculateAndDisplayTotalTransport);
     }
+
+    // =======================================
+    // === FUNCIÓN GENÉRICA DE CONFIRMACIÓN
+    // =======================================
+
+    const confirmableForms = document.querySelectorAll('form.confirm-action');
+
+    confirmableForms.forEach(form => {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Detener envío inmediato
+
+            const title = form.dataset.title || '¿Confirmar acción?';
+            const message = form.dataset.message || '¿Estás seguro de realizar esta acción?';
+
+            // Si hay un validador específico para este formulario
+            if (form.id === 'editTransportForm' && !validateQuantityInput()) {
+                Swal.fire({
+                    title: 'Error de Validación',
+                    text: 'Por favor, corrija la cantidad transportada.',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    const isDeleteForm = form.action.includes('/transport/delete');
+
+                    const successText = isDeleteForm
+                            ? 'El transporte ha sido eliminado correctamente.'
+                            : 'Los cambios se han guardado correctamente.';
+
+                    Swal.fire({
+                        title: 'ÉXITO',
+                        text: successText,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        form.submit();
+                    });
+                }
+            });
+
+        });
+    });
 });

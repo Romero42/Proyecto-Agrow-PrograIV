@@ -16,7 +16,9 @@
         <div class="main-content">
             <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-            <form method="POST" th:action="@{/transport/edit}" class="form-container">
+            <form method="POST" th:action="@{/transport/edit}" class="form-container confirm-action" id="editTransportForm"
+                  data-title="¿Confirmar cambios?" 
+                  data-message="¿Estás seguro de que deseas guardar los cambios en este transporte?">
                 <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
                     <h1 class="page-title">Editar Transporte</h1>
                 </div>
