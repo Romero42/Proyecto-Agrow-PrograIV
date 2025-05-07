@@ -105,7 +105,7 @@
                 <div class="form-group">
                     <label class="form-label" for="reviewerName">Nombre del Revisor</label>
                     <input type="text" th:field="*{reviewerName}" class="form-input" id="reviewerName" 
-                           placeholder="Nombre completo" required maxlength="100" />
+                        placeholder="Nombre completo" required maxlength="100"  pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ ]+" title="Solo se permiten letras y espacios"  />
                     <div class="form-info" th:if="${#fields.hasErrors('reviewerName')}" th:errors="*{reviewerName}"></div>
                 </div>
 

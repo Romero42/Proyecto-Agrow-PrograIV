@@ -170,7 +170,7 @@ public class ReviewController {
         // Si hay errores, volver al formulario
         if (result.hasErrors()) {
             model.addAttribute("review", review);
-            return "reviews/form";
+            return "form_review";
         }
 
         // Asegurar valores por defecto para campos booleanos si son null
