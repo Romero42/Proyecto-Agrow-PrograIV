@@ -119,13 +119,6 @@ public class ReviewController {
         }
     }
     
-
-    /**///////////////
-     /** Muestra el formulario para crear una nueva reseña
-     *
-     * @param model Modelo para la vista
-     * @return Vista del formulario de reseña
-     */
     @GetMapping("/form/sale/{saleId}")
     public String showFormWithSale(@PathVariable Integer saleId, Model model) {
         // Crear una nueva instancia de reseña con valores predeterminados
@@ -135,14 +128,12 @@ public class ReviewController {
         review.setRecommendationStatus(false);
         review.setIdSale(saleId); // Asociar el ID de venta a la reseña
 
-        // Opcionalmente, podrías cargar información adicional de la venta para mostrarla en el formulario
+        
         Optional<Sale> optionalSale = saleService.getSaleById(saleId);
         if (optionalSale.isPresent()) {
             Sale sale = optionalSale.get();
             model.addAttribute("sale", sale);
 
-            // También podrías precargar algunos datos de la venta en la reseña
-            // Por ejemplo, si conoces el nombre del cliente que realizó la compra:
             review.setReviewerName(sale.getBuyerName());
         }
 
@@ -150,14 +141,6 @@ public class ReviewController {
         return "form_review";
     }
 
-    /**
-     * Muestra el formulario para editar una reseña existente
-     *
-     * @param reviewId ID de la reseña a editar
-     * @param model Modelo para la vista
-     * @param redirectAttributes Atributos para mensajes de redirección
-     * @return Vista del formulario de reseña o redirección a la lista
-     */
     @GetMapping("/edit")
     public String editReview(
             @RequestParam Integer reviewId,
@@ -173,14 +156,6 @@ public class ReviewController {
         }
     }
 
-    /**
-     * Muestra los detalles de una reseña específica
-     *
-     * @param reviewId ID de la reseña a mostrar
-     * @param model Modelo para la vista
-     * @param redirectAttributes Atributos para mensajes de redirección
-     * @return Vista de detalles de reseña o redirección a la lista
-     */
     @GetMapping("/view")
     public String viewReview(
             @RequestParam Integer reviewId,
@@ -197,17 +172,6 @@ public class ReviewController {
             return "view";
         }
     }
-
-    /**
-     * Guarda o actualiza una reseña
-     *
-     * @param review Reseña a guardar o actualizar
-     * @param result Resultados de la validación del formulario
-     * @param model Modelo para la vista
-     * @param redirectAttributes Atributos para mensajes de redirección
-     * @return Redirección a la lista de reseñas o volver al formulario si hay
-     * errores
-     */
     @PostMapping("/save")
     public String saveReview(
             @ModelAttribute Review review,
@@ -258,13 +222,6 @@ public class ReviewController {
         return "redirect:/reviews/list";
     }
 
-    /**
-     * Elimina una reseña
-     *
-     * @param reviewId ID de la reseña a eliminar
-     * @param redirectAttributes Atributos para mensajes de redirección
-     * @return Redirección a la lista de reseñas
-     */
     @PostMapping("/delete")
     public String deleteReview(
             @RequestParam Integer reviewId,

@@ -14,9 +14,6 @@ import org.springframework.stereotype.Repository;
 
 
 
-/**
- * Repositorio para la entidad Review
- */
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
     @Procedure(name = "Review.sp_getMinRating")

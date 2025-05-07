@@ -28,43 +28,23 @@ public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
 
-    /**
-     * Obtiene todas las reseñas
-     *
-     * @return Lista de todas las reseñas
-     */
+
     @Transactional
     public List<Review> findAll() {
         return reviewRepository.findAll();
     }
 
-    /**
-     * Busca una reseña por su ID
-     *
-     * @param id ID de la reseña
-     * @return Optional con la reseña encontrada o vacío si no existe
-     */
+
     @Transactional
     public Optional<Review> findById(Integer id) {
         return reviewRepository.findById(id);
     }
 
-    /**
-     * Guarda o actualiza una reseña
-     *
-     * @param review La reseña a guardar
-     * @return La reseña guardada con su ID asignado
-     */
     @Transactional
     public Review save(Review review) {
         return reviewRepository.save(review);
     }
 
-    /**
-     * Elimina una reseña por su ID
-     *
-     * @param id ID de la reseña a eliminar
-     */
     @Transactional
     public void deleteById(Integer id) {
         reviewRepository.deleteById(id);
@@ -75,13 +55,7 @@ public class ReviewService {
         return reviewRepository.sp_getMinRating(rating);
     }
 
-    /**
-     * Obtiene reseñas filtradas por calificación mínima de forma paginada
-     *
-     * @param minRating Calificación mínima (opcional)
-     * @param pageable Configuración de paginación
-     * @return Página de reseñas filtradas
-     */
+
     @Transactional(readOnly = true)
     public Page<Review> getFilteredReviewsPaged(Integer minRating, Pageable pageable) {
         try {
