@@ -13,7 +13,7 @@
     <div class="sidebar-section">
         <div class="sidebar-section-title">PRINCIPAL</div>
         <div class="sidebar-menu">
-            <a th:href="@{/home}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
+            <a th:href="@{/homeIndex}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
                 <span class="material-symbols-outlined icon">home</span>
                 Inicio
             </a>
@@ -67,6 +67,12 @@
             <a th:href="@{/requests/list}" th:classappend="${activeModule == 'requests'} ? ' active' : ''">
                 <span class="material-symbols-outlined icon">forum</span>
                 Solicitudes
+            </a>
+
+            <!-- Enlace Usuarios -->
+            <a th:href="@{/user/list}" th:classappend="${activeModule == 'user'} ? ' active' : ''">
+                <span class="material-symbols-outlined icon">person</span>
+                Usuarios
             </a>
 
         </div>

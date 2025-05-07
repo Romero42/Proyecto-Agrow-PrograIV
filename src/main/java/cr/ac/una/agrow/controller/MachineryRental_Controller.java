@@ -177,6 +177,7 @@ public class MachineryRental_Controller {
         String message = null;
         List<machineryRental> machinery = new ArrayList<>();
 
+        System.out.println("  ada  "+page);
         if(rentStartDay != null && rentFinalDay == null){
 
             rentsPage = service.dateRangeByStart(rentStartDay, pageable);
@@ -198,6 +199,7 @@ public class MachineryRental_Controller {
                 model.addAttribute("rents", null);
             } else {
 
+                model.addAttribute("useFilter", true);
                 machinery.add(rent);
                 model.addAttribute("rents", machinery);
             }
@@ -208,12 +210,13 @@ public class MachineryRental_Controller {
             model.addAttribute("rents", null);
         } else {
 
+            model.addAttribute("useFilter", true);
             model.addAttribute("rents", rentsPage.getContent());
             model.addAttribute("totalPages", rentsPage.getTotalPages());
-            model.addAttribute("useFilter", true);
             model.addAttribute("pag", true);
         }
 
+        model.addAttribute("useFilter", true);
         model.addAttribute("activeModule", "machineryRental");
         model.addAttribute("validate", message);
         model.addAttribute("currentPage", page);

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="table-user">
+    <div class="info-card" th:if="${users == null or users.isEmpty()}">
+        <span class="material-symbols-outlined icon">info</span>
+        <h2>No hay usuarios registrados</h2>
+        <p>Agregá uno nuevo para empezar.</p>
+    </div>
+
+    <div class="table-container" th:unless="${users == null or users.isEmpty()}">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${users}">
+                    <td th:text="${u.user}"></td>
+                    <td th:text="${u.name}"></td>
+                    <td th:text="${u.email}"></td>
+                    <td th:text="${u.contactNumber}"></td>
+                    <td th:text="${u.type}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/user/view(id=${u.id_User})}" class="btns view-btns" title="Ver Detalles">
+                                <span class="material-symbols-outlined icon">visibility</span>
+                            </a>
+
+                            <a th:href="@{/user/updateView(id=${u.id_User})}" class="btns edit-btns" title="Editar">
+                                <span class="material-symbols-outlined icon">edit</span>
+                            </a>
+
+                            <form th:action="@{/user/delete}" method="get" class="confirm-action"
+                                  data-message="¿Eliminar este usuario?" data-title="Confirmar Eliminación"
+                                  style="margin:0; padding:0; display:inline;">
+                                <input type="hidden" name="id" th:value="${u.id_User}"/>
+                                <button type="submit" class="btns delete-btns" title="Eliminar">
+                                    <span class="material-symbols-outlined icon">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div th:if="${type}">
+
+    <input type="hidden" id="previewType" th:value="${previewType}"/>
+    <div class="pagination" th:unless="${users.isEmpty()}">
+        <ul>
+            <!-- Flecha izquierda -->
+            <li th:classappend="${currentPage == 0} ? 'disabled'">
+                <a th:if="${currentPage > 0}" href="#"
+                   th:attr="data-page=${currentPage - 1}, data-button=1"
+                   onclick="filtrarUsuarios(this); return false;">«</a>
+                <span th:unless="${currentPage > 0}">«</span>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                <a th:href="'#'"
+                   onclick="filtrarUsuarios(this); return false;"
+                   th:attr="data-page=${i}, data-button=1"
+                   th:text="${i + 1}"
+                >
+                </a>
+            </li>
+
+            <!-- Flecha derecha -->
+            <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a th:if="${currentPage < totalPages - 1}" href="#"
+                   th:attr="data-page=${currentPage + 1}, data-button=1"
+                   onclick="filtrarUsuarios(this); return false;">»</a>
+                <span th:unless="${currentPage < totalPages - 1}">»</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

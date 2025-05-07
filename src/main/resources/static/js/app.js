@@ -336,50 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
     };
 
-    window.filterRent = function(button) {
-        if (!button) return;
-        const params = new URLSearchParams(getCurrentRentFilters());
-        params.set('page', '0');
-        const start = params.get('rentStartDay');
-        const end = params.get('rentFinalDay');
-        const id = params.get('id_maquina');
-        if ((start && id) || (end && id) || (start && end && id)) {
-            swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez (rango de fechas o código de máquina).", "error");
-            return;
-        }
-        if (start && end && start > end) {
-            swalAgrow.fire("Error", "La fecha de inicio no puede ser posterior a la fecha final.", "error");
-            return;
-        }
-        if (!start && !end && !id) {
-            swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
-            return;
-        }
-        handleAjaxRequest(`/rent/tableFilter?${params.toString()}`, 'tableData');
-    };
 
-    function getCurrentRentFilters() {
-        const form = document.getElementById('filter-form-rent');
-        const params = new URLSearchParams();
-        if (!form) return params;
-        const start = form.querySelector('#rentStartDay')?.value; if (start) params.append('rentStartDay', start);
-        const end = form.querySelector('#rentFinalDay')?.value; if (end) params.append('rentFinalDay', end);
-        const id = form.querySelector('#id_maquina')?.value;    if (id) params.append('id_maquina', id);
-        return params;
-    }
-
-    window.viewMaquina = function(link) {
-        if (!link) return;
-        const machineId = link.getAttribute('data-id');
-        const infoDiv = document.getElementById('infoMaquina');
-        if (infoDiv && machineId) {
-            handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
-        }
-    };
-    window.cerrarInfoMaquina = function() {
-        const infoDiv = document.getElementById('infoMaquina');
-        if (infoDiv) infoDiv.innerHTML = "";
-    };
 
     window.pageRequests = function(link) {
         if (!link) return;
@@ -418,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (form.id === 'filter-form-producer') {
                 contentId = 'table-producer'; actionUrl = '/producers/list';
             } else if (form.id === 'filter-form-rent') {
-                contentId = 'tableData'; actionUrl = '/rent/tableFilter';
+
 
             } else if (form.id === 'filter-form-request') {
                 contentId = 'request-list-content'; // ID del div que contiene la tabla de requests
@@ -454,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (container.id === 'harvest-list-content') window.pageHarvests(pgLink);
                     else if (container.id === 'supply-list-content') window.pageSupplies(pgLink);
                     else if (container.id === 'table-producer') window.producer(pgLink);
-                    else if (container.id === 'tableData') window.pageRent(pgLink);
+
 
                     else if (container.id === 'request-list-content') window.pageRequests(pgLink); // Llama a la función de paginación de requests
 
@@ -487,147 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 }); // Fin de DOMContentLoaded
 
-//ventana de mensaje del tipo que se obtiene
-function mostrarAlerta(tipo, mensaje) {
-    Swal.fire({
-        icon: tipo, // success, error, warning, info, question
-        text: mensaje,
-        title: '¡Error!',
-        timer: 2500,
-        timerProgressBar: true,
-        confirmButtonText: 'OK'
-    });
-}
-
-//logica para la tabla de alquileres
-function filterRent(element) {
-
-    var tableUpdate = document.getElementById("tableData");
-    var rentStartDay = document.getElementById("rentStartDay").value;
-    var rentFinalDay = document.getElementById("rentFinalDay").value;
-    var id_maquina = document.getElementById("id_maquina").value;
-    var currentPage = element.getAttribute('data-page');
-
-    var params = "";
-    var xhttp = new XMLHttpRequest();
 
 
-    if (rentStartDay && rentFinalDay && id_maquina) {
 
-        mostrarAlerta("error", "Use solo un filtro")
-        return;
-    } else if (!rentStartDay && !rentFinalDay && !id_maquina) {
 
-        mostrarAlerta("error", "Filtros vacios")
-        return;
-    }else if(rentStartDay && id_maquina || rentFinalDay && id_maquina){
-
-        mostrarAlerta("error", "Use solo un filtro")
-        return;
-    }
-
-    if (rentStartDay && !rentFinalDay) {
-
-        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
-        + "&page=" + encodeURIComponent(currentPage);
-    } else if (!rentStartDay && rentFinalDay) {
-
-        params = "rentFinalDay=" + encodeURIComponent(rentFinalDay)
-        + "&page=" + encodeURIComponent(currentPage);
-    } else if (rentStartDay && rentFinalDay) {
-
-        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
-            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
-            + "&page=" + encodeURIComponent(currentPage);
-    } else {
-
-        params = "id_maquina=" + encodeURIComponent(id_maquina);
-    }
-
-    xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-
-            tableUpdate.innerHTML = this.responseText;
-        }
-    };
-
-    xhttp.open("GET", "/rent/tableFilter?" + params, true);
-    xhttp.send();
-}
-
-//actualizar paginacion en listAlquiler
-function pageRent(element){
-
-    var tableCurrent = document.getElementById("tableData");
-    var currentPage = element.getAttribute('data-page');
-
-    var xhttp = new XMLHttpRequest();
-
-    xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-
-            tableCurrent.innerHTML = this.responseText;
-        }
-    };
-
-    xhttp.open("GET", "/rent/pageCurrent?page=" + currentPage, true);
-    xhttp.send();
-}
-
-//actualizar paginacionProducer
-function producer(element){
-
-    var tableCurrent = document.getElementById("table-producer");
-    var city = document.getElementById("city").value;
-    var lastCity = document.getElementById("lastCity").value;
-    var filter = document.getElementById("filter").value;
-    var id_producer = document.getElementById("id_producer").value;
-    var currentPage = element.getAttribute('data-page');
-    var buttonAction = element.getAttribute('data-button');
-
-    var params = "page=" + encodeURIComponent(currentPage);
-    var xhttp = new XMLHttpRequest();
-
-    if(city && id_producer && buttonAction == 1){
-        mostrarAlerta("error", "Use solo un filtro")
-        return;
-
-    }else if(city === "" && buttonAction == 1 && !id_producer){
-
-        mostrarAlerta("error", "Seleccione una ciudad o busque por id")
-        return;
-    }
-
-     if(buttonAction == 1 && id_producer || buttonAction == 1 && city){
-        currentPage = 0;
-     }
-
-     xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-
-            tableCurrent.innerHTML = this.responseText;
-        }
-     };
-
-      if(city && buttonAction == 1){
-
-          params = "city=" + encodeURIComponent(city)
-                 + "&page=" + encodeURIComponent(currentPage);
-      }else if(id_producer && buttonAction == 1){
-
-         params = "id_producer=" + encodeURIComponent(id_producer);
-      }else if(buttonAction == 0 && city && filter === "true" ||
-               buttonAction == 0 && id_producer && filter === "true"){
-
-            if(lastCity){
-                params = "page=" + encodeURIComponent(currentPage)
-                     + "&city=" + encodeURIComponent(lastCity);
-            }else{
-                params = "page=" + encodeURIComponent(currentPage)
-                        + "&city=" + encodeURIComponent(city);
-            }
-      }
-
-    xhttp.open("GET", "/producers/list?"+params, true);
-    xhttp.send();
-}

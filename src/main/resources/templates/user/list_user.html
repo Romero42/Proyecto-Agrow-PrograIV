@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Usuarios</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Usuarios</h1>
+            <p class="page-subtitle">Total de usuarios: <span th:text="${users != null ? users.size() : 0}">0</span></p>
+        </div>
+        <a th:href="@{/user/saveView}" class="btn btn-primary">
+            <span class="material-symbols-outlined icon">person_add</span> Agregar Usuario
+        </a>
+    </div>
+
+    <div id="filter-form-usuarios" class="filter-section">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label" for="username">Buscar por Usuario:</label>
+                <input type="text" id="username" name="username" class="filter-input" placeholder="Usuario" />
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label" for="tipo">Filtrar por Tipo:</label>
+                <select id="tipo" name="tipo" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Usuario">Usuario</option>
+                </select>
+            </div>
+
+            <div class="filter-buttons">
+                <button type="submit" onclick="filtrarUsuarios(this); return false;" class="btn btn-primary" th:attr="data-button=0, data-page=0">
+                    <span class="material-symbols-outlined icon">search</span> Filtrar
+                </button>
+                <a th:href="@{/user/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="table-user">
+        <div class="info-card" th:if="${users == null or users.isEmpty()}">
+            <span class="material-symbols-outlined icon">info</span>
+            <h2>No hay usuarios registrados</h2>
+            <p>Agregá uno nuevo para empezar.</p>
+        </div>
+
+        <div class="table-container" th:unless="${users == null or users.isEmpty()}">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Tipo</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td th:text="${u.user}"></td>
+                        <td th:text="${u.name}"></td>
+                        <td th:text="${u.email}"></td>
+                        <td th:text="${u.contactNumber}"></td>
+                        <td th:text="${u.type}"></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a th:href="@{/user/view(id=${u.id_User})}" class="btns view-btns" title="Ver Detalles">
+                                    <span class="material-symbols-outlined icon">visibility</span>
+                                </a>
+
+                                <a th:href="@{/user/updateView(id=${u.id_User})}" class="btns edit-btns" title="Editar">
+                                    <span class="material-symbols-outlined icon">edit</span>
+                                </a>
+
+                                <form th:action="@{/user/delete}" method="get" class="confirm-action"
+                                      data-message="¿Eliminar este usuario?" data-title="Confirmar Eliminación"
+                                      style="margin:0; padding:0; display:inline;">
+                                    <input type="hidden" name="id" th:value="${u.id_User}" />
+                                    <button type="submit" class="btns delete-btns" title="Eliminar">
+                                        <span class="material-symbols-outlined icon">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <input type="hidden" id="previewType" th:value="${previewType}"/>
+        <div class="pagination" th:unless="${users.isEmpty()}">
+            <ul>
+                <!-- Flecha izquierda -->
+                <li th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a th:if="${currentPage > 0}" href="#"
+                       th:attr="data-page=${currentPage - 1}, data-button=1"
+                       onclick="filtrarUsuarios(this); return false;">«</a>
+                    <span th:unless="${currentPage > 0}">«</span>
+                </li>
+
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a th:href="'#'"
+                       onclick="filtrarUsuarios(this); return false;"
+                       th:attr="data-page=${i}, data-button=1"
+                       th:text="${i + 1}"
+                    >
+                    </a>
+                </li>
+
+                <!-- Flecha derecha -->
+                <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                    <a th:if="${currentPage < totalPages - 1}" href="#"
+                       th:attr="data-page=${currentPage + 1}, data-button=1"
+                       onclick="filtrarUsuarios(this); return false;">»</a>
+                    <span th:unless="${currentPage < totalPages - 1}">»</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a th:href="@{/homeIndex}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio
+        </a>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/user.js}"></script>
+</body>
+</html>

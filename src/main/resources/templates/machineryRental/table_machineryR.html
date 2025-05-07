@@ -58,7 +58,7 @@
         </table>
     </div>
 </div>
-
+<input type="hidden" id="useFilter" th:value="${useFilter}"/>
 <div th:if="${pag}">
 <div class="pagination" th:unless="${rents == null || rents.isEmpty()}">
     <ul>
