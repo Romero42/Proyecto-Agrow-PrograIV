@@ -1,30 +1,44 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package cr.ac.una.agrow.domain.machinery;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
-/**
- *
- * @author andre
- */
+@Entity
+@Table(name = "tb_maquina")
 public class Machinery {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
+
+    @Column(name = "condicion", nullable = false, length = 50)
     private String condicion;
+
+    @Column(name = "disponibilidad", nullable = false)
     private Boolean disponibilidad;
+
+    @Column(name = "dia_adquisicion", nullable = false)
     private LocalDate diaAdquisicion;
+
+    @Column(name = "costo_alquiler", nullable = false)
     private double costoAlquiler;
+
+    @Column(name = "ubicacion", nullable = false, length = 100)
     private String ubicacion;
+
+    @Column(name = "capacidad_trabajo", nullable = false, length = 50)
     private String capacidadTrabajo;
 
     public Machinery() {
     }
 
-    public Machinery(int id, String nombre, String condicion, Boolean disponibilidad, LocalDate diaAdquisicion, double costoAlquiler, String ubicacion, String capacidadTrabajo) {
+    public Machinery(int id, String nombre, String condicion, Boolean disponibilidad,
+                     LocalDate diaAdquisicion, double costoAlquiler, String ubicacion,
+                     String capacidadTrabajo) {
         this.id = id;
         this.nombre = nombre;
         this.condicion = condicion;
@@ -98,7 +112,4 @@ public class Machinery {
     public void setCapacidadTrabajo(String capacidadTrabajo) {
         this.capacidadTrabajo = capacidadTrabajo;
     }
-    
-    
-    
 }
