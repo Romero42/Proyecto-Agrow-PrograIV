@@ -69,7 +69,7 @@
 
                     <div class="form-group">
                         <label for="producerId" class="form-label">Productor*</label>
-                        <select id="producerId" name="producerId" class="form-select" required="required">
+                        <select id="id_producer" name="id_producer" class="form-select" required="required">
                             <option value="" disabled="disabled">Seleccione un productor...</option>
                             <option th:each="prod : ${producers}"
                                     th:value="${prod.id_producer}"

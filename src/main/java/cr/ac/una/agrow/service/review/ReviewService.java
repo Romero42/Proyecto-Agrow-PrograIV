@@ -50,12 +50,6 @@ public class ReviewService {
         reviewRepository.deleteById(id);
     }
 
-    @Transactional
-    public List<Review> getMinRatingReviews(int rating) {
-        return reviewRepository.sp_getMinRating(rating);
-    }
-
-
     @Transactional(readOnly = true)
     public Page<Review> getFilteredReviewsPaged(Integer minRating, Pageable pageable) {
         try {

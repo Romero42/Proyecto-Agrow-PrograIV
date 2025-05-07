@@ -16,8 +16,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
-    @Procedure(name = "Review.sp_getMinRating")
-    public List<Review> sp_getMinRating(int rating);
     
     @Query("SELECT r FROM Review r WHERE " +
            "(:minRating IS NULL OR :minRating = '' OR r.rating >= CAST(:minRating AS int))")
