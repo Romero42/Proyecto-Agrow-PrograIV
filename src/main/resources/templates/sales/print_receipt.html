@@ -8,7 +8,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
             line-height: 1.5;
-            font-size: 12pt; /* Standard print size */
+            font-size: 12pt;
             color: #000;
             background-color: #fff;
         }
@@ -18,22 +18,17 @@
             padding: 15px;
             border: 1px solid #ccc;
         }
-
         .receipt-container img {
-               max-width: 150px;
-               max-height: 40px;
-             }
-            .header {
-                text-align: center !important;
-            }
-            .header img {
-                display: inline-block !important;
-                margin-bottom: 10px !important;
-            }
-             .receipt-container img {
-               max-width: 150px;
-               max-height: 40px;
-             }
+           max-width: 150px;
+           max-height: 40px;
+        }
+        .header {
+            text-align: center !important;
+        }
+        .header img {
+            display: inline-block !important;
+            margin-bottom: 10px !important;
+        }
         .header h1 {
             margin: 0;
             font-size: 1.5em;
@@ -54,7 +49,7 @@
         }
         .details strong, .footer strong {
             display: inline-block;
-            min-width: 120px; /* Align labels */
+            min-width: 120px;
         }
         .items table {
             width: 100%;
@@ -101,20 +96,9 @@
          }
 
          @media print {
-            body {
-                margin: 0.5cm;
-                font-size: 11pt;
-            }
-            .receipt-container {
-                 border: none;
-                 box-shadow: none;
-                 margin: 0;
-                 padding: 0;
-                 max-width: none;
-            }
-            .no-print {
-                display: none !important;
-            }
+            body { margin: 0.5cm; font-size: 11pt; }
+            .receipt-container { border: none; box-shadow: none; margin: 0; padding: 0; max-width: none; }
+            .no-print { display: none !important; }
             .print-info { display: none; }
         }
     </style>
@@ -123,7 +107,6 @@
 
 <div class="receipt-container" th:if="${sale != null}">
     <div class="header">
-        
         <img th:src="@{/img/logo.svg}" alt="Agrow Logo"/>
         <h1>Agrow</h1>
         <p>Crecimiento Agrícola</p>
@@ -132,7 +115,7 @@
     <div class="details">
         <h2>Recibo de Venta</h2>
         <p><strong>Recibo #:</strong> <span th:text="${sale.idSale}"></span></p>
-        <p><strong>Fecha Venta:</strong> <span th:text="${sale.saleDate != null ? #temporals.format(sale.saleDate, 'dd/MM/yyyy') : '-'}"></span></p>
+        <p><strong>Fecha Venta:</strong> <span th:text="${sale.getFormattedSaleDate()}"></span></p>
         <p><strong>Fecha Impresión:</strong> <span id="printDateTime">--/--/---- --:--</span></p>
         <hr style="border: none; border-top: 1px dashed #eee; margin: 10px 0;">
         <p><strong>Comprador:</strong> <span th:text="${sale.buyerName}"></span></p>
@@ -185,24 +168,15 @@
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
-        // Format prices/currency on the print page (if needed, but using Thymeleaf format usually suffices)
-        const formatColonesPrint = val => {
-            const num = parseFloat(val);
-            if (isNaN(num)) return '---';
-            return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 2 }).format(num);
-        };
-
-         // Set print date/time
         const now = new Date();
-        const formattedDateTime = now.toLocaleDateString('es-CR') + ' ' + now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+        const formattedDateTime = now.toLocaleDateString('es-CR', {day: '2-digit', month: '2-digit', year: '2-digit'}) + // dd/MM/yy
+                                ' ' +
+                                now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
         const printDateTimeElem = document.getElementById('printDateTime');
         if(printDateTimeElem) {
             printDateTimeElem.textContent = formattedDateTime;
         }
-
-        // Automatically trigger print dialog
         window.print();
-
     });
 </script>
 

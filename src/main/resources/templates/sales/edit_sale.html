@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -7,6 +6,7 @@
     <title>Editar Venta - Agrow</title>
     <link rel="stylesheet" th:href="@{/css/common.css}"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 </head>
 <body>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -22,27 +22,31 @@
             </div>
         </div>
 
-        <!-- Info Cosecha (No editable) -->
         <div class="producer-info-box">
             <h3>Información de la Cosecha</h3>
             <table class="detail-table">
                 <tr><td>ID Cosecha:</td><td th:text="${harvest.idHarvest}"></td></tr>
                 <tr><td>Tipo:</td><td th:text="${harvest.typeHarvest}"></td></tr>
                 <tr><td>Calidad:</td><td th:text="${harvest.quality}"></td></tr>
-                <tr><td>Stock Actual:</td><td th:text="${harvest.availableQuantity} + ' kg'"></td></tr>
+                <tr><td>Stock Actual (antes de esta venta):</td><td th:text="${harvest.availableQuantity} + ' kg'"></td></tr>
                 <tr><td>Productor ID:</td><td th:text="${harvest.id_producer}"></td></tr>
             </table>
         </div>
 
-
         <form th:action="@{/sales/update}" method="post" id="editSaleForm" class="confirm-action"
               data-message="¿Confirmar la actualización de esta venta?" data-title="Confirmar Actualización">
 
-            <!-- ID de la venta oculto -->
             <input type="hidden" name="idSale" th:value="${sale.idSale}"/>
 
             <div class="form-group">
-                <label for="quantitySold" class="form-label">Cantidad Vendida (kg):</label>
+                <label for="saleDate" class="form-label">Fecha de Venta*:</label>
+                <input type="text" id="saleDate" name="saleDate" class="form-input date-picker-dmy"
+                       th:value="${sale.getSaleDateForInputDmy()}"
+                       required placeholder="DD/MM/YY" title="Fecha en que se realizó la venta (DD/MM/YY)">
+            </div>
+
+            <div class="form-group">
+                <label for="quantitySold" class="form-label">Cantidad Vendida (kg)*:</label>
                 <input type="number" id="quantitySold" name="quantitySold" class="form-input" min="1" step="1" required
                        th:value="${sale.quantitySold}"
                        th:max="${maxEditableQuantity}"
@@ -51,18 +55,17 @@
                 <p id="quantityError" style="color: var(--danger); font-size: 12px; margin-top: 5px; display: none;">
                     La cantidad no puede exceder el máximo posible (<span th:text="${maxEditableQuantity}"></span> kg).
                 </p>
-                <p class="form-info">Stock disponible + esta venta: <span th:text="${maxEditableQuantity}"></span> kg.</p>
+                <p class="form-info">Stock actual disponible + esta venta: <span th:text="${maxEditableQuantity}"></span> kg.</p>
             </div>
 
             <div class="form-group">
-                <label for="pricePerUnitSold" class="form-label">Precio por Kg (CRC):</label>
+                <label for="pricePerUnitSold" class="form-label">Precio por Kg (CRC)*:</label>
                 <input type="number" id="pricePerUnitSold" name="pricePerUnitSold" class="form-input" min="0.01" step="0.01" required
                        th:value="${#numbers.formatDecimal(sale.pricePerUnitSold, 1, 2, 'POINT')}"
                        placeholder="Ej: 150.50" title="Precio de venta por kg">
             </div>
 
             <div id="totalSaleDisplay" style="margin-top: 15px; margin-bottom: 20px; font-weight: bold; font-size: 1.1em; color: var(--primary); text-align: right; border-top: 1px dashed var(--border-light); padding-top: 10px;">
-                <!-- El total se calculará con JS -->
             </div>
 
             <hr style="margin: 20px 0; border: none; border-top: 1px dashed var(--border-light);"/>
@@ -70,13 +73,13 @@
             <h3 style="margin-bottom: 15px; color: var(--primary);">Datos del Comprador</h3>
 
             <div class="form-group">
-                <label for="buyerName" class="form-label">Nombre del Comprador:</label>
+                <label for="buyerName" class="form-label">Nombre del Comprador*:</label>
                 <input type="text" id="buyerName" name="buyerName" class="form-input" required maxlength="100"
                        th:value="${sale.buyerName}" placeholder="Nombre completo del cliente">
             </div>
 
             <div class="form-group">
-                <label for="buyerPhone" class="form-label">Teléfono del Comprador:</label>
+                <label for="buyerPhone" class="form-label">Teléfono del Comprador*:</label>
                 <input type="tel" id="buyerPhone" name="buyerPhone" class="form-input" required pattern="[246789]\d{7}" maxlength="8"
                        th:value="${sale.buyerPhone}" placeholder="Ej: 88776655" title="Número de 8 dígitos válido en CR">
             </div>
@@ -104,7 +107,6 @@
         </form>
     </div>
 
-    <!-- Mensaje si la venta no se encontró -->
     <div th:if="${sale == null}" class="info-card">
         <span class="material-symbols-outlined icon">error</span>
         <h2>Venta no encontrada</h2>
@@ -113,7 +115,6 @@
             <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
         </a>
     </div>
-    <!-- Mensaje si la cosecha asociada no existe -->
     <div th:if="${sale != null and harvest == null}" class="info-card">
         <span class="material-symbols-outlined icon">error</span>
         <h2>Error: Cosecha no encontrada</h2>
@@ -125,27 +126,9 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script>
-<!-- Script para actualizar max y validar cantidad -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-    // Asegurarse que la validación y el cálculo del total se ejecuten al cargar y al cambiar
-    const quantityInputEdit = document.getElementById('quantitySold');
-  const priceInputEdit = document.getElementById('pricePerUnitSold');
-
-// Llama a la validación inicial (puede que ya esté cubierta por app.js, pero es seguro)
-   if (quantityInputEdit) {
-validateQuantityInput(); // Función definida en app.js
-        quantityInputEdit.addEventListener('input', validateQuantityInput);
-        quantityInputEdit.addEventListener('input', calculateAndDisplayTotalSale); // Llama al cálculo
-   }
-           if (priceInputEdit) {
-    priceInputEdit.addEventListener('input', calculateAndDisplayTotalSale); // Llama al cálculo
-    }
-// Llama al cálculo inicial
-calculateAndDisplayTotalSale(); // Función definida en app.js
-});
-</script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/Sales.js}"></script>
 </body>
 </html>

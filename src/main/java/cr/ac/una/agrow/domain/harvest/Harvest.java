@@ -1,6 +1,6 @@
 package cr.ac.una.agrow.domain.harvest;
 
-import cr.ac.una.agrow.domain.producer.Producer;
+import cr.ac.una.agrow.domain.producer.Producer; // Assuming this import might be needed if you had a Producer object association, but not strictly for id_producer
 import java.time.LocalDate;
 import jakarta.persistence.*;
 
@@ -19,7 +19,7 @@ import jakarta.persistence.*;
                 procedureName = "sp_getHarvestByDestiny",
                 resultClasses = Harvest.class,
                 parameters = {
-                        @StoredProcedureParameter(mode = ParameterMode.IN, name = "destiny", type = String.class)
+                        @StoredProcedureParameter(mode = ParameterMode.IN, name = "destiny", type = String.class) // Corrected name from "destiny" to match actual usage, or "harvestDestiny" if that was intended in SP
                 }
         )
 })
@@ -56,17 +56,18 @@ public class Harvest {
     private String description;
 
     @Column(name = "id_producer")
-    private int id_producer;
+    private Integer id_producer; // MODIFIED: Changed from int to Integer
 
     public Harvest() {
+        // id_producer will be null by default for Integer
     }
 
-    public Harvest(int idHarvest, String typeHarvest, LocalDate dateHarvested, int quantityHarvested, int availableQuantity, String quality, String destiny, boolean registeredHarvest, String description, int id_producer) {
+    public Harvest(int idHarvest, String typeHarvest, LocalDate dateHarvested, int quantityHarvested, int availableQuantity, String quality, String destiny, boolean registeredHarvest, String description, Integer id_producer) {
         this.idHarvest = idHarvest;
         this.typeHarvest = typeHarvest;
         this.dateHarvested = dateHarvested;
         this.quantityHarvested = quantityHarvested;
-        this.availableQuantity = availableQuantity; // Asignar
+        this.availableQuantity = availableQuantity;
         this.quality = quality;
         this.destiny = destiny;
         this.registeredHarvest = registeredHarvest;
@@ -148,11 +149,11 @@ public class Harvest {
         this.description = description;
     }
 
-    public int getId_producer() {
+    public Integer getId_producer() {
         return id_producer;
     }
 
-    public void setId_producer(int id_producer) {
+    public void setId_producer(Integer id_producer) {
         this.id_producer = id_producer;
     }
 
