@@ -1,5 +1,7 @@
+
 package cr.ac.una.agrow.service;
 
+import cr.ac.una.agrow.domain.User;
 import cr.ac.una.agrow.domain.supplier.Supplier;
 import cr.ac.una.agrow.domain.Supply;
 import cr.ac.una.agrow.jpa.SupplierRepository;
@@ -30,7 +32,6 @@ public class SupplyService {
     @Transactional(readOnly = true)
     public Optional<Supply> getSupplyById(int idSupply) {
         try {
-
             return supplyRepository.findById(idSupply);
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error accessing data for supply ID: " + idSupply, e);
@@ -39,20 +40,19 @@ public class SupplyService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Supply> getAllSuppliesPaginated(Pageable pageable) {
+    public Page<Supply> getFilteredSuppliesPaginated(String searchTerm, String category, Integer supplierId, User loggedInUser, Pageable pageable) {
         try {
-            return supplyRepository.findAll(pageable);
-        } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error accessing data for all supplies pagination", e);
-            return Page.empty(pageable);
-        }
-    }
+            Integer currentUserId = (loggedInUser != null) ? loggedInUser.getId_User() : null;
+            Page<Supply> supplyPage = supplyRepository.findFilteredSuppliesWithOwnerPriority(searchTerm, category, supplierId, currentUserId, pageable);
 
-    @Transactional(readOnly = true)
-    public Page<Supply> getFilteredSuppliesPaginated(String searchTerm, String category, Integer supplierId, Pageable pageable) {
-        try {
-
-            return supplyRepository.findFilteredSupplies(searchTerm, category, supplierId, pageable);
+            if (loggedInUser != null) {
+                supplyPage.getContent().forEach(supply -> {
+                    if (supply.getCreatedByUser() != null && supply.getCreatedByUser().getId_User() == loggedInUser.getId_User()) {
+                        supply.setOwner(true);
+                    }
+                });
+            }
+            return supplyPage;
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error accessing data during filtered supply pagination", e);
             return Page.empty(pageable);
@@ -60,34 +60,69 @@ public class SupplyService {
     }
 
     @Transactional
-    public boolean saveSupply(Supply supply) {
+    public boolean saveSupply(Supply supply, User loggedInUser) {
         try {
+            if (supply.getIdSupply() == 0 && loggedInUser != null) {
+                supply.setCreatedByUser(loggedInUser);
+            }
 
             supplyRepository.save(supply);
             return true;
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error saving supply: " + (supply != null ? supply.getName() : "null"), e);
-
             return false;
         }
     }
 
     @Transactional
-    public boolean deleteSupplyById(int idSupply) {
-        if (!supplyRepository.existsById(idSupply)) {
+    public boolean updateSupply(Supply supply, User loggedInUser) {
+        Optional<Supply> existingSupplyOpt = supplyRepository.findById(supply.getIdSupply());
+        if (existingSupplyOpt.isEmpty()) {
+            LOG.warning("Attempt to update non-existent supply ID: " + supply.getIdSupply());
+            return false; // O lanzar excepción
+        }
+        Supply existingSupply = existingSupplyOpt.get();
+
+        // Verificar propiedad si no es admin
+        if (!"Administrador".equals(loggedInUser.getType())) {
+            if (existingSupply.getCreatedByUser() == null || existingSupply.getCreatedByUser().getId_User() != loggedInUser.getId_User()) {
+                LOG.warning("User " + loggedInUser.getUser() + " attempted to update supply " + supply.getIdSupply() + " without ownership.");
+
+                return false;
+            }
+        }
+        // Conservar el creador original
+        supply.setCreatedByUser(existingSupply.getCreatedByUser());
+        return saveSupply(supply, loggedInUser);
+    }
+
+
+    @Transactional
+    public boolean deleteSupplyById(int idSupply, User loggedInUser) {
+        Optional<Supply> supplyOpt = supplyRepository.findById(idSupply);
+        if (supplyOpt.isEmpty()) {
             LOG.log(Level.WARNING, "Attempted to delete non-existent supply ID: " + idSupply);
             return false;
         }
+        Supply supplyToDelete = supplyOpt.get();
+
+        // Verificar propiedad si no es admin
+        if (!"Administrador".equals(loggedInUser.getType())) {
+            if (supplyToDelete.getCreatedByUser() == null || supplyToDelete.getCreatedByUser().getId_User() != loggedInUser.getId_User()) {
+                LOG.warning("User " + loggedInUser.getUser() + " attempted to delete supply " + idSupply + " without ownership.");
+
+                return false;
+            }
+        }
+
         try {
             supplyRepository.deleteById(idSupply);
             return true;
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error deleting supply ID: " + idSupply, e);
-
             return false;
         }
     }
-
 
     @Transactional(readOnly = true)
     public List<Supplier> getAllSuppliers() {
@@ -97,9 +132,6 @@ public class SupplyService {
     @Transactional(readOnly = true)
     public Optional<Supplier> findSupplierById(Integer supplierId) {
         if (supplierId == null) return Optional.empty();
-        // Quita el try-catch o relanza la excepción
         return supplierRepository.findById(supplierId);
     }
-
-
 }

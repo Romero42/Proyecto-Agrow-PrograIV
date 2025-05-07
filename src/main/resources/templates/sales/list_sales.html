@@ -60,7 +60,7 @@
   </form>
 
   <div id="sales-list-content">
-    <div th:replace="~{sales/table_sales :: salesTableContent}"></div>
+    <div th:replace="~{sales/table_sales :: salesTableContent(loggedInUser=${loggedInUser})}"></div>
   </div>
 
   <div style="margin-top: 20px;">

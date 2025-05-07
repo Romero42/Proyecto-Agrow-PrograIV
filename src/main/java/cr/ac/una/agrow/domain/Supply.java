@@ -1,3 +1,4 @@
+
 package cr.ac.una.agrow.domain;
 
 import cr.ac.una.agrow.domain.supplier.Supplier;
@@ -38,11 +39,18 @@ public class Supply {
     @JoinColumn(name = "supplierId", nullable = false)
     private Supplier supplier;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", nullable = true)
+    private User createdByUser;
+
     @Transient
     private String supplierName;
 
     @Transient
     private String estado;
+
+    @Transient
+    private boolean owner = false; // Para la vista
 
     private static final DateTimeFormatter FORMAT_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FORMAT_YYYY_MM_DD = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -63,6 +71,8 @@ public class Supply {
         this.expirationDate = expirationDate;
         this.supplier = supplier;
     }
+
+    // Getters y Setters
 
     public int getIdSupply() { return idSupply; }
     public void setIdSupply(int idSupply) { this.idSupply = idSupply; }
@@ -97,6 +107,12 @@ public class Supply {
     public Supplier getSupplier() { return supplier; }
     public void setSupplier(Supplier supplier) { this.supplier = supplier; }
 
+    public User getCreatedByUser() { return createdByUser; }
+    public void setCreatedByUser(User createdByUser) { this.createdByUser = createdByUser; }
+
+    public boolean isOwner() { return owner; }
+    public void setOwner(boolean owner) { this.owner = owner; }
+
     public String getFormattedExpirationDate() {
         if (expirationDate == null) return "-";
         return expirationDate.format(FORMAT_DD_MM_YYYY);
@@ -112,7 +128,6 @@ public class Supply {
     }
 
     public String getEstado() {
-        // Calculation remains the same logic, using double comparison
         if (this.stock <= 0) return "Agotado";
         if (this.stock <= this.stockMinimo) return "Bajo";
         return "Óptimo";
@@ -129,13 +144,14 @@ public class Supply {
                 "idSupply=" + idSupply +
                 ", name='" + name + '\'' +
                 ", category='" + category + '\'' +
-                ", stock=" + stock + // double prints directly
+                ", stock=" + stock +
                 ", stockMinimo=" + stockMinimo +
                 ", unitType='" + unitType + '\'' +
                 ", pricePerUnit=" + pricePerUnit +
                 ", expirationDate=" + expirationDate +
                 ", supplierId=" + getSupplierId() +
                 ", supplierName='" + getSupplierName() + '\'' +
+                ", createdByUserId=" + (createdByUser != null ? createdByUser.getId_User() : "null") +
                 ", estado='" + getEstado() + '\'' +
                 '}';
     }

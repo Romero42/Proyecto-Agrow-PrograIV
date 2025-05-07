@@ -1,6 +1,7 @@
-// src/main/java/cr/ac/una/agrow/service/SaleService.java
+
 package cr.ac.una.agrow.service;
 
+import cr.ac.una.agrow.domain.User;
 import cr.ac.una.agrow.domain.harvest.Harvest;
 import cr.ac.una.agrow.domain.Sale;
 import cr.ac.una.agrow.jpa.HarvestRepository;
@@ -31,7 +32,7 @@ public class SaleService {
     private HarvestRepository harvestRepository;
 
     @Transactional
-    public boolean processSale(Sale sale, int quantityToSell) throws IllegalArgumentException {
+    public boolean processSale(Sale sale, int quantityToSell, User loggedInUser) throws IllegalArgumentException { // Added loggedInUser
         if (sale == null || sale.getHarvest() == null || sale.getHarvest().getIdHarvest() <= 0) {
             LOG.warning("Intento de procesar venta con datos inválidos (sale o harvest nulo/inválido).");
             throw new IllegalArgumentException("Datos de venta inválidos.");
@@ -57,6 +58,9 @@ public class SaleService {
             sale.setHarvest(harvest);
             sale.setQuantitySold(quantityToSell);
             sale.setTotalSaleAmount(sale.getPricePerUnitSold() * quantityToSell);
+            if (loggedInUser != null) {
+                sale.setCreatedByUser(loggedInUser);
+            }
             saleRepository.save(sale);
 
             LOG.info("Venta procesada exitosamente para cosecha ID: " + harvest.getIdHarvest() + ", Cantidad: " + quantityToSell);
@@ -72,7 +76,7 @@ public class SaleService {
     }
 
     @Transactional
-    public boolean updateSale(Sale updatedSaleData, int newQuantitySold) throws IllegalArgumentException, RuntimeException {
+    public boolean updateSale(Sale updatedSaleData, int newQuantitySold, User loggedInUser) throws IllegalArgumentException, RuntimeException {
         if (updatedSaleData == null || updatedSaleData.getIdSale() <= 0) {
             throw new IllegalArgumentException("ID de venta inválido para actualizar.");
         }
@@ -82,6 +86,14 @@ public class SaleService {
             throw new IllegalArgumentException("Venta con ID " + updatedSaleData.getIdSale() + " no encontrada para actualizar.");
         }
         Sale originalSale = originalSaleOpt.get();
+
+        // Verificar propiedad si no es admin
+        if (!"Administrador".equals(loggedInUser.getType())) {
+            if (originalSale.getCreatedByUser() == null || originalSale.getCreatedByUser().getId_User() != loggedInUser.getId_User()) {
+                LOG.warning("User " + loggedInUser.getUser() + " attempted to update sale " + originalSale.getIdSale() + " without ownership.");
+                throw new SecurityException("No tiene permisos para actualizar esta venta.");
+            }
+        }
 
         if (newQuantitySold <= 0) {
             throw new IllegalArgumentException("La nueva cantidad vendida debe ser mayor que cero.");
@@ -99,11 +111,13 @@ public class SaleService {
                     .orElseThrow(() -> new RuntimeException("Cosecha asociada (ID: " + originalSale.getHarvest().getIdHarvest() + ") no encontrada."));
 
             int quantityDifference = newQuantitySold - originalSale.getQuantitySold();
-            int currentAvailableWithRestore = harvest.getAvailableQuantity() + originalSale.getQuantitySold();
 
-            if (newQuantitySold > currentAvailableWithRestore) {
-                throw new IllegalArgumentException("Stock insuficiente para la nueva cantidad. Máximo posible: " + currentAvailableWithRestore + ", Solicitado: " + newQuantitySold);
+            if (quantityDifference > 0 && harvest.getAvailableQuantity() < quantityDifference) {
+                throw new IllegalArgumentException("Stock insuficiente para la nueva cantidad. Adicional requerido: " + quantityDifference + ", Disponible: " + harvest.getAvailableQuantity());
+            } else if (quantityDifference < 0 && (-quantityDifference > originalSale.getQuantitySold())) {
+
             }
+
 
             harvest.setAvailableQuantity(harvest.getAvailableQuantity() - quantityDifference);
             harvestRepository.save(harvest);
@@ -116,6 +130,7 @@ public class SaleService {
             originalSale.setQuantitySold(newQuantitySold);
             originalSale.setSaleDate(updatedSaleData.getSaleDate());
             originalSale.setTotalSaleAmount(newQuantitySold * updatedSaleData.getPricePerUnitSold());
+            // El createdByUser no se modifica en una actualización
 
             saleRepository.save(originalSale);
 
@@ -129,13 +144,21 @@ public class SaleService {
     }
 
     @Transactional
-    public boolean deleteSale(int idSale) throws RuntimeException {
+    public boolean deleteSale(int idSale, User loggedInUser) throws RuntimeException {
         Optional<Sale> saleOpt = saleRepository.findById(idSale);
         if (saleOpt.isEmpty()) {
             LOG.warning("Intento de eliminar venta no existente ID: " + idSale);
             return false;
         }
         Sale saleToDelete = saleOpt.get();
+
+        // Verificar propiedad si no es admin
+        if (!"Administrador".equals(loggedInUser.getType())) {
+            if (saleToDelete.getCreatedByUser() == null || saleToDelete.getCreatedByUser().getId_User() != loggedInUser.getId_User()) {
+                LOG.warning("User " + loggedInUser.getUser() + " attempted to delete sale " + idSale + " without ownership.");
+                throw new SecurityException("No tiene permisos para eliminar esta venta.");
+            }
+        }
 
         try {
             Harvest harvest = harvestRepository.findById(saleToDelete.getHarvest().getIdHarvest())
@@ -156,22 +179,20 @@ public class SaleService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Sale> listAllSales(Pageable pageable) {
+    public Page<Sale> listFilteredSales(LocalDate saleDate, String buyerName, User loggedInUser, Pageable pageable) {
         try {
-            // Llama al método de filtrado sin filtros para obtener todas las ventas
-            return saleRepository.findFilteredSales(null, null, pageable);
-        } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al listar ventas paginadas", e);
-            return Page.empty(pageable);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Sale> listFilteredSales(LocalDate saleDate, String buyerName, Pageable pageable) {
-        try {
-            // Normalizar buyerName: si es vacío, tratar como nulo para la consulta
             String effectiveBuyerName = (buyerName != null && buyerName.trim().isEmpty()) ? null : buyerName;
-            return saleRepository.findFilteredSales(saleDate, effectiveBuyerName, pageable);
+            Integer currentUserId = (loggedInUser != null) ? loggedInUser.getId_User() : null;
+            Page<Sale> salesPage = saleRepository.findFilteredSalesWithOwnerPriority(saleDate, effectiveBuyerName, currentUserId, pageable);
+
+            if (loggedInUser != null) {
+                salesPage.getContent().forEach(sale -> {
+                    if (sale.getCreatedByUser() != null && sale.getCreatedByUser().getId_User() == loggedInUser.getId_User()) {
+                        sale.setOwner(true);
+                    }
+                });
+            }
+            return salesPage;
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error al listar ventas filtradas", e);
             return Page.empty(pageable);
