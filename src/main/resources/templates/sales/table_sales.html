@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -23,11 +24,12 @@
                     <th>Cantidad (kg)</th>
                     <th>Precio Unit.</th>
                     <th>Total Venta</th>
+                    <th th:if="${loggedInUser != null}">Registrada por</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="sale : ${salesPage.content}">
+                <tr th:each="sale : ${salesPage.content}" th:classappend="${sale.owner} ? 'owner-row-highlight' : ''">
                     <td th:text="${sale.getFormattedSaleDate()}"></td>
                     <td th:text="${sale.buyerName}"></td>
                     <td th:text="${sale.buyerPhone}"></td>
@@ -35,21 +37,24 @@
                     <td class="numeric-display" th:text="${#numbers.formatDecimal(sale.quantitySold, 1, 0, 'POINT')}"></td>
                     <td class="price-display" th:attr="data-value=${sale.pricePerUnitSold}"></td>
                     <td class="price-display" th:attr="data-value=${sale.totalSaleAmount}"></td>
+                    <td th:if="${loggedInUser != null}" th:text="${sale.createdByUser?.name ?: 'Sistema'}"></td>
                     <td>
                         <div class="action-buttons">
                             <a th:href="@{/sales/view(idSale=${sale.idSale})}" class="btns view-btns" title="Ver Detalles">
                                 <span class="material-symbols-outlined icon">visibility</span>
                             </a>
-                            <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
+                            <!-- Condición para Editar -->
+                            <a th:if="${session.loggedInUser != null && (session.loggedInUser.type == 'Administrador' or sale.owner)}"
+                               th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
                                 <span class="material-symbols-outlined icon">edit</span>
                             </a>
-
-                            <a th:href="@{/reviews/form/sale/{id}(id=${sale.idSale})}"
+                            <!-- Condición para Registrar Reseña -->
+                            <a th:if="${session.loggedInUser != null and (session.loggedInUser.type == 'Administrador' or sale.owner)}"
+                               th:href="@{/reviews/form/sale/{id}(id=${sale.idSale})}"
                                class="btns review-btns"
                                title="Registrar Reseña">
                                 <span class="material-symbols-outlined icon">star</span>
                             </a>
-
 
                             <a th:href="@{/sales/print-receipt(idSale=${sale.idSale})}"
                                class="btns view-btns confirm-action"
@@ -61,7 +66,9 @@
                                data-icon="info">
                                 <span class="material-symbols-outlined icon">print</span>
                             </a>
-                            <form th:action="@{/sales/delete}" method="post" class="confirm-action"
+                            <!-- Condición para Eliminar -->
+                            <form th:if="${session.loggedInUser != null && (session.loggedInUser.type == 'Administrador' or sale.owner)}"
+                                  th:action="@{/sales/delete}" method="post" class="confirm-action"
                                   data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
                                   data-title="Confirmar Eliminación"
                                   style="margin:0; padding:0; display:inline;">
@@ -83,8 +90,8 @@
             <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
                 <a th:if="${currentPage > 0}" href="#"
                    th:attr="data-page=${currentPage - 1},
-                            data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
-                            data-buyername=${currentBuyerName}">«</a>
+data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
+data-buyername=${currentBuyerName}">«</a>
                 <span th:unless="${currentPage > 0}">«</span>
             </li>
             <th:block th:if="${startPage != null and endPage != null and startPage <= endPage}">
@@ -92,8 +99,8 @@
                     th:classappend="${i == currentPage} ? 'active' : ''">
                     <a th:if="${i != currentPage}" href="#"
                        th:attr="data-page=${i},
-                                 data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
-                                 data-buyername=${currentBuyerName}"
+data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
+data-buyername=${currentBuyerName}"
                        th:text="${i + 1}"></a>
                     <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
                 </li>
@@ -101,13 +108,12 @@
             <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
                 <a th:if="${currentPage < totalPages - 1}" href="#"
                    th:attr="data-page=${currentPage + 1},
-                            data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
-                            data-buyername=${currentBuyerName}">»</a>
+data-saledate=${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''},
+data-buyername=${currentBuyerName}">»</a>
                 <span th:unless="${currentPage < totalPages - 1}">»</span>
             </li>
         </ul>
     </div>
 </div>
-
 </body>
 </html>

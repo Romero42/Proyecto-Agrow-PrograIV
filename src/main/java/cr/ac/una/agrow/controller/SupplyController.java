@@ -1,8 +1,11 @@
+
 package cr.ac.una.agrow.controller;
 
+import cr.ac.una.agrow.domain.User;
 import cr.ac.una.agrow.domain.supplier.Supplier;
 import cr.ac.una.agrow.domain.Supply;
 import cr.ac.una.agrow.service.SupplyService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,8 +16,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +25,6 @@ import java.util.Optional;
 public class SupplyController {
 
     private static final int MAX_VISIBLE_PAGINATION_LINKS = 5;
-
-    private static final DateTimeFormatter DATE_FORMAT_INPUT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final int DEFAULT_PAGE_SIZE = 5;
 
     @Autowired
@@ -36,22 +35,27 @@ public class SupplyController {
         model.addAttribute("suppliers", suppliers != null ? suppliers : Collections.emptyList());
     }
 
+    private User getLoggedInUser(HttpSession session) {
+        return (User) session.getAttribute("loggedInUser");
+    }
+
     @GetMapping("/list")
     public String listSupplies(
             @RequestParam(value = "searchTerm", required = false) String searchTerm,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "supplierId", required = false) Integer supplierId,
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model, HttpSession session) {
 
+        User loggedInUser = getLoggedInUser(session);
         Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
         Page<Supply> supplyPage;
         String validationMessage = null;
         int totalPages = 0;
 
         try {
-            supplyPage = supplyService.getFilteredSuppliesPaginated(searchTerm, category, supplierId, pageable);
-            totalPages = supplyPage.getTotalPages(); // Get total pages
+            supplyPage = supplyService.getFilteredSuppliesPaginated(searchTerm, category, supplierId, loggedInUser, pageable);
+            totalPages = supplyPage.getTotalPages();
 
             if (supplyPage.isEmpty()) {
                 validationMessage = (searchTerm != null || category != null || supplierId != null)
@@ -77,11 +81,10 @@ public class SupplyController {
                     startPage = Math.max(0, endPage - MAX_VISIBLE_PAGINATION_LINKS + 1);
                 }
             }
-
             if (totalPages == 0) {
-                startPage = 0;
-                endPage = -1;
+                startPage = 0; endPage = -1;
             }
+
 
             model.addAttribute("supplies", supplyPage.getContent());
             model.addAttribute("totalPages", totalPages);
@@ -90,13 +93,13 @@ public class SupplyController {
             model.addAttribute("startPage", startPage);
             model.addAttribute("endPage", endPage);
 
+
             if (supplierId != null && supplierId > 0) {
                 Optional<Supplier> filteredSupplierOpt = supplyService.findSupplierById(supplierId);
                 model.addAttribute("titulo", filteredSupplierOpt.map(s -> "Suministros del Proveedor: " + s.getCompanyName()).orElse("Suministros (Proveedor ID: " + supplierId + " no encontrado)"));
             } else {
                 model.addAttribute("titulo", "Listado de Suministros");
             }
-
 
         } catch (Exception e) {
             validationMessage = "Error al cargar la lista de suministros: " + e.getMessage();
@@ -116,6 +119,7 @@ public class SupplyController {
         model.addAttribute("selectedSupplierId", supplierId);
         model.addAttribute("activeModule", "supply");
         model.addAttribute("activePage", "list");
+        model.addAttribute("loggedInUser", loggedInUser); // Pasar usuario a la vista
 
         return "supply/list_supply";
     }
@@ -126,15 +130,16 @@ public class SupplyController {
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "supplierId", required = false) Integer supplierId,
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model, HttpSession session) {
 
+        User loggedInUser = getLoggedInUser(session);
         Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
         Page<Supply> supplyPage;
         String validationMessage = null;
         int totalPages = 0;
 
         try {
-            supplyPage = supplyService.getFilteredSuppliesPaginated(searchTerm, category, supplierId, pageable);
+            supplyPage = supplyService.getFilteredSuppliesPaginated(searchTerm, category, supplierId, loggedInUser, pageable);
             totalPages = supplyPage.getTotalPages();
             if (supplyPage.isEmpty()) {
                 validationMessage = "No se encontraron suministros con los filtros aplicados.";
@@ -142,9 +147,7 @@ public class SupplyController {
         } catch (Exception e) {
             supplyPage = Page.empty(pageable);
             validationMessage = "Error al cargar los datos: " + e.getMessage();
-            totalPages = 0;
         }
-
         int startPage;
         int endPage;
         if (totalPages <= MAX_VISIBLE_PAGINATION_LINKS) {
@@ -163,20 +166,20 @@ public class SupplyController {
             }
         }
         if (totalPages == 0) {
-            startPage = 0;
-            endPage = -1;
+            startPage = 0; endPage = -1;
         }
 
         model.addAttribute("supplies", supplyPage.getContent());
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalItems", supplyPage.getTotalElements());
-        model.addAttribute("startPage", startPage); // Pass range to fragment
-        model.addAttribute("endPage", endPage);     // Pass range to fragment
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
         model.addAttribute("validate", validationMessage);
         model.addAttribute("searchTerm", searchTerm);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedSupplierId", supplierId);
+        model.addAttribute("loggedInUser", loggedInUser); // Pasar usuario a la vista
 
         return "supply/table_supply :: supplyTable";
     }
@@ -200,8 +203,14 @@ public class SupplyController {
     @PostMapping("/save")
     public String saveSupply(@ModelAttribute Supply supply,
                              @RequestParam("supplierId") Integer supplierId,
-                             BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes) {
+                             BindingResult bindingResult, // Descomentar si se usa @Validated
+                             RedirectAttributes redirectAttributes, HttpSession session) {
+
+        User loggedInUser = getLoggedInUser(session);
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("error", "Debe iniciar sesión para realizar esta acción.");
+            return "redirect:/login";
+        }
 
         Optional<Supplier> supplierOpt = supplyService.findSupplierById(supplierId);
         if (supplierOpt.isEmpty()) {
@@ -222,7 +231,7 @@ public class SupplyController {
         supply.setCategory(supply.getCategory().trim());
         supply.setUnitType(supply.getUnitType().trim());
 
-        if (supplyService.saveSupply(supply)) {
+        if (supplyService.saveSupply(supply, loggedInUser)) { // Pass loggedInUser
             redirectAttributes.addFlashAttribute("mensaje", "Suministro '" + supply.getName() + "' guardado exitosamente.");
             return "redirect:/supplies/list";
         } else {
@@ -233,29 +242,51 @@ public class SupplyController {
     }
 
     @GetMapping("/edit")
-    public String editSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes) {
+    public String editSupply(@RequestParam("idSupply") int idSupply, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        User loggedInUser = getLoggedInUser(session);
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("error", "Debe iniciar sesión para editar.");
+            return "redirect:/login";
+        }
+
         Optional<Supply> supplyOpt = supplyService.getSupplyById(idSupply);
         if (supplyOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "El suministro seleccionado (ID: " + idSupply + ") no existe.");
             return "redirect:/supplies/list";
         }
+        Supply supplyToEdit = supplyOpt.get();
+
+        // Comprobar propiedad si no es Admin
+        if (!"Administrador".equals(loggedInUser.getType())) {
+            if (supplyToEdit.getCreatedByUser() == null || supplyToEdit.getCreatedByUser().getId_User() != loggedInUser.getId_User()) {
+                redirectAttributes.addFlashAttribute("error", "No tiene permisos para editar este suministro.");
+                return "redirect:/supplies/list";
+            }
+        }
+
         addSuppliersToModel(model);
-        model.addAttribute("supply", supplyOpt.get());
+        model.addAttribute("supply", supplyToEdit);
         model.addAttribute("activeModule", "supply");
         return "supply/edit_supply";
     }
 
-
     @PostMapping("/update")
     public String updateSupply(@ModelAttribute Supply supply,
                                @RequestParam("supplierId") Integer supplierId,
-                               BindingResult bindingResult,
-                               RedirectAttributes redirectAttributes) {
+                               // BindingResult bindingResult,
+                               RedirectAttributes redirectAttributes, HttpSession session) {
 
-        if (supply.getIdSupply() <= 0 || supplyService.getSupplyById(supply.getIdSupply()).isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Error: Suministro con ID " + supply.getIdSupply() + " no encontrado para actualizar.");
+        User loggedInUser = getLoggedInUser(session);
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("error", "Debe iniciar sesión para realizar esta acción.");
+            return "redirect:/login";
+        }
+
+        if (supply.getIdSupply() <= 0) {
+            redirectAttributes.addFlashAttribute("error", "Error: ID de Suministro inválido para actualizar.");
             return "redirect:/supplies/list";
         }
+
 
         Optional<Supplier> supplierOpt = supplyService.findSupplierById(supplierId);
         if (supplierOpt.isEmpty()) {
@@ -274,27 +305,34 @@ public class SupplyController {
         supply.setCategory(supply.getCategory().trim());
         supply.setUnitType(supply.getUnitType().trim());
 
-        if (supplyService.saveSupply(supply)) {
+        if (supplyService.updateSupply(supply, loggedInUser)) { // Pass loggedInUser
             redirectAttributes.addFlashAttribute("mensaje", "Suministro '" + supply.getName() + "' actualizado exitosamente.");
             return "redirect:/supplies/list";
         } else {
-            redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro en la base de datos.");
+            redirectAttributes.addFlashAttribute("error", "Error al actualizar el suministro. Verifique permisos o datos.");
             return "redirect:/supplies/edit?idSupply=" + supply.getIdSupply();
         }
     }
 
+
     @PostMapping("/delete")
-    public String deleteSupply(@RequestParam("idSupply") int idSupply, RedirectAttributes redirectAttributes) {
+    public String deleteSupply(@RequestParam("idSupply") int idSupply, RedirectAttributes redirectAttributes, HttpSession session) {
+        User loggedInUser = getLoggedInUser(session);
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("error", "Debe iniciar sesión para realizar esta acción.");
+            return "redirect:/login";
+        }
+
         Optional<Supply> supplyOpt = supplyService.getSupplyById(idSupply);
         String supplyName = supplyOpt.map(Supply::getName).orElse("ID " + idSupply);
 
-        if (supplyService.deleteSupplyById(idSupply)) {
+        if (supplyService.deleteSupplyById(idSupply, loggedInUser)) {
             redirectAttributes.addFlashAttribute("mensaje", "Suministro '" + supplyName + "' eliminado exitosamente.");
         } else {
             if (supplyOpt.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Error al eliminar: Suministro con ID " + idSupply + " no encontrado.");
             } else {
-                redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el suministro '" + supplyName + "'. Puede estar en uso o hubo un error.");
+                redirectAttributes.addFlashAttribute("error", "No se pudo eliminar el suministro '" + supplyName + "'. Verifique permisos o dependencias.");
             }
         }
         return "redirect:/supplies/list";
@@ -323,7 +361,11 @@ public class SupplyController {
         if (supply.getPricePerUnit() <= 0) return "El precio por unidad debe ser mayor que cero.";
 
         if (supply.getExpirationDate() == null) return "La fecha de vencimiento es obligatoria.";
-        if (supply.getExpirationDate().isBefore(LocalDate.now())) return "La fecha de vencimiento no puede ser pasada.";
+
+        if (supply.getIdSupply() == 0 && supply.getExpirationDate().isBefore(LocalDate.now())) {
+            return "La fecha de vencimiento no puede ser pasada para un nuevo suministro.";
+        }
+
 
         return null;
     }

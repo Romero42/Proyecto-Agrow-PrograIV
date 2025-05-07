@@ -57,7 +57,7 @@
             </div>
             <input type="hidden" name="page" value="0"> <!-- Asegurar que filtrar siempre va a la página 0 -->
             <div class="filter-buttons">
-                <!-- REMOVIDO onclick="filterSupplies();" -->
+
                 <button type="submit" class="btn btn-primary">
                     <span class="material-symbols-outlined icon">search</span> Filtrar
                 </button>
@@ -71,7 +71,7 @@
     <!-- El contenido de la tabla se carga aquí via AJAX -->
     <div id="supply-list-content">
         <!-- Incluye el fragmento inicial -->
-        <div th:replace="~{supply/table_supply :: supplyTable}"></div>
+        <div th:replace="~{supply/table_supply :: supplyTable(loggedInUser=${loggedInUser})}"></div>
     </div>
 
     <div style="margin-top: 20px;">

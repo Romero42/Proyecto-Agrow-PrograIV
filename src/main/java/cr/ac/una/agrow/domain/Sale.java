@@ -1,3 +1,4 @@
+
 package cr.ac.una.agrow.domain;
 
 import cr.ac.una.agrow.domain.harvest.Harvest;
@@ -42,13 +43,18 @@ public class Sale {
     @Column(name = "total_sale_amount", nullable = false, columnDefinition = "DECIMAL(12,2)")
     private double totalSaleAmount;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", nullable = true)
+    private User createdByUser;
+
+    @Transient
+    private boolean owner = false;
+
     private static final DateTimeFormatter FORMAT_DD_MM_YY = DateTimeFormatter.ofPattern("dd/MM/yy");
 
     public Sale() {
-
     }
 
-    // Constructor completo
     public Sale(Harvest harvest, int quantitySold, LocalDate saleDate, String buyerName, String buyerPhone, String buyerAddress, String transportOption, double pricePerUnitSold, double totalSaleAmount) {
         this.harvest = harvest;
         this.quantitySold = quantitySold;
@@ -61,87 +67,44 @@ public class Sale {
         this.totalSaleAmount = totalSaleAmount;
     }
 
-    // Getters y Setters
+    // Getters y Setters (incluir para createdByUser y owner)
 
-    public int getIdSale() {
-        return idSale;
-    }
+    public int getIdSale() { return idSale; }
+    public void setIdSale(int idSale) { this.idSale = idSale; }
 
-    public void setIdSale(int idSale) {
-        this.idSale = idSale;
-    }
+    public Harvest getHarvest() { return harvest; }
+    public void setHarvest(Harvest harvest) { this.harvest = harvest; }
 
-    public Harvest getHarvest() {
-        return harvest;
-    }
+    public int getQuantitySold() { return quantitySold; }
+    public void setQuantitySold(int quantitySold) { this.quantitySold = quantitySold; }
 
-    public void setHarvest(Harvest harvest) {
-        this.harvest = harvest;
-    }
+    public LocalDate getSaleDate() { return saleDate; }
+    public void setSaleDate(LocalDate saleDate) { this.saleDate = saleDate; }
 
-    public int getQuantitySold() {
-        return quantitySold;
-    }
+    public String getBuyerName() { return buyerName; }
+    public void setBuyerName(String buyerName) { this.buyerName = buyerName; }
 
-    public void setQuantitySold(int quantitySold) {
-        this.quantitySold = quantitySold;
-    }
+    public String getBuyerPhone() { return buyerPhone; }
+    public void setBuyerPhone(String buyerPhone) { this.buyerPhone = buyerPhone; }
 
-    public LocalDate getSaleDate() {
-        return saleDate;
-    }
+    public String getBuyerAddress() { return buyerAddress; }
+    public void setBuyerAddress(String buyerAddress) { this.buyerAddress = buyerAddress; }
 
-    public void setSaleDate(LocalDate saleDate) {
-        this.saleDate = saleDate;
-    }
+    public String getTransportOption() { return transportOption; }
+    public void setTransportOption(String transportOption) { this.transportOption = transportOption; }
 
-    public String getBuyerName() {
-        return buyerName;
-    }
+    public double getPricePerUnitSold() { return pricePerUnitSold; }
+    public void setPricePerUnitSold(double pricePerUnitSold) { this.pricePerUnitSold = pricePerUnitSold; }
 
-    public void setBuyerName(String buyerName) {
-        this.buyerName = buyerName;
-    }
+    public double getTotalSaleAmount() { return totalSaleAmount; }
+    public void setTotalSaleAmount(double totalSaleAmount) { this.totalSaleAmount = totalSaleAmount; }
 
-    public String getBuyerPhone() {
-        return buyerPhone;
-    }
+    public User getCreatedByUser() { return createdByUser; }
+    public void setCreatedByUser(User createdByUser) { this.createdByUser = createdByUser; }
 
-    public void setBuyerPhone(String buyerPhone) {
-        this.buyerPhone = buyerPhone;
-    }
+    public boolean isOwner() { return owner; }
+    public void setOwner(boolean owner) { this.owner = owner; }
 
-    public String getBuyerAddress() {
-        return buyerAddress;
-    }
-
-    public void setBuyerAddress(String buyerAddress) {
-        this.buyerAddress = buyerAddress;
-    }
-
-    public String getTransportOption() {
-        return transportOption;
-    }
-
-    public void setTransportOption(String transportOption) {
-        this.transportOption = transportOption;
-    }
-
-    public double getPricePerUnitSold() {
-        return pricePerUnitSold;
-    }
-
-    public void setPricePerUnitSold(double pricePerUnitSold) {
-        this.pricePerUnitSold = pricePerUnitSold;
-    }
-
-    public double getTotalSaleAmount() {
-        return totalSaleAmount;
-    }
-
-    public void setTotalSaleAmount(double totalSaleAmount) {
-        this.totalSaleAmount = totalSaleAmount;
-    }
 
     public String getFormattedSaleDate() {
         if (saleDate == null) return "-";
@@ -153,16 +116,16 @@ public class Sale {
         return saleDate.format(FORMAT_DD_MM_YY);
     }
 
-
     @Override
     public String toString() {
         return "Sale{" +
                 "idSale=" + idSale +
                 ", harvestId=" + (harvest != null ? harvest.getIdHarvest() : "null") +
                 ", quantitySold=" + quantitySold +
-                ", saleDate=" + getFormattedSaleDate() + // Use formatted date
+                ", saleDate=" + getFormattedSaleDate() +
                 ", buyerName='" + buyerName + '\'' +
                 ", totalSaleAmount=" + totalSaleAmount +
+                ", createdByUserId=" + (createdByUser != null ? createdByUser.getId_User() : "null") +
                 '}';
     }
 }
