@@ -1,71 +1,69 @@
-function getProducerFilters() {
-    const form = document.getElementById('filter-form-producer');
-    const params = new URLSearchParams();
-    if (!form) return params;
+//actualizar paginacionProducer
+function producer(element){
 
-    const city = form.querySelector('#city')?.value;
-    const id_producer = form.querySelector('#id_producer')?.value;
+    var tableCurrent = document.getElementById("table-producer");
+    var city = document.getElementById("city").value;
+    var lastCity = document.getElementById("lastCity").value;
+    var filter = document.getElementById("filter").value;
+    var id_producer = document.getElementById("id_producer").value;
+    var currentPage = element.getAttribute('data-page');
+    var buttonAction = element.getAttribute('data-button');
 
-    if (id_producer) {
-        params.append('id_producer', id_producer);
+    var params = "page=" + encodeURIComponent(currentPage);
+    var xhttp = new XMLHttpRequest();
 
-    } else if (city) {
-        params.append('city', city);
+    if(city && id_producer && buttonAction == 1){
+        mostrarAlerta("error", "Use solo un filtro")
+        return;
+
+    }else if(city === "" && buttonAction == 1 && !id_producer){
+
+        mostrarAlerta("error", "Seleccione una ciudad o busque por id")
+        return;
     }
-    return params;
+
+     if(buttonAction == 1 && id_producer || buttonAction == 1 && city){
+        currentPage = 0;
+     }
+
+     xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+            tableCurrent.innerHTML = this.responseText;
+        }
+     };
+
+      if(city && buttonAction == 1){
+
+          params = "city=" + encodeURIComponent(city)
+                 + "&page=" + encodeURIComponent(currentPage);
+      }else if(id_producer && buttonAction == 1){
+
+         params = "id_producer=" + encodeURIComponent(id_producer);
+      }else if(buttonAction == 0 && city && filter === "true" ||
+               buttonAction == 0 && id_producer && filter === "true"){
+
+            if(lastCity){
+                params = "page=" + encodeURIComponent(currentPage)
+                     + "&city=" + encodeURIComponent(lastCity);
+            }else{
+                params = "page=" + encodeURIComponent(currentPage)
+                        + "&city=" + encodeURIComponent(city);
+            }
+      }
+
+    xhttp.open("GET", "/producers/list?"+params, true);
+    xhttp.send();
 }
 
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const producerModuleConfig = {
-        filterFormId: 'filter-form-producer',
-        tableContentId: 'table-producer',
-        defaultPaginateUrl: '/producers/list', // URL base para peticiones AJAX
-        customFilterSubmitHandler: function(form) {
-            const formData = new FormData(form);
-            const params = new URLSearchParams(formData);
-            params.set('page', '0'); // Reiniciar a página 0 al filtrar
-
-            const city = params.get('city');
-            const id_producer = params.get('id_producer');
-
-            if (city && id_producer) {
-                swalAgrow.fire("Error", "Use solo un filtro a la vez (ciudad o ID).", "error");
-                return;
-            }
-            if (!city && !id_producer) {
-
-                console.log("No se especificó filtro para productores, mostrando todo o basado en la página.");
-            }
-            handleAjaxRequest(`${producerModuleConfig.defaultPaginateUrl}?${params.toString()}`, producerModuleConfig.tableContentId);
-        },
-        customPaginationHandler: function(link) {
-            const page = link.getAttribute('data-page');
-            const params = getProducerFilters(); // Obtener filtros actuales del formulario
-            params.set('page', page);
-            handleAjaxRequest(`${producerModuleConfig.defaultPaginateUrl}?${params.toString()}`, producerModuleConfig.tableContentId);
-        }
-    };
-
-    if (typeof attachGenericTableListeners === 'function') {
-        attachGenericTableListeners(producerModuleConfig);
-    } else {
-        console.error("attachGenericTableListeners is not defined. Ensure default.js is loaded.");
-    }
-
-    // Manejar el botón de filtro específico para productores si no usa envío de formulario
-    const filterButton = document.querySelector('#filter-form-producer button[onclick^="producer"]');
-    if (filterButton) {
-        filterButton.removeAttribute('onclick'); // Eliminar el handler inline antiguo
-        filterButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            const form = document.getElementById(producerModuleConfig.filterFormId);
-            if (form && producerModuleConfig.customFilterSubmitHandler) {
-                producerModuleConfig.customFilterSubmitHandler(form);
-            }
-        });
-    }
-
-    console.log("Producer module specific JS loaded.");
-});
+//ventana de mensaje del tipo que se obtiene
+function mostrarAlerta(tipo, mensaje) {
+    Swal.fire({
+        icon: tipo, // success, error, warning, info, question
+        text: mensaje,
+        title: '¡Error!',
+        timer: 2500,
+        timerProgressBar: true,
+        confirmButtonText: 'OK'
+    });
+}

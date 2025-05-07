@@ -78,8 +78,8 @@ public class MachineryRental_Controller {
     //guarda un alquiler y actualiza el estado de la maquina que se eligio
     @GetMapping("save")
     public String saveR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
-                       @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
-                       @RequestParam int machinery){
+                        @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
+                        @RequestParam int machinery){
 
         if(service.save(new machineryRental(renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
 
@@ -133,8 +133,8 @@ public class MachineryRental_Controller {
     //edita un alquiler en la bd y se actualiza el estado de la maquina si se elige otra
     @GetMapping("edit")
     public String editR(RedirectAttributes redirectAttributes, @RequestParam String renterName, @RequestParam String address,
-                       @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
-                       @RequestParam int machinery, @RequestParam int id_machinaryrental, @RequestParam int id_maquina){
+                        @RequestParam String contactNumber, @RequestParam LocalDate rentStartDay,  @RequestParam LocalDate rentFinalDay,
+                        @RequestParam int machinery, @RequestParam int id_machinaryrental, @RequestParam int id_maquina){
 
         if(service.update(new machineryRental(id_machinaryrental, renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
 

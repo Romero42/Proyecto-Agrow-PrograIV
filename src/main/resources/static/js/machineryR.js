@@ -1,99 +1,86 @@
-function getCurrentRentFilters() {
-    const form = document.getElementById('filter-form-rent');
-    const params = new URLSearchParams();
-    if (!form) return params;
+//actualizar paginacion en listAlquiler
+function pageRent(element){
 
-    const start = form.querySelector('#rentStartDay')?.value;
-    if (start) params.append('rentStartDay', start);
+    var tableCurrent = document.getElementById("tableData");
+    var currentPage = element.getAttribute('data-page');
 
-    const end = form.querySelector('#rentFinalDay')?.value;
-    if (end) params.append('rentFinalDay', end);
+    var xhttp = new XMLHttpRequest();
 
-    const id = form.querySelector('#id_maquina')?.value;
-    if (id) params.append('id_maquina', id);
-    return params;
-}
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
 
-function viewMaquina(link) {
-    if (!link) return;
-    const machineId = link.getAttribute('data-id');
-    const infoDiv = document.getElementById('infoMaquina');
-    if (infoDiv && machineId) {
-        handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
-    }
-}
-
-function cerrarInfoMaquina() {
-    const infoDiv = document.getElementById('infoMaquina');
-    if (infoDiv) infoDiv.innerHTML = "";
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const machineryRentalModuleConfig = {
-        filterFormId: 'filter-form-rent',
-        tableContentId: 'tableData', // ID del div que contiene el contenido de la tabla
-        defaultPaginateUrl: '/rent/pageCurrent', // URL base para paginación sin filtros
-        // Manejador personalizado de envío del formulario de filtro debido a validaciones específicas
-        customFilterSubmitHandler: function(form) {
-            const params = new URLSearchParams(new FormData(form));
-            params.set('page', '0'); // Reiniciar a página 0 al filtrar
-
-            const start = params.get('rentStartDay');
-            const end = params.get('rentFinalDay');
-            const id_maquina = params.get('id_maquina');
-
-            if ((start && id_maquina) || (end && id_maquina) || (start && end && id_maquina)) {
-                swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez (rango de fechas o código de máquina).", "error");
-                return;
-            }
-            if (start && end && start > end) {
-                swalAgrow.fire("Error", "La fecha de inicio no puede ser posterior a la fecha final.", "error");
-                return;
-            }
-            if (!start && !end && !id_maquina) {
-                swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
-                return;
-            }
-            // Realizar la petición con handleAjaxRequest
-            handleAjaxRequest(`/rent/tableFilter?${params.toString()}`, machineryRentalModuleConfig.tableContentId);
-        },
-        // Manejador personalizado de paginación para este módulo
-        customPaginationHandler: function(link) {
-            const page = link.getAttribute('data-page');
-            const params = getCurrentRentFilters(); // Obtener filtros actuales
-            params.set('page', page);
-
-            const hasFilters = params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina');
-            const endpoint = hasFilters ? '/rent/tableFilter' : machineryRentalModuleConfig.defaultPaginateUrl;
-
-            handleAjaxRequest(`${endpoint}?${params.toString()}`, machineryRentalModuleConfig.tableContentId);
+            tableCurrent.innerHTML = this.responseText;
         }
     };
 
-    // Adjuntar listeners genéricos y usar handlers personalizados
-    if (typeof attachGenericTableListeners === 'function') {
-         attachGenericTableListeners(machineryRentalModuleConfig);
+    xhttp.open("GET", "/rent/pageCurrent?page=" + currentPage, true);
+    xhttp.send();
+}
+
+//logica para la tabla de alquileres
+function filterRent(element) {
+
+    var tableUpdate = document.getElementById("tableData");
+    var rentStartDay = document.getElementById("rentStartDay").value;
+    var rentFinalDay = document.getElementById("rentFinalDay").value;
+    var id_maquina = document.getElementById("id_maquina").value;
+    var currentPage = element.getAttribute('data-page');
+
+    var params = "";
+    var xhttp = new XMLHttpRequest();
+
+
+    if (rentStartDay && rentFinalDay && id_maquina) {
+
+        mostrarAlerta("error", "Use solo un filtro")
+        return;
+    } else if (!rentStartDay && !rentFinalDay && !id_maquina) {
+
+        mostrarAlerta("error", "Filtros vacios")
+        return;
+    }else if(rentStartDay && id_maquina || rentFinalDay && id_maquina){
+
+        mostrarAlerta("error", "Use solo un filtro")
+        return;
+    }
+
+    if (rentStartDay && !rentFinalDay) {
+
+        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
+        + "&page=" + encodeURIComponent(currentPage);
+    } else if (!rentStartDay && rentFinalDay) {
+
+        params = "rentFinalDay=" + encodeURIComponent(rentFinalDay)
+        + "&page=" + encodeURIComponent(currentPage);
+    } else if (rentStartDay && rentFinalDay) {
+
+        params = "rentStartDay=" + encodeURIComponent(rentStartDay)
+            + "&rentFinalDay=" + encodeURIComponent(rentFinalDay)
+            + "&page=" + encodeURIComponent(currentPage);
     } else {
-        console.error("attachGenericTableListeners no está definido. Asegúrate de que default.js esté cargado.");
+
+        params = "id_maquina=" + encodeURIComponent(id_maquina);
     }
 
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
 
-    // Listener específico para el botón de filtro en machineryR.html
-    const filterButton = document.querySelector('#filter-form-rent button[onclick^="filterRent"]');
-    if (filterButton) {
-        filterButton.removeAttribute('onclick'); // Eliminar handler inline antiguo
-        filterButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            const form = document.getElementById(machineryRentalModuleConfig.filterFormId);
-            if (form && machineryRentalModuleConfig.customFilterSubmitHandler) {
-                machineryRentalModuleConfig.customFilterSubmitHandler(form);
-            }
-        });
-    }
-    console.log("JS específico del módulo de alquiler de maquinaria cargado.");
-});
+            tableUpdate.innerHTML = this.responseText;
+        }
+    };
 
-window.viewMaquina = viewMaquina;
-window.cerrarInfoMaquina = cerrarInfoMaquina;
+    xhttp.open("GET", "/rent/tableFilter?" + params, true);
+    xhttp.send();
+}
+
+//ventana de mensaje del tipo que se obtiene
+function mostrarAlerta(tipo, mensaje) {
+    Swal.fire({
+        icon: tipo, // success, error, warning, info, question
+        text: mensaje,
+        title: '¡Error!',
+        timer: 2500,
+        timerProgressBar: true,
+        confirmButtonText: 'OK'
+    });
+}
