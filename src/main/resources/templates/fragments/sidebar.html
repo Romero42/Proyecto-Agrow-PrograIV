@@ -13,7 +13,7 @@
     <div class="sidebar-section">
         <div class="sidebar-section-title">PRINCIPAL</div>
         <div class="sidebar-menu">
-            <a th:href="@{/index}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
+            <a th:href="@{/homeIndex}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
                 <span class="material-symbols-outlined icon">home</span>
                 Inicio
             </a>
@@ -69,19 +69,36 @@
                 Solicitudes
             </a>
 
-            <!-- Enlace Usuarios -->
-            <a th:href="@{/user/list}" th:classappend="${activeModule == 'user'} ? ' active' : ''">
+            <!-- Enlace Reseñas -->
+            <a th:href="@{/reviews/list}" th:classappend="${activeModule == 'review'} ? ' active' : ''">
+                <span class="material-symbols-outlined icon">rate_review</span>
+                Reseñas
+            </a>
+
+            <!-- ===================================================== -->
+            <!-- ENLACE CONDICIONAL PARA USUARIOS -->
+            <!-- ===================================================== -->
+            <a th:href="@{/user/list}"
+               th:classappend="${activeModule == 'user'} ? ' active' : ''"
+               th:if="${session.loggedInUser != null and session.loggedInUser.type == 'Administrador'}">
                 <span class="material-symbols-outlined icon">person</span>
                 Usuarios
             </a>
+            <!-- ===================================================== -->
 
-                    <!-- Enlace Reseñas -->
-                    <a th:href="@{/reviews/list}" th:classappend="${activeModule == 'review'} ? ' active' : ''">
-                        <span class="material-symbols-outlined icon">rate_review</span>
-                        Reseñas
-                    </a>
-                </div>
-            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Usuario/Sesión -->
+    <div class="sidebar-section" style="margin-top: auto; padding-bottom: 15px;">
+        <div class="sidebar-section-title">SESIÓN</div>
+        <div class="sidebar-menu">
+            <a th:href="@{/index/logout}">
+                <span class="material-symbols-outlined icon">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+    </div>
 
 </div>
 </body>
