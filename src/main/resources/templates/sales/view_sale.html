@@ -21,12 +21,11 @@
             <div>
                 <h2 class="page-title" th:text="'Detalle de Venta ID: ' + *{idSale}"></h2>
                 <p class="page-subtitle" style="margin-top: -5px;">
-                    Realizada el <span th:text="*{saleDate != null ? #temporals.format(saleDate, 'dd/MM/yyyy') : '-'}"></span>
+                    Realizada el <span th:text="*{getFormattedSaleDate()}"></span>
                 </p>
             </div>
         </div>
 
-        <!-- Detalles de la Cosecha Vendida -->
         <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Cosecha Vendida</h3>
         <table class="detail-table" th:if="*{harvest != null}">
             <tr><td style="width: 30%;">ID Cosecha:</td><td th:text="*{harvest.idHarvest}"></td></tr>
@@ -36,7 +35,6 @@
         </table>
         <p th:unless="*{harvest != null}">Información de cosecha no disponible.</p>
 
-        <!-- Detalles de la Venta -->
         <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Detalles de la Transacción</h3>
         <table class="detail-table">
             <tr><td style="width: 30%;">Cantidad Vendida:</td><td class="numeric-display" th:text="*{#numbers.formatDecimal(quantitySold, 1, 0, 'POINT') + ' kg'}"></td></tr>
@@ -44,7 +42,6 @@
             <tr><td>Monto Total Venta:</td><td class="price-display" th:attr="data-value=*{totalSaleAmount}" style="font-weight: bold;"></td></tr>
         </table>
 
-        <!-- Detalles del Comprador -->
         <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Información del Comprador</h3>
         <table class="detail-table">
             <tr><td style="width: 30%;">Nombre:</td><td th:text="*{buyerName}"></td></tr>
@@ -60,12 +57,12 @@
             <a th:href="@{/sales/print-receipt(idSale=*{idSale})}"
                class="btn btn-info confirm-action"
                style="background-color: #28a745; color: #fff;"
-            title="Imprimir Recibo"
-            target="_blank"
-            data-message="¿Generar recibo para imprimir?"
-            data-title="Confirmar Impresión"
-            data-icon="info">
-            <span class="material-symbols-outlined icon">print</span> Imprimir Recibo
+               title="Imprimir Recibo"
+               target="_blank"
+               data-message="¿Generar recibo para imprimir?"
+               data-title="Confirmar Impresión"
+               data-icon="info">
+                <span class="material-symbols-outlined icon">print</span> Imprimir Recibo
             </a>
             <form th:action="@{/sales/delete}" method="post" class="confirm-action"
                   data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
@@ -92,6 +89,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/Sales.js}"></script>
 </body>
 </html>

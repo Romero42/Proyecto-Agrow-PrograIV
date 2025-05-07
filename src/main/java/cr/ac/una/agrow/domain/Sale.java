@@ -3,6 +3,7 @@ package cr.ac.una.agrow.domain;
 import cr.ac.una.agrow.domain.harvest.Harvest;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "tb_sales")
@@ -36,13 +37,15 @@ public class Sale {
     private String transportOption;
 
     @Column(name = "price_per_unit_sold", nullable = false, columnDefinition = "DECIMAL(10,2)")
-    private double pricePerUnitSold; // Precio al momento de la venta
+    private double pricePerUnitSold;
 
     @Column(name = "total_sale_amount", nullable = false, columnDefinition = "DECIMAL(12,2)")
-    private double totalSaleAmount; // Calculado: quantitySold * pricePerUnitSold
+    private double totalSaleAmount;
+
+    private static final DateTimeFormatter FORMAT_DD_MM_YY = DateTimeFormatter.ofPattern("dd/MM/yy");
 
     public Sale() {
-        this.saleDate = LocalDate.now();
+
     }
 
     // Constructor completo
@@ -140,13 +143,24 @@ public class Sale {
         this.totalSaleAmount = totalSaleAmount;
     }
 
+    public String getFormattedSaleDate() {
+        if (saleDate == null) return "-";
+        return saleDate.format(FORMAT_DD_MM_YY);
+    }
+
+    public String getSaleDateForInputDmy() {
+        if (saleDate == null) return "";
+        return saleDate.format(FORMAT_DD_MM_YY);
+    }
+
+
     @Override
     public String toString() {
         return "Sale{" +
                 "idSale=" + idSale +
                 ", harvestId=" + (harvest != null ? harvest.getIdHarvest() : "null") +
                 ", quantitySold=" + quantitySold +
-                ", saleDate=" + saleDate +
+                ", saleDate=" + getFormattedSaleDate() + // Use formatted date
                 ", buyerName='" + buyerName + '\'' +
                 ", totalSaleAmount=" + totalSaleAmount +
                 '}';

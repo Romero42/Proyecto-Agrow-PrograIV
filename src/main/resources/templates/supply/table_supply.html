@@ -2,17 +2,16 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-
 <div th:fragment="supplyTable">
 
-
+    <!-- Mensaje si no hay suministros o si hay un mensaje de validación (error/info) -->
     <div class="info-card" th:if="${validate != null or supplies == null or supplies.isEmpty()}">
         <span class="material-symbols-outlined icon">info</span>
         <h2 th:text="${validate != null ? validate : 'No se encontraron suministros'}">Mensaje</h2>
         <p>Intenta con otros filtros o <a th:href="@{/supplies/form}">agrega nuevos suministros</a>.</p>
     </div>
 
-
+    <!-- Contenedor de la tabla (solo se muestra si hay suministros y no hay mensaje de validación) -->
     <div class="table-container" th:unless="${validate != null or supplies == null or supplies.isEmpty()}">
         <div class="table-responsive">
             <table>
@@ -60,6 +59,7 @@
                                title="Editar">
                                 <span class="material-symbols-outlined icon">edit</span>
                             </a>
+                            <!-- Formulario de eliminación con confirmación -->
                             <form th:action="@{/supplies/delete}" method="post" class="confirm-action"
                                   data-message="¿Eliminar este suministro?" data-title="Confirmar Eliminación"
                                   style="margin:0; padding:0; display:inline;">
@@ -76,35 +76,33 @@
         </div>
     </div>
 
-
-    <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
+    <!-- Paginación-->
+    <!-- La paginación es manejada por JavaScript (attachGenericTableListeners en General.js) -->
+    <div class="pagination" th:if="${totalPages != null}">
         <ul>
-
+            <!-- Botón Anterior -->
             <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                <a th:if="${currentPage > 0}" href="#" th:attr="data-page=${currentPage - 1}"
-                   onclick="pageSupplies(this); return false;">«</a>
+                <a th:if="${currentPage > 0}" href="#" th:attr="data-page=${currentPage - 1}">«</a>
                 <span th:unless="${currentPage > 0}">«</span>
             </li>
 
-
+            <!-- Números de Página -->
+            <!-- Se muestran solo un rango de páginas alrededor de la actual si hay muchas páginas -->
             <th:block th:if="${startPage != null and endPage != null and startPage <= endPage}">
                 <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
                     th:classappend="${i == currentPage} ? 'active' : ''">
-                    <a th:if="${i != currentPage}" href="#" th:attr="data-page=${i}"
-                       onclick="pageSupplies(this); return false;" th:text="${i + 1}"></a>
+                    <a th:if="${i != currentPage}" href="#" th:attr="data-page=${i}" th:text="${i + 1}"></a>
                     <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
                 </li>
             </th:block>
 
-
+            <!-- Botón Siguiente -->
             <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
-                <a th:if="${currentPage < totalPages - 1}" href="#" th:attr="data-page=${currentPage + 1}"
-                   onclick="pageSupplies(this); return false;">»</a>
+                <a th:if="${currentPage < totalPages - 1}" href="#" th:attr="data-page=${currentPage + 1}">»</a>
                 <span th:unless="${currentPage < totalPages - 1}">»</span>
             </li>
         </ul>
     </div>
-
 
 </div>
 

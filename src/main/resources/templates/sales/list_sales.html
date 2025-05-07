@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -7,6 +6,7 @@
   <title>Listado de Ventas - Agrow</title>
   <link rel="stylesheet" th:href="@{/css/common.css}" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 </head>
 <body>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -27,90 +27,41 @@
     </a>
   </div>
 
-  <div class="info-card" th:if="${salesPage == null or salesPage.isEmpty()}">
-    <span class="material-symbols-outlined icon">receipt_long</span>
-    <h2>No hay ventas registradas</h2>
-    <p>Aún no se ha registrado ninguna venta. Puedes <a th:href="@{/sales/select-producer}">registrar una nueva venta</a>.</p>
-  </div>
-
-  <div class="table-container" th:unless="${salesPage == null or salesPage.isEmpty()}">
-    <div class="table-responsive">
-      <table>
-        <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Comprador</th>
-          <th>Teléfono</th>
-          <th>Cosecha (Tipo)</th>
-          <th>Cantidad (kg)</th>
-          <th>Precio Unit.</th>
-          <th>Total Venta</th>
-          <th>Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="sale : ${salesPage.content}">
-          <td th:text="${sale.saleDate != null ? #temporals.format(sale.saleDate, 'dd/MM/yyyy') : '-'}"></td>
-          <td th:text="${sale.buyerName}"></td>
-          <td th:text="${sale.buyerPhone}"></td>
-          <td th:text="${sale.harvest?.typeHarvest}"></td>
-          <td class="numeric-display" th:text="${#numbers.formatDecimal(sale.quantitySold, 1, 0, 'POINT')}"></td>
-          <td class="price-display" th:attr="data-value=${sale.pricePerUnitSold}"></td>
-          <td class="price-display" th:attr="data-value=${sale.totalSaleAmount}"></td>
-          <td>
-            <div class="action-buttons">
-              <a th:href="@{/sales/view(idSale=${sale.idSale})}" class="btns view-btns" title="Ver Detalles">
-                <span class="material-symbols-outlined icon">visibility</span>
-              </a>
-              <a th:href="@{/sales/edit(idSale=${sale.idSale})}" class="btns edit-btns" title="Editar Venta">
-                <span class="material-symbols-outlined icon">edit</span>
-              </a>
-              <a th:href="@{/sales/print-receipt(idSale=${sale.idSale})}"
-                 class="btns view-btns"
-                 style="background-color: #28a745; color: #fff;"
-                 title="Imprimir Recibo"
-                 target="_blank"
-                 data-message="¿Generar recibo para imprimir?"
-                 data-title="Confirmar Impresión"
-                 data-icon="info">
-                <span class="material-symbols-outlined icon">print</span>
-              </a>
-
-              <form th:action="@{/sales/delete}" method="post" class="confirm-action"
-                    data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
-                    data-title="Confirmar Eliminación"
-                    style="margin:0; padding:0; display:inline;">
-                <input type="hidden" name="idSale" th:value="${sale.idSale}" />
-                <button type="submit" class="btns delete-btns" title="Eliminar Venta">
-                  <span class="material-symbols-outlined icon">delete</span>
-                </button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+  <form id="filter-form-sales" th:action="@{/sales/list}" method="get" class="filter-section">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-label" for="saleDateFilter">Fecha de Venta:</label>
+        <!--
+            El input 'saleDate' real se ocultará.
+            'saleDateFilter' es el que el usuario ve e interactúa con él.
+            Flatpickr sincronizará el valor de 'saleDateFilter' (en formato yyyy-mm-dd) con 'saleDate'.
+        -->
+        <input type="text" id="saleDateFilter"
+               class="filter-input" placeholder="DD/MM/AAAA" />
+        <!-- Input oculto que enviará la fecha en formato ISO al backend -->
+        <input type="hidden" id="saleDate" name="saleDate"
+               th:value="${currentSaleDate != null ? #temporals.format(currentSaleDate, 'yyyy-MM-dd') : ''}" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label" for="buyerName">Nombre del Comprador:</label>
+        <input type="text" id="buyerName" name="buyerName" th:value="${currentBuyerName}"
+               class="filter-input" placeholder="Buscar por nombre..." maxlength="100" />
+      </div>
+      <input type="hidden" name="page" value="0">
+      <div class="filter-buttons">
+        <button type="submit" class="btn btn-primary">
+          <span class="material-symbols-outlined icon">filter_alt</span> Filtrar
+        </button>
+        <a th:href="@{/sales/list}" class="btn btn-secondary" title="Quitar todos los filtros">
+          <span class="material-symbols-outlined icon">refresh</span> Restablecer
+        </a>
+      </div>
     </div>
-  </div>
+  </form>
 
-  <!-- Paginación -->
-  <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
-    <ul>
-      <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
-        <a th:if="${currentPage > 0}" th:href="@{/sales/list(page=${currentPage - 1})}">«</a>
-        <span th:unless="${currentPage > 0}">«</span>
-      </li>
-      <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active' : ''">
-        <a th:if="${i != currentPage}" th:href="@{/sales/list(page=${i})}" th:text="${i + 1}"></a>
-        <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
-      </li>
-      <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
-        <a th:if="${currentPage < totalPages - 1}" th:href="@{/sales/list(page=${currentPage + 1})}">»</a>
-        <span th:unless="${currentPage < totalPages - 1}">»</span>
-      </li>
-    </ul>
+  <div id="sales-list-content">
+    <div th:replace="~{sales/table_sales :: salesTableContent}"></div>
   </div>
-
 
   <div style="margin-top: 20px;">
     <a th:href="@{/home}" class="btn btn-secondary">
@@ -119,7 +70,67 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/Sales.js}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      const saleDateInput = document.getElementById('saleDate'); // El input oculto
+      const saleDateFilterInput = document.getElementById('saleDateFilter'); // El input visible
+
+      flatpickr(saleDateFilterInput, {
+          altInput: true,
+          altFormat: "d/m/Y", // Formato visible para el usuario
+          dateFormat: "Y-m-d", // Formato que se enviará al servidor (valor del input original)
+          allowInput: true, // Permite escribir la fecha manualmente
+          // Sincronizar el valor del input original (oculto) cuando se selecciona una fecha
+          // y establecer el valor inicial del campo visible si hay un valor en el campo oculto
+          onReady: function(selectedDates, dateStr, instance) {
+              if (saleDateInput.value) {
+                  instance.setDate(saleDateInput.value, false); // Establece la fecha en el picker sin disparar onChange
+              }
+          },
+          onChange: function(selectedDates, dateStr, instance) {
+              // dateStr ya está en formato Y-m-d
+              saleDateInput.value = dateStr; // Actualiza el input oculto
+          }
+      });
+
+       const salesModuleConfig = {
+          filterFormId: 'filter-form-sales',
+          tableContentId: 'sales-list-content',
+          defaultPaginateUrl: '/sales/table',
+          ajaxSuccessCallback: function() {
+              console.log("Tabla de ventas recargada via AJAX.");
+              // Re-inicializar flatpickr para el campo de filtro después de una carga AJAX
+              const newSaleDateInput = document.getElementById('saleDate');
+              const newSaleDateFilterInput = document.getElementById('saleDateFilter');
+              if (newSaleDateFilterInput && newSaleDateInput) { // Asegurarse que existen
+                   flatpickr(newSaleDateFilterInput, {
+                      altInput: true,
+                      altFormat: "d/m/Y",
+                      dateFormat: "Y-m-d",
+                      allowInput: true,
+                      onReady: function(selectedDates, dateStr, instance) {
+                          if (newSaleDateInput.value) {
+                              instance.setDate(newSaleDateInput.value, false);
+                          }
+                      },
+                      onChange: function(selectedDates, dateStr, instance) {
+                          newSaleDateInput.value = dateStr;
+                      }
+                  });
+              }
+          }
+      };
+
+      if (typeof attachGenericTableListeners === 'function') {
+          attachGenericTableListeners(salesModuleConfig);
+      } else {
+          console.error("La función attachGenericTableListeners no está definida.");
+      }
+  });
+</script>
 </body>
 </html>
