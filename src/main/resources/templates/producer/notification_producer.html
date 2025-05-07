@@ -17,8 +17,8 @@
 
         <!-- Div oculto para que app.js lea los mensajes y muestre SweetAlert -->
         <div id="swal-message"
-             th:data-mensaje="${type == 1 ? message : null}"  <!-- Mensaje de éxito si type es 1 -->
-             th:data-error="${type == 2 ? message : null}">   <!-- Mensaje de error si type es 2 -->
+             th:data-mensaje="${type == 1 ? message : null}"
+             th:data-error="${type == 2 ? message : null}">
         </div>
 
         <!-- Contenedor principal de la página de notificación -->
@@ -59,7 +59,8 @@
     <!-- Scripts Comunes (app.js mostrará el SweetAlert) -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Base -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/producer.js}"></script>
 
 </body>
 </html>

@@ -14,29 +14,34 @@
         <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
         <div class="main-content">
-            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Editar Cosecha</h1>
-                    <p class="page-subtitle">Modifica los detalles de la cosecha seleccionada</p>
-                </div>
-                <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado
-                </a>
-            </div>
 
-            <!-- Advertencia si ya hay ventas registradas -->
-            <div class="info-card" style="background-color: var(--warning-light-alt); border-color: var(--warning); color: var(--warning-text-alt);" th:if="${hasSales}">
-                <span class="material-symbols-outlined icon" style="color: var(--warning);">warning</span>
-                <h2>Cosecha con ventas registradas</h2>
-                <p>
-                    Esta cosecha ya tiene ventas asociadas. Solo puedes reducir el total si no es menor a lo ya vendido
-                    (<span th:text="${harvest != null && harvest.quantityHarvested != null && harvest.availableQuantity != null ? harvest.quantityHarvested - harvest.availableQuantity : 0}">0</span> kg).
-                </p>
-            </div>
+
 
             <div class="form-container">
+
+                <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Editar Cosecha</h1>
+                        <p class="page-subtitle">Modifica los detalles de la cosecha seleccionada</p>
+                    </div>
+
+                </div>
+
+                <!-- Advertencia si ya hay ventas registradas -->
+                <div class="info-card" style="background-color: var(--warning-light-alt); border-color: var(--warning); color: var(--warning-text-alt);" th:if="${hasSales}">
+                    <span class="material-symbols-outlined icon" style="color: var(--warning);">warning</span>
+                    <h2>Cosecha con ventas registradas</h2>
+
+                    <p style="padding: 0 5rem;">
+                        Esta cosecha ya tiene ventas registradas. Solo puedes reducir el total si el nuevo valor no es inferior a lo ya vendido:
+                        (<span th:text="${harvest != null && harvest.quantityHarvested != null && harvest.availableQuantity != null ? harvest.quantityHarvested - harvest.availableQuantity : 0}">0</span> kg).
+                    </p>
+
+                </div>
+
                 <form th:action="@{/harvests/update}" method="post" th:object="${harvest}"
                       class="confirm-action"
                       data-message="¿Confirmar los cambios en la cosecha?"
@@ -89,8 +94,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="producerId" class="form-label">Productor*</label>
-                        <select id="producerId" name="id_producer" class="form-select" required>
+                        <label for="id_producer" class="form-label">Productor*</label>
+                        <select id="id_producer" name="id_producer" class="form-select" required>
                             <option value="" disabled>Seleccione un productor...</option>
                             <th:block th:each="prod : ${producers}">
                                 <option th:value="${prod.id_producer}" th:text="${prod.producerName}" 
@@ -124,9 +129,13 @@
                     </div>
                 </form>
             </div>
+
+            <a th:href="@{/harvests/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado
+            </a>
+
         </div>
 
-        <!-- JS de Flatpickr y SweetAlert -->
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script th:src="@{/js/harvest.js}"></script>

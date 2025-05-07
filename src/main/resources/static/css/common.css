@@ -103,7 +103,7 @@ body {
 }
 
 .sidebar-section {
-  margin-top: 15px; /* menos espacio entre secciones */
+  margin-top: 10px; /* menos espacio entre secciones */
   flex-shrink: 0;
 }
 
@@ -117,15 +117,15 @@ body {
 }
 
 .sidebar-menu {
-    overflow-y: auto; /* permitir scroll si hay muchos items */
-    flex-grow: 1; /* ocupar el espacio restante */
-    padding-bottom: 20px; /* espacio al final */
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-bottom: 0px;
 }
 
 .sidebar-menu a {
   display: flex;
   align-items: center;
-  padding: 12px 25px; /* ajusta el padding */
+  padding: 12px 25px;
   color: var(--white);
   text-decoration: none;
   transition: all 0.2s ease;
@@ -227,6 +227,15 @@ body {
 .btn-info { background-color: var(--info); color: var(--white); border-color: var(--info); }
 .btn-info:hover { background-color: var(--info-hover); border-color: var(--info-hover); transform: translateY(-1px); box-shadow: 0 2px 4px var(--black-10); }
 
+.btns.review-btns {
+  background-color: #B39DDB;
+  color: #fff;
+}
+
+
+.btns.review-btns .icon {
+  color: inherit;
+}
 
 /* los formularios */
 .form-container {
@@ -235,7 +244,7 @@ body {
   padding: 30px;
   box-shadow: 0 1px 5px var(--black-06);
   max-width: 750px;
-  margin: 20px auto; /* centrado con margen */
+  margin: 20px auto;
   border: 1px solid var(--border-lighter);
   animation: fadeIn 0.4s ease-out;
 }

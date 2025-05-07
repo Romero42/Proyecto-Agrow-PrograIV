@@ -15,19 +15,20 @@
         <div th:replace="fragments/sidebar :: sidebar"></div>
 
         <div class="main-content">
-            <div id="swal-message" th:attr="data-mensaje=${mensaje},data-error=${error}"></div>
 
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Registrar Cosecha</h1>
-                    <p class="page-subtitle">Ingresa los datos de la nueva cosecha</p>
-                </div>
-                <a th:href="@{/harvests/list}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado
-                </a>
-            </div>
 
             <div class="form-container">
+
+                <div id="swal-message" th:attr="data-mensaje=${mensaje},data-error=${error}"></div>
+
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Registrar Cosecha</h1>
+                        <p class="page-subtitle">Ingresa los datos de la nueva cosecha</p>
+                    </div>
+
+                </div>
+
                 <!-- Formulario de registro -->
                 <form th:action="@{/harvests/save}" method="post" id="registerHarvestForm"
                       th:object="${harvest}"
@@ -68,8 +69,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="producerId" class="form-label">Productor*</label>
-                        <select id="producerId" name="producerId" class="form-select" required="required">
+                        <label for="id_producer" class="form-label">Productor*</label>
+                        <select id="id_producer" name="id_producer" class="form-select" required="required">
                             <option value="" disabled="disabled">Seleccione un productor...</option>
                             <option th:each="prod : ${producers}"
                                     th:value="${prod.id_producer}"
@@ -101,9 +102,13 @@
                     </div>
                 </form>
             </div>
+
+            <a th:href="@{/harvests/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al listado
+            </a>
+
         </div>
 
-        <!-- JS de Flatpickr y SweetAlert -->
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script th:src="@{/js/harvest.js}"></script>
