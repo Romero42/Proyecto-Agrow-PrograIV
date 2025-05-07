@@ -25,7 +25,7 @@ public class HarvestController {
     private static final Logger LOG = Logger.getLogger(HarvestController.class.getName());
 
     @Autowired
-    private HarvestService service;
+    private HarvestService service; 
 
     @Autowired
     private Producer_Service producerService;

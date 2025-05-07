@@ -19,6 +19,10 @@ import cr.ac.una.agrow.domain.Review;
 import cr.ac.una.agrow.domain.Sale;
 import cr.ac.una.agrow.service.SaleService;
 import cr.ac.una.agrow.service.review.ReviewService;
+import java.util.logging.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.PathVariable;
 
 /**
@@ -27,7 +31,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 @Controller
 @RequestMapping("/reviews")
 public class ReviewController {
+    
+    private static final Logger LOG = Logger.getLogger(ReviewController.class.getName());
 
+    private static final int PAGE_SIZE = 5;
+    private static final int MAX_VISIBLE_PAGINATION_LINKS = 5;
+    
     @Autowired
     private ReviewService reviewService;
 
@@ -39,7 +48,7 @@ public class ReviewController {
      *
      * @param model Modelo para la vista
      * @return Vista de listado de reseñas
-     */
+     *//*
     @GetMapping("/list")
     public String listReviews(Model model,
             @RequestParam(value = "minRating", required = false) String minRating) {
@@ -53,10 +62,66 @@ public class ReviewController {
         model.addAttribute("reviewList", reviewList);
 
         return "list_review";
+    } */
+    
+    @GetMapping("/list")
+    public String listReviews(Model model,
+            @RequestParam(value = "minRating", required = false) Integer minRating,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<Review> reviewsPage = reviewService.getFilteredReviewsPaged(minRating, pageable);
+        prepareModelForView(model, reviewsPage, minRating, page);
+        model.addAttribute("activeModule", "reviews");
+        model.addAttribute("activePage", "list");
+        return "list_review";
+    }
+    @GetMapping("/table")
+    public String getReviewTable(Model model,
+            @RequestParam(value = "minRating", required = false) Integer minRating,
+            @RequestParam(defaultValue = "0") int page) {
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<Review> reviewsPage = reviewService.getFilteredReviewsPaged(minRating, pageable);
+        prepareModelForView(model, reviewsPage, minRating, page);
+        return "review/table_review :: reviewListContent";
     }
 
-    /**
-     * Muestra el formulario para crear una nueva reseña
+    private void prepareModelForView(Model model, Page<Review> pageData,
+            Integer minRating, int page) {
+        int totalPages = pageData.getTotalPages();
+        int start = Math.max(0, page - MAX_VISIBLE_PAGINATION_LINKS / 2);
+        int end = Math.min(totalPages - 1, start + MAX_VISIBLE_PAGINATION_LINKS - 1);
+
+        if (totalPages > MAX_VISIBLE_PAGINATION_LINKS && (end - start + 1) < MAX_VISIBLE_PAGINATION_LINKS) {
+            if (start == 0) {
+                end = MAX_VISIBLE_PAGINATION_LINKS - 1;
+            } else if (end == totalPages - 1) {
+                start = totalPages - MAX_VISIBLE_PAGINATION_LINKS;
+            }
+        }
+        if (totalPages == 0) {
+            start = 0;
+            end = -1;
+        }
+
+        model.addAttribute("reviewList", pageData.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", pageData.getTotalElements());
+        model.addAttribute("startPage", start);
+        model.addAttribute("endPage", end);
+        model.addAttribute("minRating", minRating);
+        if (pageData.isEmpty()) {
+            model.addAttribute("validate", (minRating != null)
+                    ? "No se encontraron reseñas con esos filtros."
+                    : "No hay reseñas registradas.");
+        }
+    }
+    
+
+    /**///////////////
+     /** Muestra el formulario para crear una nueva reseña
      *
      * @param model Modelo para la vista
      * @return Vista del formulario de reseña

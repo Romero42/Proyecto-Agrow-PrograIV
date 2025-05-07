@@ -20,26 +20,28 @@
                     <h1 class="page-title">Gestión de Reseñas</h1>
                     <p class="page-subtitle">
                         Visualiza, filtra y administra las reseñas de clientes. Total: 
-                        <span th:text="${reviewList != null ? reviewList.size() : 0}">0</span>
+                        <span th:text="${totalItems != null ? totalItems : 0}">0</span>
                     </p>
                 </div>
             </div>
 
             <!-- Filtros para reseñas -->
-            <div class="filter-section">
-                <!-- Filtro por Calificación Mínima -->
-                <form th:action="@{/reviews/list}" method="get" class="filter-row">
+            <form id="filter-form-review" th:action="@{/reviews/table}" method="get" class="filter-section">
+                <div class="filter-row">
                     <div class="filter-group">
                         <label class="filter-label" for="minRating">Calificación Mínima</label>
                         <select id="minRating" name="minRating" class="filter-input">
-                            <option value="" selected disabled>Seleccione</option>
-                            <option value="1" th:selected="${minRating == 1}">1 estrella</option>
-                            <option value="2" th:selected="${minRating == 2}">2 estrellas</option>
-                            <option value="3" th:selected="${minRating == 3}">3 estrellas</option>
-                            <option value="4" th:selected="${minRating == 4}">4 estrellas</option>
-                            <option value="5" th:selected="${minRating == 5}">5 estrellas</option>
+                            <option value="" selected>Todas</option>
+                            <option value="1" th:selected="${rating == 1}">1 estrella</option>
+                            <option value="2" th:selected="${rating == 2}">2 estrellas</option>
+                            <option value="3" th:selected="${rating == 3}">3 estrellas</option>
+                            <option value="4" th:selected="${rating == 4}">4 estrellas</option>
+                            <option value="5" th:selected="${rating == 5}">5 estrellas</option>
                         </select>
                     </div>
+
+                    <input type="hidden" name="page" value="0">
+
                     <div class="filter-buttons">
                         <button type="submit" class="btn btn-primary">
                             <span class="material-symbols-outlined icon">search</span> Filtrar
@@ -48,85 +50,14 @@
                             <span class="material-symbols-outlined icon">refresh</span> Restablecer
                         </a>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
 
+            <!-- Contenedor de la tabla de reseñas -->
             <div id="review-list-content">
-                <div class="info-card" th:if="${reviewList == null or reviewList.isEmpty()}">
-                    <span class="material-symbols-outlined icon">rate_review</span>
-                    <h2>No se encontraron reseñas</h2>
-                    <p>Intenta con otros filtros.</p>
-                </div>
-
-                <div class="table-container" th:unless="${reviewList == null or reviewList.isEmpty()}">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Tipo</th>
-                                    <th>Calificación</th>
-                                    <th>Fecha</th>
-                                    <th>Verificada</th>
-                                    <th>Recomendado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="review : ${reviewList}">
-                                    <td th:text="${review.reviewId}"></td>
-                                    <td th:text="${review.reviewerName}"></td>
-                                    <td th:text="${review.reviewType}"></td>
-                                    <td>
-                                        <div th:switch="${review.rating}">
-                                            <span th:case="5" class="status status-optimo">★★★★★ (5.0)</span>
-                                            <span th:case="4.5" class="status status-optimo">★★★★½ (4.5)</span>
-                                            <span th:case="4" class="status status-optimo">★★★★☆ (4.0)</span>
-                                            <span th:case="3.5" class="status">★★★½☆ (3.5)</span>
-                                            <span th:case="3" class="status">★★★☆☆ (3.0)</span>
-                                            <span th:case="2.5" class="status status-bajo">★★½☆☆ (2.5)</span>
-                                            <span th:case="2" class="status status-bajo">★★☆☆☆ (2.0)</span>
-                                            <span th:case="1.5" class="status status-danger">★½☆☆☆ (1.5)</span>
-                                            <span th:case="1" class="status status-danger">★☆☆☆☆ (1.0)</span>
-                                            <span th:case="*" th:text="${review.rating}"></span>
-                                        </div>
-                                    </td>
-                                    <td th:text="${#temporals.format(review.reviewDate, 'dd/MM/yyyy')}"></td>
-                                    <td>
-                                        <span class="status" 
-                                              th:classappend="${review.verified} ? 'status-optimo' : 'status-bajo'" 
-                                              th:text="${review.verified ? 'Sí' : 'No'}">
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="status" 
-                                              th:classappend="${review.recommendationStatus} ? 'status-optimo' : 'status-bajo'" 
-                                              th:text="${review.recommendationStatus ? 'Sí' : 'No'}">
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a th:href="@{/reviews/view(reviewId=${review.reviewId})}" class="btns view-btns" title="Ver Detalles">
-                                                <span class="material-symbols-outlined icon">visibility</span>
-                                            </a>
-                                            <a th:href="@{/reviews/edit(reviewId=${review.reviewId})}" class="btns edit-btns" title="Editar">
-                                                <span class="material-symbols-outlined icon">edit</span>
-                                            </a>
-                                            <form th:action="@{/reviews/delete}" method="post" class="confirm-action" data-message="¿Eliminar esta reseña?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
-                                                <input type="hidden" name="reviewId" th:value="${review.reviewId}" />
-                                                <button type="submit" class="btns delete-btns" title="Eliminar">
-                                                    <span class="material-symbols-outlined icon">delete</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div th:replace="~{review/table_review :: reviewListContent}"></div>
             </div>
+
             <div style="margin-top: 20px;">
                 <a th:href="@{/home}" class="btn btn-secondary">
                     <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio

@@ -83,23 +83,15 @@ public class ReviewService {
      * @return Página de reseñas filtradas
      */
     @Transactional(readOnly = true)
-    public Page<Review> getFilteredReviewsPaged(String minRating, Pageable pageable) {
+    public Page<Review> getFilteredReviewsPaged(Integer minRating, Pageable pageable) {
         try {
-            // Normalizar el parámetro de filtro
-            String rating = (minRating != null && minRating.isEmpty()) ? null : minRating;
-            return reviewRepository.findFilteredReviews(rating, pageable);
+            return reviewRepository.findByRatingGreaterThanEqual(minRating != null ? minRating : 0, pageable);
         } catch (DataAccessException ex) {
             LOG.log(Level.SEVERE, "Error al obtener reseñas filtradas", ex);
             return Page.empty(pageable);
         }
     }
 
-    /**
-     * Obtiene todas las reseñas paginadas (sin filtros)
-     *
-     * @param pageable Configuración de paginación
-     * @return Página de reseñas
-     */
     @Transactional(readOnly = true)
     public Page<Review> getAllPaged(Pageable pageable) {
         return getFilteredReviewsPaged(null, pageable);

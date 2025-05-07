@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
     }
 
-    // Paginación para reseñas
+// --- Funciones de Paginación para Reseñas ---
     window.pageReviews = function (link) {
         if (!link)
             return;
@@ -263,4 +263,16 @@ if (!ratingValue.value) {
 } else {
     document.getElementById('ratingStars').classList.remove('error-input');
 }
+
+// Interceptamos el envío del formulario de filtro para manejarlo con AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filter-form-review');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            handleAjaxRequest(`/reviews/table?${new URLSearchParams(formData).toString()}`, 'review-list-content');
+        });
+    }
+});
 
