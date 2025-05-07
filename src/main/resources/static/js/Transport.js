@@ -50,50 +50,51 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    function updateMaxQuantityAndPrice() {
-        const transportSelect = document.getElementById('transportId');
-        const quantityInput = document.getElementById('quantityTransported');
-        if (!transportSelect || !quantityInput) return;
+    // --- Confirmación antes de enviar ---
+    function handleTransportFormSubmit(event) {
+        event.preventDefault(); // Evitar el envío inmediato
 
-        const selectedOption = transportSelect.options[transportSelect.selectedIndex];
-
-        if (selectedOption && selectedOption.value) {
-            const available = parseInt(selectedOption.getAttribute('data-available'), 10);
-
-            if (!isNaN(available) && available > 0) {
-                quantityInput.max = available;
-                quantityInput.placeholder = `Máximo disponible: ${available}`;
-                quantityInput.disabled = false;
-            } else {
-                quantityInput.max = 0;
-                quantityInput.placeholder = 'No disponible';
-                quantityInput.value = '';
-                quantityInput.disabled = true;
-            }
-        } else {
-            quantityInput.removeAttribute('max');
-            quantityInput.placeholder = 'Seleccione transporte primero';
-            quantityInput.value = '';
-            quantityInput.disabled = true;
-        }
-        validateQuantityInput();
-        calculateAndDisplayTotalTransport();
-    }
-
-    // --- Inicialización y Listeners Específicos de Transporte ---
-    function initTransportFormDatePickers() {
-        const transportDateInputs = document.querySelectorAll('#transportForm .date-picker-dmy, #editTransportForm .date-picker-dmy');
-        transportDateInputs.forEach(input => {
-            if (input._flatpickr) return;
-            flatpickr(input, {
-                dateFormat: 'd/m/Y',
-                allowInput: true,
-                maxDate: 'today'
+        // Primero validamos la cantidad
+        if (!validateQuantityInput()) {
+            Swal.fire({
+                title: 'Error de Validación',
+                text: 'Por favor, corrija la cantidad transportada.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
             });
+            return;
+        }
+
+        // Mostramos confirmación antes de enviar
+        Swal.fire({
+            title: '¿Está seguro de realizar los cambios?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, guardar cambios',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Si confirma, mostramos mensaje de éxito y luego enviamos el formulario
+                Swal.fire({
+                    title: 'ÉXITO',
+                    text: 'Los cambios se han guardado correctamente.',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    event.target.submit(); // Envío del formulario después de confirmar
+                });
+            }
         });
     }
-    initTransportFormDatePickers();
 
+    const editTransportForm = document.getElementById('editTransportForm');
+    if (editTransportForm) {
+        editTransportForm.addEventListener('submit', handleTransportFormSubmit);
+    }
+
+    // Listener para calcular automáticamente al modificar valores
     const quantityTransportedInput = document.getElementById('quantityTransported');
     const pricePerUnitTransportInput = document.getElementById('pricePerUnitTransport');
 
@@ -103,81 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
             calculateAndDisplayTotalTransport();
         });
     }
+
     if (pricePerUnitTransportInput) {
         pricePerUnitTransportInput.addEventListener('input', calculateAndDisplayTotalTransport);
-    }
-
-    const transportSelectForCreate = document.getElementById('transportId');
-    if (transportSelectForCreate && document.getElementById('transportForm')) {
-        transportSelectForCreate.addEventListener('change', updateMaxQuantityAndPrice);
-        if (transportSelectForCreate.value) {
-            updateMaxQuantityAndPrice();
-        }
-    }
-
-    // --- Manejo de Submit y Confirmación para Formularios de Transporte ---
-    function handleTransportFormSubmit(event) {
-        const form = event.target;
-        event.preventDefault();
-
-        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-        if (!validateQuantityInput()) {
-            swalAgrow.fire('Error de Validación', 'Por favor, corrija la cantidad transportada.', 'error');
-            return;
-        }
-
-        const {
-            message = '¿Está seguro de realizar esta acción?',
-            title = 'Confirmar Acción',
-            confirmText = 'Sí, proceder',
-            cancelText = 'Cancelar',
-            icon = 'warning'
-        } = form.dataset;
-
-        swalAgrow.fire({
-            title: title,
-            text: message,
-            icon: icon,
-            showCancelButton: true,
-            confirmButtonText: confirmText,
-            cancelButtonText: cancelText,
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    }
-
-    const transportForm = document.getElementById('transportForm');
-    if (transportForm) {
-        transportForm.addEventListener('submit', handleTransportFormSubmit);
-    }
-
-    const editTransportForm = document.getElementById('editTransportForm');
-    if (editTransportForm) {
-        editTransportForm.addEventListener('submit', handleTransportFormSubmit);
-    }
-
-    const transportModuleConfig = {
-        filterFormId: 'filter-form-transport',
-        tableContentId: 'transport-list-content',
-        defaultPaginateUrl: '/transport/table',
-        ajaxSuccessCallback: function() {
-            console.log("Tabla de transportes recargada vía AJAX.");
-            initTransportFormDatePickers();
-        }
-    };
-
-    if (document.getElementById(transportModuleConfig.tableContentId)) {
-        if (typeof attachGenericTableListeners === 'function') {
-            attachGenericTableListeners(transportModuleConfig);
-        } else {
-            console.error("attachGenericTableListeners no está definida. Asegúrate que default.js se carga antes.");
-        }
-        transportModuleConfig.ajaxSuccessCallback();
     }
 });
