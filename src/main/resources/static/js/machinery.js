@@ -1,14 +1,36 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     formatPrices();
-    setupDeleteConfirmation();
+    mostrarMensajeDesdeServidor();
+
+    const confirmableForms = document.querySelectorAll('form.confirm-action');
+
+    confirmableForms.forEach(form => {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const title = form.dataset.title || '¿Confirmar acción?';
+            const message = form.dataset.message || '¿Estás seguro de realizar esta acción?';
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    // Enviar el formulario normalmente
+                    form.submit();
+                }
+            });
+        });
+    });
 });
 
-/**
- * Formatea los valores de costo en la tabla usando formato de moneda.
- */
 function formatPrices() {
     const priceElements = document.querySelectorAll('.price-display');
-
     priceElements.forEach(elem => {
         const value = parseFloat(elem.getAttribute('data-value'));
         if (!isNaN(value)) {
@@ -23,30 +45,28 @@ function formatPrices() {
     });
 }
 
-/**
- * Configura una alerta de confirmación antes de eliminar una máquina.
- */
-function setupDeleteConfirmation() {
-    const deleteForms = document.querySelectorAll('form[th\\:action*="/gestionar"]');
+function mostrarMensajeDesdeServidor() {
+    const mensajeElem = document.getElementById('swal-message');
+    if (!mensajeElem) return;
 
-    deleteForms.forEach(form => {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+    const mensaje = mensajeElem.getAttribute('data-mensaje');
+    const error = mensajeElem.getAttribute('data-error');
 
-            Swal.fire({
-                title: '¿Eliminar esta máquina?',
-                text: 'Esta acción no se puede deshacer.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+    if (mensaje) {
+        Swal.fire({
+            icon: 'success',
+            title: 'ÉXITO',
+            text: mensaje,
+            confirmButtonText: 'Aceptar'
         });
-    });
+    }
+
+    if (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error,
+            confirmButtonText: 'Aceptar'
+        });
+    }
 }

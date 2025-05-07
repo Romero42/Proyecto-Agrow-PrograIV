@@ -1,105 +1,105 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Actualizar alquiler - Agrow</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <title>Actualizar alquiler - Agrow</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" th:href="@{/css/common.css}"/>
-    <script th:src="@{/js/app.js}"></script>
-    <script th:src="@{/js/machineryR.js}"></script>
+        <link rel="stylesheet" th:href="@{/css/common.css}"/>
+        <script th:src="@{/js/app.js}"></script>
+        <script th:src="@{/js/machineryR.js}"></script>
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
 
-<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-<div class="main-content">
-    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-    <div th:if="${machinery != null}">
-        <form method="get"
-              th:action="@{/rent/edit}"
-              th:object="${machinery}"
-              class="form-container confirm-action"
-              data-message="¿Confirmar actualización de datos?"
-              data-title="Actualizar alquiler">
+            <div th:if="${machinery != null}">
+                <form method="get"
+                      th:action="@{/rent/edit}"
+                      th:object="${machinery}"
+                      class="form-container confirm-action"
+                      data-message="¿Confirmar actualización de datos?"
+                      data-title="Actualizar alquiler">
 
-            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
-                <h1 class="page-title">Actualizar Alquiler</h1>
+                    <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                        <h1 class="page-title">Actualizar Alquiler</h1>
+                    </div>
+
+                    <input type="hidden" name="id_machinaryrental" th:value="*{id_machinaryrental}"/>
+                    <input type="hidden" name="id_maquina" th:value="*{id_maquina}"/>
+
+                    <div class="form-group">
+                        <label class="form-label">ID Alquiler:</label>
+                        <input class="form-input" type="text" th:value="*{id_machinaryrental}" readonly disabled/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="renterName">Nombre:</label>
+                        <input type="text" id="renterName" name="renterName" th:field="*{renterName}" class="form-input"
+                               required maxlength="50" pattern="^[a-zA-ZáéíóúÁÉÍÓÚ. ]+$"
+                               title="Solo letras, puntos y espacios"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="address">Dirección:</label>
+                        <input type="text" id="address" name="address" th:field="*{address}" class="form-input" required
+                               maxlength="45"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contactNumber">Teléfono:</label>
+                        <input type="tel" id="contactNumber" name="contactNumber" th:field="*{contactNumber}" class="form-input"
+                               required pattern="[246789]\d{7}" title="Número de 8 dígitos válido en CR"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="rentStartDay">Fecha de Alquiler:</label>
+                        <input type="text" id="rentStartDay" name="rentStartDay" class="form-input date-picker-iso"
+                               th:value="*{rentStartDay}" placeholder="yyyy-mm-dd" required/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="rentFinalDay">Fecha final Alquiler:</label>
+                        <input type="text" id="rentFinalDay" name="rentFinalDay" class="form-input date-picker-iso"
+                               th:value="*{rentFinalDay}" placeholder="yyyy-mm-dd" required/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="machinery">Maquina:</label>
+                        <select id="machinery" name="machinery" class="form-select" required>
+                            <option th:each="tempMachi : ${list}"
+                                    th:value="${tempMachi.id}"
+                                    th:text="${tempMachi.nombre}"
+                                    th:selected="${tempMachi.id} == *{id_maquina}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined icon">save</span>
+                            Actualizar Datos
+                        </button>
+                        <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span>
+                            Cancelar </a>
+                    </div>
+                </form>
             </div>
 
-            <input type="hidden" name="id_machinaryrental" th:value="*{id_machinaryrental}"/>
-            <input type="hidden" name="id_maquina" th:value="*{id_maquina}"/>
-
-            <div class="form-group">
-                <label class="form-label">ID Alquiler:</label>
-                <input class="form-input" type="text" th:value="*{id_machinaryrental}" readonly disabled/>
+            <div th:if="${machinery == null}" class="info-card">
+                <span class="material-symbols-outlined icon">person_search</span>
+                <h2>Alquiler no encontrado</h2>
+                <p>El ID proporcionado no corresponde a un alquiler que se pueda editar.</p>
+                <a th:href="@{/rent/list}" class="btn btn-secondary"> <span
+                        class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
             </div>
-
-            <div class="form-group">
-                <label class="form-label" for="renterName">Nombre:</label>
-                <input type="text" id="renterName" name="renterName" th:field="*{renterName}" class="form-input"
-                       required maxlength="50" pattern="^[a-zA-ZáéíóúÁÉÍÓÚ. ]+$"
-                       title="Solo letras, puntos y espacios"/>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="address">Dirección:</label>
-                <input type="text" id="address" name="address" th:field="*{address}" class="form-input" required
-                       maxlength="45"/>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="contactNumber">Teléfono:</label>
-                <input type="tel" id="contactNumber" name="contactNumber" th:field="*{contactNumber}" class="form-input"
-                       required pattern="[246789]\d{7}" title="Número de 8 dígitos válido en CR"/>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="rentStartDay">Fecha de Alquiler:</label>
-                <input type="text" id="rentStartDay" name="rentStartDay" class="form-input date-picker-iso"
-                       th:value="*{rentStartDay}" placeholder="yyyy-mm-dd" required/>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="rentFinalDay">Fecha final Alquiler:</label>
-                <input type="text" id="rentFinalDay" name="rentFinalDay" class="form-input date-picker-iso"
-                       th:value="*{rentFinalDay}" placeholder="yyyy-mm-dd" required/>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="machinery">Maquina:</label>
-                <select id="machinery" name="machinery" class="form-select" required>
-                    <option th:each="tempMachi : ${list}"
-                            th:value="${tempMachi.id}"
-                            th:text="${tempMachi.nombre}"
-                            th:selected="${tempMachi.id} == *{id_maquina}">
-                    </option>
-                </select>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined icon">save</span>
-                    Actualizar Datos
-                </button>
-                <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span>
-                    Cancelar </a>
-            </div>
-        </form>
-    </div>
-
-    <div th:if="${machinery == null}" class="info-card">
-        <span class="material-symbols-outlined icon">person_search</span>
-        <h2>Alquiler no encontrado</h2>
-        <p>El ID proporcionado no corresponde a un alquiler que se pueda editar.</p>
-        <a th:href="@{/rent/list}" class="btn btn-secondary"> <span
-                class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
-    </div>
-</div>
-</body>
+        </div>
+    </body>
 </html>

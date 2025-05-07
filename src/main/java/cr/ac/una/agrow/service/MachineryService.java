@@ -39,17 +39,29 @@ public class MachineryService {
     }
 
     @Transactional
-public Machinery updateMachinery(Machinery machinery) {
-    try {
-        if (!machineryRepository.existsById(machinery.getId())) {
-            throw new RuntimeException("Maquinaria no encontrada con ID: " + machinery.getId());
+    public Machinery saveMachineryDefinitivo(Machinery machinery) {
+        try {
+            // ✅ Guardar en la base de datos
+            return machineryRepository.save(machinery);
+
+        } catch (DataAccessException e) {
+            LOG.log(Level.SEVERE, "Error al guardar la maquinaria", e);
+            throw new RuntimeException("Error al guardar la maquinaria: " + e.getMostSpecificCause().getMessage(), e);
         }
-        return machineryRepository.save(machinery);
-    } catch (DataAccessException e) {
-        LOG.log(Level.SEVERE, "Error al actualizar la maquinaria", e);
-        throw new RuntimeException("Error al actualizar la maquinaria", e);
     }
-}
+
+    @Transactional
+    public Machinery updateMachinery(Machinery machinery) {
+        try {
+            if (!machineryRepository.existsById(machinery.getId())) {
+                throw new RuntimeException("Maquinaria no encontrada con ID: " + machinery.getId());
+            }
+            return machineryRepository.save(machinery);
+        } catch (DataAccessException e) {
+            LOG.log(Level.SEVERE, "Error al actualizar la maquinaria", e);
+            throw new RuntimeException("Error al actualizar la maquinaria", e);
+        }
+    }
 
     @Transactional
     public boolean deleteMachinery(int id) {

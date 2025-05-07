@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agregar Máquina - Agrow</title>
     <link rel="stylesheet" th:href="@{/css/common.css}" />
-
-    <script th:src="@{/js/default.js}"></script>
-    <script th:src="@{/js/machinery.js}"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <div class="main-content">
-        <form method="post" action="/guardar" id="formAgregar" class="form-container confirm-action" data-message="¿Confirmar y guardar nueva máquina?" data-title="Confirmar Registro">
+        <!-- Mensajes de éxito/error -->
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <form method="post" th:action="@{/guardar}" id="formAgregar" class="form-container confirm-action" 
+              data-title="Confirmar Registro" 
+              data-message="¿Confirmar y guardar nueva máquina?">
             
             <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
                 <h1 class="page-title">Agregar Nueva Máquina</h1>
@@ -23,12 +26,12 @@
 
             <div class="form-group">
                 <label class="form-label" for="id">Matrícula:</label>
-                <input type="number" name="id" id="id" class="form-input" required min="0" title="Por favor, ingresa un ID válido (no se permiten números negativos)." />
+                <input type="number" name="id" id="id" class="form-input" required min="0" />
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="nombre">Nombre:</label>
-                <input type="text" name="nombre" id="nombre" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" title="Por favor, ingresa solo letras y espacios." />
+                <input type="text" name="nombre" id="nombre" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
             </div>
 
             <div class="form-group">
@@ -45,45 +48,51 @@
                 <label class="form-label">Disponibilidad:</label>
                 <div class="radio-group">
                     <input type="radio" name="disponibilidad" value="true" id="disponible" required>
-                    <label for="disponible">🟢 Disponible</label>
+                    <label for="disponible">Disponible</label>
 
                     <input type="radio" name="disponibilidad" value="false" id="no-disponible">
-                    <label for="no-disponible">🔴 No Disponible</label>
+                    <label for="no-disponible">No Disponible</label>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="diaAdquisicion">Fecha de Adquisición:</label>
-                <input type="date" name="diaAdquisicion" id="diaAdquisicion" class="form-input" required max="2023-12-31" title="La fecha no puede ser futura." />
+                <input type="date" name="diaAdquisicion" id="diaAdquisicion" class="form-input" required 
+                       max="2025-12-31" />
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="costoAlquiler">Costo de Alquiler:</label>
-                <input type="number" name="costoAlquiler" id="costoAlquiler" class="form-input" step="0.01" required min="0" title="Por favor, ingresa un costo válido (no se permiten números negativos)." />
+                <input type="number" name="costoAlquiler" id="costoAlquiler" class="form-input" step="0.01" required min="0" />
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="ubicacion">Ubicación:</label>
-                <input type="text" name="ubicacion" id="ubicacion" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" title="Por favor, ingresa una ubicación válida." />
+                <input type="text" name="ubicacion" id="ubicacion" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="capacidadTrabajo">Capacidad de Trabajo:</label>
-                <input type="text" name="capacidadTrabajo" id="capacidadTrabajo" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" title="Por favor, ingresa solo letras y espacios." />
+                <input type="text" name="capacidadTrabajo" id="capacidadTrabajo" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary" onclick="return confirm('¿Estás seguro de que deseas guardar esta máquina?')">
+                <button type="submit" class="btn btn-primary">
                     <span class="material-symbols-outlined icon">save</span>
                     Guardar Máquina
                 </button>
-                <a href="/lista" class="btn btn-secondary">
+                <a th:href="@{/lista}" class="btn btn-secondary">
                     <span class="material-symbols-outlined icon">arrow_back</span>
                     Cancelar
                 </a>
             </div>
+
+            <div th:if="${_csrf != null}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            </div>
         </form>
     </div>
 
+    <script th:src="@{/js/machinery.js}"></script>
 </body>
 </html>

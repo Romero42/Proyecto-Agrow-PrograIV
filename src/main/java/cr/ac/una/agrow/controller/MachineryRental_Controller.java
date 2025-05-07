@@ -159,30 +159,33 @@ public class MachineryRental_Controller {
             @RequestParam("id_machinaryrental") int idMachinaryRental,
             @RequestParam("id_maquina") int idMaquina) {
 
-        // Obtener el alquiler a editar
-        machineryRental rental = service.getById(idMachinaryRental);
-        if (rental == null) {
-            throw new NoSuchElementException("Alquiler no encontrado con ID: " + idMachinaryRental);
+        try {
+            // 1. Obtener máquinas disponibles
+            List<Machinery> maquinas = new LinkedList<>(machineryService.getByDisponibilidad(true));
+
+            // 2. Añadir la máquina actual (aunque no esté disponible)
+            Machinery maquinaActual = machineryService.getMachineryById(idMaquina)
+                    .orElseThrow(() -> new RuntimeException("Máquina no encontrada"));
+            if (!maquinas.contains(maquinaActual)) {
+                maquinas.add(maquinaActual);
+            }
+
+            // 3. Obtener el alquiler
+            machineryRental rental = service.getById(idMachinaryRental);
+            if (rental == null) {
+                throw new RuntimeException("Alquiler no encontrado");
+            }
+
+            // 4. Agregar atributos al modelo
+            model.addAttribute("machinery", rental);
+            model.addAttribute("activeModule", "machineryRental");
+            model.addAttribute("list", maquinas);
+
+            return "machineryRental/update_machineryR";
+
+        } catch (Exception e) {
+            return "redirect:/rent/list?error=" + e.getMessage();
         }
-
-        // Obtener la máquina actual del alquiler
-        Machinery maquinaActual = machineryService.getMachineryById(idMaquina)
-                .orElseThrow(() -> new NoSuchElementException("Máquina no encontrada con ID: " + idMaquina));
-
-       
-        List<Machinery> maquinasDisponibles = machineryService.getByDisponibilidad(true);
-
-        
-        if (!maquinasDisponibles.contains(maquinaActual)) {
-            maquinasDisponibles.add(maquinaActual);
-        }
-
-        model.addAttribute("rental", rental); // Cambiado de "machinery" a "rental"
-        model.addAttribute("maquinaActual", maquinaActual);
-        model.addAttribute("maquinasDisponibles", maquinasDisponibles);
-        model.addAttribute("activeModule", "machineryRental");
-
-        return "machineryRental/update_machineryR";
     }
 
     //se envia una pagina dependiendo de el filtro solicitado

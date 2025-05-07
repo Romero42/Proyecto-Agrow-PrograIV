@@ -1,6 +1,7 @@
 package cr.ac.una.agrow.controller.machinery;
 
 import cr.ac.una.agrow.domain.machinery.Machinery;
+import cr.ac.una.agrow.jpa.MachineryRepository;
 import cr.ac.una.agrow.service.MachineryService;
 import cr.ac.una.agrow.service.MachineryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +20,8 @@ public class MachineryController {
 
     @Autowired
     private MachineryService machineryService;
+    @Autowired
+    private MachineryRepository machineryRepository;
 
     @GetMapping("/lista")
     public String listado(Model model) {
@@ -43,17 +45,28 @@ public class MachineryController {
             @RequestParam("ubicacion") String ubicacion,
             @RequestParam("capacidadTrabajo") String capacidadTrabajo) {
 
-        LocalDate fechaAdquisicion = LocalDate.parse(diaAdquisicion);
-
-        Machinery machinery = new Machinery(id, nombre, condicion, disponibilidad, fechaAdquisicion, costoAlquiler, ubicacion, capacidadTrabajo);
-        boolean resultado = machineryService.saveMachinery(machinery) != null;
-
         ModelAndView modelAndView = new ModelAndView("index");
-        if (resultado) {
-            modelAndView.addObject("mensaje", "Machinery agregada correctamente.");
-        } else {
-            modelAndView.addObject("mensaje", "Error al agregar la machinery.");
+
+        try {
+           
+            LocalDate fechaAdquisicion = LocalDate.parse(diaAdquisicion);
+
+            Machinery machinery = new Machinery(id, nombre, condicion, disponibilidad,
+                    fechaAdquisicion, costoAlquiler, ubicacion, capacidadTrabajo);
+
+            if (machineryRepository.existsById(id)) {
+                modelAndView.addObject("error", "El ID ya existe, no se puede crear un nuevo registro con el mismo ID.");
+            } else {
+                machineryService.saveMachineryDefinitivo(machinery);
+                modelAndView.addObject("mensaje", "Maquinaria agregada correctamente");
+            }
+
+        } catch (RuntimeException e) {
+            modelAndView.addObject("error", e.getMessage());
+        } catch (Exception e) {
+            modelAndView.addObject("error", "Error inesperado al guardar: " + e.getMessage());
         }
+
         return modelAndView;
     }
 
@@ -122,14 +135,14 @@ public class MachineryController {
 
     @PostMapping("/actualizar")
     public String actualizarMachinery(@RequestParam("id") int id,
-                                      @RequestParam("nombre") String nombre,
-                                      @RequestParam("condicion") String condicion,
-                                      @RequestParam("disponibilidad") boolean disponibilidad,
-                                      @RequestParam("diaAdquisicion") LocalDate diaAdquisicion,
-                                      @RequestParam("costoAlquiler") double costoAlquiler,
-                                      @RequestParam("ubicacion") String ubicacion,
-                                      @RequestParam("capacidadTrabajo") String capacidadTrabajo,
-                                      RedirectAttributes redirectAttributes) {
+            @RequestParam("nombre") String nombre,
+            @RequestParam("condicion") String condicion,
+            @RequestParam("disponibilidad") boolean disponibilidad,
+            @RequestParam("diaAdquisicion") LocalDate diaAdquisicion,
+            @RequestParam("costoAlquiler") double costoAlquiler,
+            @RequestParam("ubicacion") String ubicacion,
+            @RequestParam("capacidadTrabajo") String capacidadTrabajo,
+            RedirectAttributes redirectAttributes) {
 
         Machinery machinery = new Machinery(id, nombre, condicion, disponibilidad, diaAdquisicion, costoAlquiler, ubicacion, capacidadTrabajo);
         boolean actualizado = machineryService.updateMachinery(machinery) != null;
