@@ -112,6 +112,14 @@
                 <span class="material-symbols-outlined icon">arrow_forward</span>
             </a>
         </div>
+        
+        <!-- Tarjeta Transporte -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">local_shipping</span></div>
+                    <h2 class="dashboard-card-title">Gestión de Transportes</h2>
+                    <p class="dashboard-card-description">Administre los transportes disponibles, conductores, fechas y estado de entrega de los productos.</p>
+                    <a th:href="@{/transport/list}" class="dashboard-card-action"> Ir a Transportes <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+                </div>
 
         <!-- Tarjeta Usuarios - SOLO PARA ADMINISTRADORES -->
         <div class="dashboard-card" th:if="${userType == 'Administrador'}">

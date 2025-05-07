@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Detalle de Transporte</title>
+
+        <script th:src="@{/js/app.js}"></script>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div class="detail-container" th:if="${transporte != null}" th:object="${transporte}">
+                <div class="detail-header">
+                    <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                    </div>
+                    <div>
+                        <h2 class="page-title" th:text="*{transportCompany} + ' - ' + *{driverName}"></h2>
+                        <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{idTransport}"></span></p>
+                    </div>
+                </div>
+
+                <table class="detail-table">
+                    <tr><td>ID Transporte:</td><td th:text="*{idTransport}"></td></tr>
+                    <tr><td>Fecha:</td><td th:text="*{transportDate}"></td></tr>
+                    <tr><td>Tipo:</td><td th:text="*{transportType}"></td></tr>
+                    <tr><td>Empresa:</td><td th:text="*{transportCompany}"></td></tr>
+                    <tr><td>Conductor:</td><td th:text="*{driverName}"></td></tr>
+                    <tr><td>Teléfono Conductor:</td><td th:text="*{driverPhone}"></td></tr>
+                    <tr><td>Patente Vehículo:</td><td th:text="*{vehiclePlate}"></td></tr>
+                    <tr><td>Costo Transporte:</td><td th:text="*{transportCost}"></td></tr>
+                    <tr><td>Entregado:</td><td th:text="*{delivered} ? 'Sí' : 'No'"></td></tr>
+                </table>
+
+                <div class="detail-actions">
+                    <a th:href="@{/transport/editView(idTransport=*{idTransport})}" class="btn btn-warning">
+                        <span class="material-symbols-outlined icon">edit</span> Editar
+                    </a>
+                    <form th:action="@{/transport/delete}" method="post" class="confirm-action" 
+                          data-message="¿Eliminar este transporte?" data-title="Confirmar Eliminación">
+                        <input type="hidden" name="idTransport" th:value="*{idTransport}" />
+                        <button type="submit" class="btn btn-danger">
+                            <span class="material-symbols-outlined icon">delete</span> Eliminar
+                        </button>
+                    </form>
+
+                    <a th:href="@{/transport/list}" class="btn btn-secondary">
+                        <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${transporte == null}" class="info-card">
+                <span class="material-symbols-outlined icon">local_shipping</span>
+                <h2>Transporte no encontrado</h2>
+                <p>El transporte solicitado no existe o fue eliminado.</p>
+                <a th:href="@{/transport/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+                </a>
+            </div>
+        </div>
+    </body>
+</html>
