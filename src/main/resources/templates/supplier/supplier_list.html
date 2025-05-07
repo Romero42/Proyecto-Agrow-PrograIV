@@ -1,53 +1,51 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Listado de Proveedores - Agrow</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <!-- Opcional: Incluir SweetAlert2 si lo usas -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
+    <head>
+        <title>Listado de Proveedores - Agrow</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
-<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
 
-<div class="main-content">
-    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Gestión de Proveedores</h1>
-            <p class="page-subtitle">Visualiza y administra los proveedores. Total: <span th:text="${totalItems != null ? totalItems : (listS != null ? listS.size() : 0)}">0</span></p>
-        </div>
-        <a th:href="@{/suppliers/form}" class="btn btn-primary"> <span class="material-symbols-outlined icon">add_business</span> Agregar Proveedor </a>
-    </div>
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-    <form id="filter-form-supplier" th:action="@{/suppliers/list}" method="get" class="filter-section">
-        <div class="filter-row">
-            <div class="filter-group">
-                <label class="filter-label" for="search">Buscar por Contacto o Empresa</label>
-                <input type="text" id="search" name="search" th:value="${search}" class="filter-input" placeholder="Contacto o empresa..." maxlength="100" />
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Gestión de Proveedores</h1>
+                    <p class="page-subtitle">Visualiza y administra los proveedores. Total: <span th:text="${totalItems != null ? totalItems : (listS != null ? listS.size() : 0)}">0</span></p>
+                </div>
+                <a th:href="@{/suppliers/form}" class="btn btn-primary"> <span class="material-symbols-outlined icon">add_business</span> Agregar Proveedor </a>
             </div>
-            <div class="filter-buttons">
-                <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">search</span> Filtrar </button>
-                <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">refresh</span> Restablecer </a>
+
+            <form id="filter-form-supplier" th:action="@{/suppliers/list}" method="get" class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label" for="search">Buscar por Contacto o Empresa</label>
+                        <input type="text" id="search" name="search" th:value="${search}" class="filter-input" placeholder="Contacto o empresa..." maxlength="100" />
+                    </div>
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">search</span> Filtrar </button>
+                        <a th:href="@{/suppliers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">refresh</span> Restablecer </a>
+                    </div>
+                </div>
+            </form>
+
+            <div id="supplier-list-content">
+                <div th:replace="~{supplier/supplier_table :: supplierTable}"></div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a th:href="@{/home}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio </a>
             </div>
         </div>
-    </form>
-
-    <!-- Contenedor que se actualizará con AJAX -->
-    <div id="supplier-list-content">
-        <!-- Incluir el fragmento de tabla de proveedores -->
-        <div th:replace="~{supplier/supplier_table :: supplierTable}"></div>
-    </div>
-
-    <div style="margin-top: 20px;">
-        <a th:href="@{/home}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio </a>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/app.js}"></script>
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="/js/supplier.js"></script>
+    </body>
 </html>

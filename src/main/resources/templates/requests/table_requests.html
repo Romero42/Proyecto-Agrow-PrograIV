@@ -1,7 +1,6 @@
 
 <div th:fragment="requestTableContent" xmlns:th="http://www.thymeleaf.org">
 
-    <!-- Mensaje cuando no hay solicitudes -->
     <div class="info-card" th:if="${validate != null}">
         <span class="material-symbols-outlined icon">info</span>
         <h2 th:text="${validate}">No se encontraron solicitudes</h2>
@@ -30,11 +29,10 @@
                     <td th:text="${tempRequest.type}"></td>
                     <td class="numeric-display"
                         th:text="${#numbers.formatDecimal(tempRequest.amount, 1, 0, 'POINT')}">
-                        <!-- Formatear cantidad como entero -->
                     </td>
                     <td th:text="${tempRequest.getFormattedDate()}"></td>
 
-                    <!-- Estilos según estado -->
+                    <!-- estilos de los estados -->
                     <td>
                             <span class="status"
                                   th:classappend="${#strings.equalsIgnoreCase(tempRequest.status, 'Aprobada')} ? 'status-optimo' :
@@ -72,11 +70,11 @@
             </table>
         </div>
     </div>
-    <!-- Componente de paginación -->
+    <!-- paginación -->
     <div class="d-flex justify-content-center mt-3">
         <div class="pagination" th:if="${totalPages > 1}">
             <ul>
-                <!-- Botón Anterior -->
+
                 <li th:class="${currentPage == 0 ? 'disabled' : ''}">
                     <a href="#" th:attr="data-page=${currentPage - 1}"
                        onclick="pageRequests(this); return false;">
@@ -84,14 +82,14 @@
                     </a>
                 </li>
 
-                <!-- Páginas numéricas  -->
+
                 <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                     th:class="${currentPage == i ? 'active' : ''}">
                     <a href="#" th:attr="data-page=${i}"
                        onclick="pageRequests(this); return false;" th:text="${i + 1}"></a>
                 </li>
 
-                <!-- Botón Siguiente -->
+
                 <li th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
                     <a href="#" th:attr="data-page=${currentPage + 1}"
                        onclick="pageRequests(this); return false;">

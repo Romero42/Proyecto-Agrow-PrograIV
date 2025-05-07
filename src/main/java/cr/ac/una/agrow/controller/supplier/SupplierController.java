@@ -146,7 +146,7 @@ public class SupplierController {
 
         Supplier supplier = new Supplier(supplierIdentification, supplierName.trim(), companyName.trim(), phoneNumber, email.trim(), registrationDate, isActive, creditLimit);
 
-        String resultMessage = String.valueOf(supplierService.save(supplier)); // Usa supplierService
+        String resultMessage = String.valueOf(supplierService.save(supplier));
         String[] parts = Util.arraySplit(resultMessage);
         int typeMsg = Integer.parseInt(parts[0]);
         String message = parts[1];
@@ -169,7 +169,7 @@ public class SupplierController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = supplierService.getById(id); // Usa supplierService
+        Supplier supplier = supplierService.getById(id);
         if (supplier == null) {
             redirectAttributes.addFlashAttribute("error", "Proveedor con ID " + id + " no encontrado.");
             return "redirect:/suppliers/list";
@@ -230,12 +230,12 @@ public class SupplierController {
             @RequestParam("id") int id,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = supplierService.getById(id); // Usa supplierService
+        Supplier supplier = supplierService.getById(id);
         if (supplier == null) {
             redirectAttributes.addFlashAttribute("error", "Proveedor no encontrado con ID: " + id);
             return "redirect:/suppliers/list";
         }
-        supplierService.delete(supplier); // Usa supplierService
+        supplierService.delete(supplier);
         redirectAttributes.addFlashAttribute("mensaje", "Proveedor eliminado exitosamente.");
         return "redirect:/suppliers/list";
     }
@@ -246,7 +246,7 @@ public class SupplierController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = supplierService.getById(id); // Usa supplierService
+        Supplier supplier = supplierService.getById(id);
         if (supplier == null) {
             redirectAttributes.addFlashAttribute("error", "Proveedor con ID " + id + " no encontrado.");
             return "redirect:/suppliers/list";

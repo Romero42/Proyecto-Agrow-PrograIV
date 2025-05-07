@@ -1,4 +1,4 @@
-// resources/static/js/app.js
+// resources/static/js/supplier.js
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -77,115 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     formatPrices();
-
-    // Cálculo y muestra del total de venta (sin cambios)
-    function calculateAndDisplayTotalSale() {
-        const quantityInput = document.getElementById('quantitySold');
-        const priceInput = document.getElementById('pricePerUnitSold');
-        const totalDisplay = document.getElementById('totalSaleDisplay');
-        if (!quantityInput || !priceInput || !totalDisplay) return;
-
-        const quantity = parseInt(quantityInput.value, 10);
-        const price = parseFloat(priceInput.value);
-
-        if (!isNaN(quantity) && quantity > 0 && !isNaN(price) && price > 0) {
-            const total = quantity * price;
-            totalDisplay.textContent = `Total Venta: ${formatColones(total)}`;
-            totalDisplay.style.display = 'block';
-        } else {
-            totalDisplay.textContent = '';
-            totalDisplay.style.display = 'none';
-        }
-    }
-
-    // Validación de cantidad de venta (sin cambios)
-    function validateQuantityInput() {
-        const quantityInput = document.getElementById('quantitySold');
-        const quantityError = document.getElementById('quantityError');
-        if (!quantityInput || !quantityError) return true;
-
-        const maxAttr = quantityInput.getAttribute('max');
-        const max = maxAttr ? parseInt(maxAttr, 10) : null;
-        const current = parseInt(quantityInput.value, 10);
-
-        let isValid = true;
-        quantityError.style.display = 'none';
-        quantityInput.classList.remove('input-error');
-
-        if (max !== null && !isNaN(current) && current > max) {
-            quantityError.textContent = `La cantidad no puede exceder el máximo (${max} kg).`;
-            isValid = false;
-        } else if (!isNaN(current) && current <= 0) {
-            quantityError.textContent = 'La cantidad debe ser mayor a cero.';
-            isValid = false;
-        } else if (isNaN(current) && quantityInput.value.trim() !== '') {
-            quantityError.textContent = 'Ingrese un número válido.';
-            isValid = false;
-        }
-
-        if (!isValid) {
-            quantityError.style.display = 'block';
-            quantityInput.classList.add('input-error');
-        }
-        return isValid;
-    }
-
-    // Actualizar cantidad máxima y placeholder de precio (sin cambios)
-    function updateMaxQuantityAndPrice() {
-        const harvestSelect = document.getElementById('harvestId');
-        const quantityInput = document.getElementById('quantitySold');
-        if (!harvestSelect || !quantityInput) return;
-
-        const selectedOption = harvestSelect.options[harvestSelect.selectedIndex];
-
-        if (selectedOption && selectedOption.value) {
-            const available = parseInt(selectedOption.getAttribute('data-available'), 10);
-
-            if (!isNaN(available) && available > 0) {
-                quantityInput.max = available;
-                quantityInput.placeholder = `Máximo disponible: ${available} kg`;
-                quantityInput.disabled = false;
-                if (parseInt(quantityInput.value, 10) > available) {
-                    quantityInput.value = available;
-                }
-                validateQuantityInput();
-            } else {
-                quantityInput.max = 0;
-                quantityInput.placeholder = 'No disponible';
-                quantityInput.value = '';
-                quantityInput.disabled = true;
-                validateQuantityInput();
-            }
-        } else {
-            quantityInput.removeAttribute('max');
-            quantityInput.placeholder = 'Seleccione cosecha primero';
-            quantityInput.value = '';
-            quantityInput.disabled = true;
-            validateQuantityInput();
-        }
-        calculateAndDisplayTotalSale();
-    }
-
-    // Listeners para inputs de venta (sin cambios)
-    document.body.addEventListener('input', (event) => {
-        if (event.target.matches('#quantitySold') || event.target.matches('#pricePerUnitSold')) {
-            calculateAndDisplayTotalSale();
-        }
-        if (event.target.matches('#quantitySold')) {
-            validateQuantityInput();
-        }
-    });
-
-    const harvestSelectForCreate = document.getElementById('harvestId');
-    if (harvestSelectForCreate && document.getElementById('saleForm')) {
-        harvestSelectForCreate.addEventListener('change', updateMaxQuantityAndPrice);
-        updateMaxQuantityAndPrice();
-    }
-
-    if (document.getElementById('editSaleForm')) {
-        validateQuantityInput();
-        calculateAndDisplayTotalSale();
-    }
 
     // Manejo de diálogos de confirmación (sin cambios)
     function attachConfirmHandlers() {
@@ -318,100 +209,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funciones de Paginación ---
 
-    // Paginación para Cosechas (sin cambios)
-    window.pageHarvests = function(link) {
-        if (!link) return;
-        const page = link.getAttribute('data-page');
-        const formData = new FormData(document.getElementById('filter-form-harvest') || new FormData());
-        formData.set('page', page);
-        handleAjaxRequest(`/harvests/table?${new URLSearchParams(formData).toString()}`, 'harvest-list-content');
-    };
+// Corrección de la función de paginación para proveedores
+window.pageSuppliers = function(link) {
+    if (!link) return;
+    const page = link.getAttribute('data-page'); // Obtener la página del enlace
 
-    // Paginación para Suministros (sin cambios)
-    window.pageSupplies = function(link) {
-        if (!link) return;
-        const page = link.getAttribute('data-page');
-        const formData = new FormData(document.getElementById('filter-form-supply') || new FormData());
-        formData.set('page', page);
-        handleAjaxRequest(`/supplies/table?${new URLSearchParams(formData).toString()}`, 'supply-list-content');
-    };
+    // Usa el formulario de filtro si existe
+    const form = document.getElementById('filter-form-supplier');
+    const formData = form ? new FormData(form) : new FormData();
 
-    // Paginación/Filtro para Productores (sin cambios)
-    window.producer = function(button) {
-        if (!button) return;
-        const isFilter = button.getAttribute('data-button') === '1';
-        const page = isFilter ? '0' : button.getAttribute('data-page');
-        const form = document.getElementById('filter-form-producer');
-        const formData = new FormData(form || new FormData());
-        formData.set('page', page);
-        const idProd = form?.querySelector('#id_producer')?.value;
-        const city = form?.querySelector('#city');
-        if (idProd) {
-            formData.delete('city');
-            if (city) city.value = '';
-        } else {
-            formData.delete('id_producer');
-        }
-        handleAjaxRequest(`/producers/list?${new URLSearchParams(formData).toString()}`, 'table-producer');
-    };
+    // Siempre establece la página solicitada
+    formData.set('page', page);
 
-    // --- Funciones para Alquiler de Maquinaria --- (sin cambios)
-    window.pageRent = function(link) {
-        if (!link) return;
-        const page = link.getAttribute('data-page');
-        const params = new URLSearchParams(getCurrentRentFilters());
-        params.set('page', page);
-        const endpoint = (params.has('rentStartDay') || params.has('rentFinalDay') || params.has('id_maquina'))
-            ? '/rent/tableFilter'
-            : '/rent/pageCurrent';
-        handleAjaxRequest(`${endpoint}?${params.toString()}`, 'tableData');
-    };
-
-    window.filterRent = function(button) {
-        if (!button) return;
-        const params = new URLSearchParams(getCurrentRentFilters());
-        params.set('page', '0');
-        const start = params.get('rentStartDay');
-        const end = params.get('rentFinalDay');
-        const id = params.get('id_maquina');
-        if ((start && id) || (end && id) || (start && end && id)) {
-            swalAgrow.fire("Error", "Use solo un tipo de filtro a la vez (rango de fechas o código de máquina).", "error");
-            return;
-        }
-        if (start && end && start > end) {
-            swalAgrow.fire("Error", "La fecha de inicio no puede ser posterior a la fecha final.", "error");
-            return;
-        }
-        if (!start && !end && !id) {
-            swalAgrow.fire("Info", "Por favor ingrese un filtro para buscar.", "info");
-            return;
-        }
-        handleAjaxRequest(`/rent/tableFilter?${params.toString()}`, 'tableData');
-    };
-
-    function getCurrentRentFilters() {
-        const form = document.getElementById('filter-form-rent');
-        const params = new URLSearchParams();
-        if (!form) return params;
-        const start = form.querySelector('#rentStartDay')?.value; if (start) params.append('rentStartDay', start);
-        const end = form.querySelector('#rentFinalDay')?.value; if (end) params.append('rentFinalDay', end);
-        const id = form.querySelector('#id_maquina')?.value;    if (id) params.append('id_maquina', id);
-        return params;
+    // Asegurarse de incluir el término de búsqueda si existe
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam && !formData.has('search')) {
+        formData.set('search', searchParam);
     }
 
-    window.viewMaquina = function(link) {
-        if (!link) return;
-        const machineId = link.getAttribute('data-id');
-        const infoDiv = document.getElementById('infoMaquina');
-        if (infoDiv && machineId) {
-            handleAjaxRequest(`/rent/viewMaquina?id_maquina=${machineId}`, 'infoMaquina');
-        }
-    };
-    window.cerrarInfoMaquina = function() {
-        const infoDiv = document.getElementById('infoMaquina');
-        if (infoDiv) infoDiv.innerHTML = "";
-    };
+    console.log("Cargando página de proveedores:", page); // Depuración
+    console.log("URL:", `/suppliers/table?${new URLSearchParams(formData).toString()}`); // Depuración
 
+    // Llama a handleAjaxRequest con la URL del fragmento y el ID del contenedor
+    handleAjaxRequest(
+       `/suppliers/table?${new URLSearchParams(formData).toString()}`,
+       'supplier-list-content'
+    );
+    return false; // Prevenir comportamiento predeterminado del enlace
+};
     // --- Eventos Dinámicos para Contenido AJAX ---
     function attachDynamicEventListeners() {
         document.body.addEventListener('submit', function(event) {
@@ -424,14 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let contentId, actionUrl;
 
             // Determinar el contenedor y la URL según el ID del formulario
-            if (form.id === 'filter-form-supply') {
-                contentId = 'supply-list-content'; actionUrl = '/supplies/table';
-            } else if (form.id === 'filter-form-harvest') {
-                contentId = 'harvest-list-content'; actionUrl = '/harvests/table';
-            } else if (form.id === 'filter-form-producer') {
-                contentId = 'table-producer'; actionUrl = '/producers/list';
-            } else if (form.id === 'filter-form-rent') {
-                contentId = 'tableData'; actionUrl = '/rent/tableFilter';
+            if (form.id === 'filter-form-supplier') {
+                               contentId = 'supplier-list-content'; // ID del div que contendrá la tabla de proveedores
+                               actionUrl = '/suppliers/table';
 
             } else {
                 console.warn('Formulario de filtro con ID no reconocido:', form.id);
@@ -440,20 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(form);
             formData.set('page', '0'); // Al filtrar, siempre ir a la página 0
-
-            // Lógica específica para Producer (sin cambios)
-            if (form.id === 'filter-form-producer') {
-                const idInput = form.querySelector('#id_producer');
-                if (idInput?.value) formData.delete('city');
-                else formData.delete('id_producer');
-            }
-            // Lógica específica para Rent (sin cambios)
-            if (form.id === 'filter-form-rent') {
-                const s = formData.get('rentStartDay'), e = formData.get('rentFinalDay'), m = formData.get('id_maquina');
-                if ((s && m) || (e && m) || (s && e && m)) { swalAgrow.fire("Error", "Use solo un filtro a la vez.", "error"); return; }
-                if (s && e && s > e) { swalAgrow.fire("Error", "Fecha inicio > fecha final.", "error"); return; }
-                if (!s && !e && !m) { swalAgrow.fire("Info", "Ingrese un filtro.", "info"); return; }
-            }
 
             // Ejecutar la petición AJAX
             handleAjaxRequest(`${actionUrl}?${new URLSearchParams(formData).toString()}`, contentId);
@@ -464,13 +271,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const pgLink = event.target.closest('.pagination a[data-page]');
             if (pgLink) {
                 event.preventDefault();
-                const container = pgLink.closest('[id$="-list-content"], [id="table-producer"], [id="tableData"]');
+                const container = pgLink.closest('[id$="-list-content"]');
                 if (container) {
-                    if (container.id === 'harvest-list-content') window.pageHarvests(pgLink);
-                    else if (container.id === 'supply-list-content') window.pageSupplies(pgLink);
-                    else if (container.id === 'table-producer') window.producer(pgLink);
-                    else if (container.id === 'tableData') window.pageRent(pgLink);
-
+                    if (container.id === 'supplier-list-content'){
+                     window.pageSuppliers(pgLink); // Añadir para proveedores
+                    }
                 }
             }
         });

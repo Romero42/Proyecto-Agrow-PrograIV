@@ -50,11 +50,11 @@ public class Supplier_Service implements CRUD<Supplier> {
         if(searchTerm == null || searchTerm.isEmpty()){
             return getAll();
         }
-        // Usando el nuevo metodo de repositorio para filtrar por término de búsqueda
+        // filtrar por término de búsqueda
         return repoSupplier.findBySupplierNameOrCompanyNameContainingIgnoreCase(searchTerm);
     }
 
-    // Métodos para paginación
+    // paginación
     public Page<Supplier> getAllPaginated(int page, int size) {
         return repoSupplier.findAll(PageRequest.of(page, size));
     }

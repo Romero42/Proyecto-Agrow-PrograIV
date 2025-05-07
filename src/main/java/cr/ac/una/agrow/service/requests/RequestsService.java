@@ -31,7 +31,7 @@ public class RequestsService implements CRUD<Requests> {
         return repoRequests.findAll();
     }
 
-    // Nuevo metodo para paginación
+    //paginación
     public Page<Requests> getAllPaginated(int page, int size) {
         return repoRequests.findAll(PageRequest.of(page, size));
     }
