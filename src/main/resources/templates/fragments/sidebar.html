@@ -74,6 +74,12 @@
                 <span class="material-symbols-outlined icon">rate_review</span>
                 Reseñas
             </a>
+            
+            <!-- Enlace Transporte -->
+            <a th:href="@{/transport/list}" th:classappend="${activeModule == 'transport'} ? ' active' : ''">
+                <span class="material-symbols-outlined icon">local_shipping</span>
+                Transporte
+            </a>
 
             <!-- ===================================================== -->
             <!-- ENLACE CONDICIONAL PARA USUARIOS -->
