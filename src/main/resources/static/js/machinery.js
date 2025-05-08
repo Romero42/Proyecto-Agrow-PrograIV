@@ -18,10 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 showCancelButton: true,
                 confirmButtonText: 'Sí, confirmar',
                 cancelButtonText: 'Cancelar',
-                reverseButtons: true
+                reverseButtons: true,
+                customClass: {
+                    popup: 'swal2-agrow-popup',
+                    title: 'swal2-agrow-title',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
             }).then(result => {
                 if (result.isConfirmed) {
-                    // Enviar el formulario normalmente
                     form.submit();
                 }
             });
@@ -57,7 +63,13 @@ function mostrarMensajeDesdeServidor() {
             icon: 'success',
             title: 'ÉXITO',
             text: mensaje,
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            customClass: {
+                popup: 'swal2-agrow-popup',
+                title: 'swal2-agrow-title',
+                confirmButton: 'btn btn-success'
+            },
+            buttonsStyling: false
         });
     }
 
@@ -66,7 +78,13 @@ function mostrarMensajeDesdeServidor() {
             icon: 'error',
             title: 'Error',
             text: error,
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            customClass: {
+                popup: 'swal2-agrow-popup',
+                title: 'swal2-agrow-title',
+                confirmButton: 'btn btn-success'
+            },
+            buttonsStyling: false
         });
     }
 }
