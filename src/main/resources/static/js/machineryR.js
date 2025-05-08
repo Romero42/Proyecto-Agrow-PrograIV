@@ -10,6 +10,7 @@ function pageRent(element){
         if (xhttp.readyState === 4 && xhttp.status === 200) {
 
             tableCurrent.innerHTML = this.responseText;
+            attachConfirmHandlers();
         }
     };
 
@@ -66,6 +67,7 @@ function filterRent(element) {
         if (xhttp.readyState === 4 && xhttp.status === 200) {
 
             tableUpdate.innerHTML = this.responseText;
+            attachConfirmHandlers();
         }
     };
 
@@ -84,3 +86,27 @@ function mostrarAlerta(tipo, mensaje) {
         confirmButtonText: 'OK'
     });
 }
+
+    function cerrarInfoMaquina() {
+        document.getElementById("infoMaquina").innerHTML = "";
+    }
+
+    function viewMaquina(element){
+
+        var maquinaInfo = document.getElementById("infoMaquina");
+        var id_maquina = element.getAttribute('data-id');
+
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+            if (xhttp.readyState === 4 && xhttp.status === 200) {
+
+                maquinaInfo.innerHTML = this.responseText;
+                 formatPrices();
+
+            }
+        };
+
+        xhttp.open("GET", "/rent/viewMaquina?id_maquina=" + id_maquina, true);
+        xhttp.send();
+    }

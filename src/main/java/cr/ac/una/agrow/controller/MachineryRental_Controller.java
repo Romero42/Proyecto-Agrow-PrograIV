@@ -139,7 +139,7 @@ public class MachineryRental_Controller {
         if(service.update(new machineryRental(id_machinaryrental, renterName, address, contactNumber, rentStartDay, rentFinalDay, machinery))){
 
             if(id_maquina != machinery){
-                System.out.println("updateMa "+id_maquina);
+
                 updateStatusMachine(id_maquina, true);
                 updateStatusMachine(machinery, false);
             }
@@ -251,10 +251,13 @@ public class MachineryRental_Controller {
         Machinery m = machineryService.getMachineryById(id_maquina)
                 .orElseThrow(() -> new NoSuchElementException("Máquina no encontrada con ID: " + id_maquina));
 
+
         model.addAttribute("maquina", m);
         model.addAttribute("rental", true);
         model.addAttribute("titulo", "Detalles de la Máquina: " + m.getNombre());
 
+        System.out.println(m.getNombre());
+        System.out.println("asdas "+m.getCostoAlquiler());
         return "machinery/detail_machinery";
     }
 

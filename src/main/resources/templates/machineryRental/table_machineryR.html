@@ -38,19 +38,21 @@
                            class="btns view-btns" title="Ver Detalles"> <span
                                 class="material-symbols-outlined icon">visibility</span> </a>
 
-                        <a th:href="@{/rent/editView(id_machinaryrental=${tempRent.id_machinaryrental})}"
+                        <a th:href="@{/rent/editView(id_machinaryrental=${tempRent.id_machinaryrental}, id_maquina=${tempRent.id_maquina})}"
                            class="btns edit-btns" title="Editar"> <span
                                 class="material-symbols-outlined icon">edit</span>
                         </a>
 
                         <form th:action="@{/rent/delete}" method="get" class="confirm-action"
-                              data-message="¿Eliminar esta renta?" data-title="Confirmar Eliminación"
-                              style="margin:0; padding:0; display:inline;">
+                              data-message="¿Eliminar esta renta?" data-title="Confirmar Eliminación">
                             <input type="hidden" name="id_machinaryrental"
                                    th:value="${tempRent.id_machinaryrental}"/>
+                            <input type="hidden" name="id_maquina"
+                                   th:value="${tempRent.id_maquina}"/>
                             <button type="submit" class="btns delete-btns" title="Eliminar"><span
                                     class="material-symbols-outlined icon">delete</span></button>
                         </form>
+
                     </div>
                 </td>
             </tr>

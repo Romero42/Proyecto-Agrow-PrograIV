@@ -30,7 +30,8 @@
                 Suministros
             </a>
             <!-- Enlace Productores -->
-            <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''">
+            <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''"
+               th:if="${userType == 'Administrador'}">
                 <span class="material-symbols-outlined icon">agriculture</span>
                 Productores
             </a>

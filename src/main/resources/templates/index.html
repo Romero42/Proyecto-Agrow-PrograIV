@@ -35,38 +35,61 @@
         <div class="dashboard-card">
             <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">inventory_2</span></div>
             <h2 class="dashboard-card-title">Gestión de Suministros</h2>
-            <p class="dashboard-card-description"> Administre el inventario de semillas, fertilizantes, herramientas y otros insumos. Controle stock y fechas. </p>
-            <a th:href="@{/supplies/list}" class="dashboard-card-action"> Ir a Suministros <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description"> Administre el inventario de semillas, fertilizantes, herramientas y
+                otros insumos. Controle stock y fechas. </p>
+            <a th:href="@{/supplies/list}" class="dashboard-card-action"> Ir a Suministros <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
 
         <!-- Tarjeta Productores -->
-        <div class="dashboard-card">
-            <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">agriculture</span></div>
+        <div class="dashboard-card" th:if="${userType == 'Administrador'}">
+            <div class=" dashboard-card-icon
+        "><span class="material-symbols-outlined icon">agriculture</span></div>
             <h2 class="dashboard-card-title">Gestión de Productores</h2>
-            <p class="dashboard-card-description"> Mantenga un registro actualizado de los productores, su información de contacto, ubicación y estado. </p>
-            <a th:href="@{/producers/list}" class="dashboard-card-action"> Ir a Productores <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description"> Mantenga un registro actualizado de los productores, su información
+                de
+                contacto, ubicación y estado. </p>
+            <a th:href="@{/producers/list}" class="dashboard-card-action"> Ir a Productores <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
 
         <!-- Tarjeta Proveedores -->
         <div class="dashboard-card">
             <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">local_shipping</span></div>
             <h2 class="dashboard-card-title">Gestión de Proveedores</h2>
-            <p class="dashboard-card-description"> Registre y administre la información de sus proveedores, contactos, empresas y límites de crédito. </p>
-            <a th:href="@{/suppliers/list}" class="dashboard-card-action"> Ir a Proveedores <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description"> Registre y administre la información de sus proveedores, contactos,
+                empresas
+                y límites de crédito. </p>
+            <a th:href="@{/suppliers/list}" class="dashboard-card-action"> Ir a Proveedores <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
 
         <!-- Tarjeta Maquinaria -->
         <div class="dashboard-card">
             <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">engineering</span></div>
             <h2 class="dashboard-card-title">Gestión de Maquinaria</h2>
-            <p class="dashboard-card-description">Administre su flota de maquinaria, incluyendo información de adquisición, condición y disponibilidad.</p>
-            <a th:href="@{/lista}" class="dashboard-card-action"> Ir a Maquinaria <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description">Administre su flota de maquinaria, incluyendo información de
+                adquisición,
+                condición y disponibilidad.</p>
+            <a th:href="@{/lista}" class="dashboard-card-action"> Ir a Maquinaria <span
+                    class="material-symbols-outlined icon">arrow_forward</span>
+            </a>
         </div>
 
         <!-- Tarjeta Alquiler Maquinaria -->
-        <div class="dashboard-card">
-            <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">key</span></div>
+        <div class="dashboard-card" th:if="${userType == 'Administrador'}">
+            <div class=" dashboard-card-icon
+            "><span class="material-symbols-outlined icon">key</span></div>
             <h2 class="dashboard-card-title">Gestión Alquiler de Maquinaria</h2>
+            <p class="dashboard-card-description">Administre alquileres de maquinaria con toda su informacion.</p>
+            <a th:href="@{/rent/list}" class="dashboard-card-action"> Ir a Alquiler de Maquinaria <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+        </div>
+
+        <!-- Tarjeta Alquiler Maquinaria -Usuarios-->
+        <div class="dashboard-card" th:if="${userType == 'Usuario'}">
+            <div class=" dashboard-card-icon
+            "><span class="material-symbols-outlined icon">key</span></div>
+            <h2 class="dashboard-card-title">Mi Alquiler</h2>
             <p class="dashboard-card-description">Administre su alquiler de maquinaria con toda su informacion.</p>
             <a th:href="@{/rent/list}" class="dashboard-card-action"> Ir a Alquiler de Maquinaria <span class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
@@ -75,16 +98,22 @@
         <div class="dashboard-card">
             <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">eco</span></div>
             <h2 class="dashboard-card-title">Gestión de Cosechas</h2>
-            <p class="dashboard-card-description"> Visualiza, registra y administra la información de tus cosechas: tipo, calidad, destino y cantidad recolectada. </p>
-            <a th:href="@{/harvests/list}" class="dashboard-card-action"> Ir a Cosechas <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description"> Visualiza, registra y administra la información de tus cosechas:
+                tipo,
+                calidad, destino y cantidad recolectada. </p>
+            <a th:href="@{/harvests/list}" class="dashboard-card-action"> Ir a Cosechas <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
 
         <!-- Tarjeta Ventas -->
         <div class="dashboard-card">
             <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">shopping_cart</span></div>
             <h2 class="dashboard-card-title">Registro de Ventas</h2>
-            <p class="dashboard-card-description"> Registra las ventas de las cosechas disponibles, gestionando la cantidad y los detalles del comprador.</p>
-            <a th:href="@{/sales/select-producer}" class="dashboard-card-action"> Ir a Ventas <span class="material-symbols-outlined icon">arrow_forward</span> </a>
+            <p class="dashboard-card-description"> Registra las ventas de las cosechas disponibles, gestionando la
+                cantidad y
+                los detalles del comprador.</p>
+            <a th:href="@{/sales/select-producer}" class="dashboard-card-action"> Ir a Ventas <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
         </div>
 
         <!-- Tarjeta para Review -->
@@ -106,20 +135,25 @@
                 <span class="material-symbols-outlined icon">forum</span>
             </div>
             <h2 class="dashboard-card-title">Gestión de Solicitudes</h2>
-            <p class="dashboard-card-description">Realice y administre solicitudes de productos. Comunique sus necesidades y realice un seguimiento.</p>
+            <p class="dashboard-card-description">Realice y administre solicitudes de productos. Comunique sus
+                necesidades y
+                realice un seguimiento.</p>
             <a th:href="@{/requests/list}" class="dashboard-card-action">
                 Ir a Solicitudes
                 <span class="material-symbols-outlined icon">arrow_forward</span>
             </a>
         </div>
-        
+
         <!-- Tarjeta Transporte -->
-                <div class="dashboard-card">
-                    <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">local_shipping</span></div>
-                    <h2 class="dashboard-card-title">Gestión de Transportes</h2>
-                    <p class="dashboard-card-description">Administre los transportes disponibles, conductores, fechas y estado de entrega de los productos.</p>
-                    <a th:href="@{/transport/list}" class="dashboard-card-action"> Ir a Transportes <span class="material-symbols-outlined icon">arrow_forward</span> </a>
-                </div>
+        <div class="dashboard-card">
+            <div class="dashboard-card-icon"><span class="material-symbols-outlined icon">local_shipping</span></div>
+            <h2 class="dashboard-card-title">Gestión de Transportes</h2>
+            <p class="dashboard-card-description">Administre los transportes disponibles, conductores, fechas y estado
+                de
+                entrega de los productos.</p>
+            <a th:href="@{/transport/list}" class="dashboard-card-action"> Ir a Transportes <span
+                    class="material-symbols-outlined icon">arrow_forward</span> </a>
+        </div>
 
         <!-- Tarjeta Usuarios - SOLO PARA ADMINISTRADORES -->
         <div class="dashboard-card" th:if="${userType == 'Administrador'}">

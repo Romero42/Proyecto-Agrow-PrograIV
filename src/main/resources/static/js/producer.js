@@ -30,6 +30,7 @@ function producer(element){
         if (xhttp.readyState === 4 && xhttp.status === 200) {
 
             tableCurrent.innerHTML = this.responseText;
+            attachConfirmHandlers();
         }
      };
 

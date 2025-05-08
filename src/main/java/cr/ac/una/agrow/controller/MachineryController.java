@@ -26,6 +26,7 @@ public class MachineryController {
     public String listado(Model model) {
         List<Machinery> maquinas = machineryService.getAllMachinery();
 
+        model.addAttribute("activeModule", "machinery");
         model.addAttribute("titulo", "Listado de Maquinaria");
         model.addAttribute("cantidad", maquinas.size());
         model.addAttribute("maquinas", maquinas);
@@ -70,7 +71,8 @@ public class MachineryController {
     }
 
     @GetMapping({"/formulario", "/form", "/create"})
-    public String formulario() {
+    public String formulario(Model model) {
+        model.addAttribute("activeModule", "machinery");
         return "machinery/form_maquinaria";
     }
 
@@ -79,6 +81,7 @@ public class MachineryController {
             @RequestParam(required = false, defaultValue = "true") boolean disponible,
             Model model) {
 
+        model.addAttribute("activeModule", "machinery");
         List<Machinery> maquinas = machineryService.getByDisponibilidad(disponible);
 
         model.addAttribute("titulo", "Maquinaria " + (disponible ? "Disponible" : "No Disponible"));
@@ -94,6 +97,7 @@ public class MachineryController {
             @RequestParam(name = "nombre", required = false, defaultValue = "") String nombre,
             Model model) {
 
+        model.addAttribute("activeModule", "machinery");
         List<Machinery> maquinas = machineryService.getByNombre(nombre);
 
         model.addAttribute("titulo", "Búsqueda por Nombre: " + nombre);
@@ -121,6 +125,7 @@ public class MachineryController {
 
     @GetMapping("/editar")
     public String editar(@RequestParam("id") int id, Model model) {
+        model.addAttribute("activeModule", "machinery");
         Optional<Machinery> machineryOpt = machineryService.getMachineryById(id);
 
         if (!machineryOpt.isPresent()) {
@@ -155,6 +160,7 @@ public class MachineryController {
 
     @GetMapping("/detalles")
     public String verDetalle(@RequestParam("id") int id, Model model) {
+        model.addAttribute("activeModule", "machinery");
 
         Optional<Machinery> maquina = machineryService.getMachineryById(id);
 
