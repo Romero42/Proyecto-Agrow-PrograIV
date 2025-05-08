@@ -34,7 +34,10 @@
                 <div class="form-group">
                     <label class="form-label" for="transport_type">Tipo de Transporte:</label>
                     <select id="transport_type" name="transport_type" class="form-select">
-                        <option value="">Seleccione un tipo</option>
+                        <!-- No ponemos el "value" vacío en la primera opción -->
+                        <option th:if="${transport.transportType == null}" value="" selected>Seleccione un tipo</option>
+
+                        <!-- Las opciones del listado -->
                         <option th:each="type : ${transportTypes}" 
                                 th:value="${type}"
                                 th:text="${type}"
@@ -42,6 +45,7 @@
                         </option>
                     </select>
                 </div>
+
 
                 <div class="form-group">
                     <label class="form-label" for="transport_company">Empresa de Transporte:</label>
