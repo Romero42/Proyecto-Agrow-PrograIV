@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<!-- Sidebar solo si no viene de rental -->
+
 <div th:unless="${rental}">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 </div>
@@ -49,7 +49,7 @@
             <tr><td>Capacidad de Trabajo:</td><td th:text="*{capacidadTrabajo}"></td></tr>
         </table>
 
-        <!-- Botones solo si NO viene desde rental -->
+        
         <div class="detail-actions" th:if="${!rental}">
             <a th:href="@{/editar(id=${maquina.id})}" class="btn btn-warning">
                 <span class="material-symbols-outlined icon">edit</span> Editar

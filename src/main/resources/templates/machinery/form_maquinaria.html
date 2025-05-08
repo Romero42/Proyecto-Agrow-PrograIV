@@ -1,98 +1,98 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Máquina - Agrow</title>
-    <link rel="stylesheet" th:href="@{/css/common.css}" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Agregar Máquina - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
 
-    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <div class="main-content">
-        <!-- Mensajes de éxito/error -->
-        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+        <div class="main-content">
+            <!-- Mensajes de éxito/error -->
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-        <form method="post" th:action="@{/guardar}" id="formAgregar" class="form-container confirm-action" 
-              data-title="Confirmar Registro" 
-              data-message="¿Confirmar y guardar nueva máquina?">
-            
-            <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
-                <h1 class="page-title">Agregar Nueva Máquina</h1>
-            </div>
+            <form method="post" th:action="@{/guardar}" id="formAgregar" class="form-container confirm-action" 
+                  data-title="Confirmar Registro" 
+                  data-message="¿Confirmar y guardar nueva máquina?">
 
-            <div class="form-group">
-                <label class="form-label" for="id">Matrícula:</label>
-                <input type="number" name="id" id="id" class="form-input" required min="0" />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="nombre">Nombre:</label>
-                <input type="text" name="nombre" id="nombre" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="condicion">Condición:</label>
-                <select name="condicion" id="condicion" class="form-select" required>
-                    <option value="">Seleccione una opción</option>
-                    <option value="Nueva">Nueva</option>
-                    <option value="Usada">Usada</option>
-                    <option value="En reparación">En reparación</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Disponibilidad:</label>
-                <div class="radio-group">
-                    <input type="radio" name="disponibilidad" value="true" id="disponible" required>
-                    <label for="disponible">Disponible</label>
-
-                    <input type="radio" name="disponibilidad" value="false" id="no-disponible">
-                    <label for="no-disponible">No Disponible</label>
+                <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                    <h1 class="page-title">Agregar Nueva Máquina</h1>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label" for="diaAdquisicion">Fecha de Adquisición:</label>
-                <input type="date" name="diaAdquisicion" id="diaAdquisicion" class="form-input" required 
-                       max="2025-12-31" />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="id">Matrícula:</label>
+                    <input type="number" name="id" id="id" class="form-input" required min="0" />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="costoAlquiler">Costo de Alquiler:</label>
-                <input type="number" name="costoAlquiler" id="costoAlquiler" class="form-input" step="0.01" required min="0" />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="nombre">Nombre:</label>
+                    <input type="text" name="nombre" id="nombre" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="ubicacion">Ubicación:</label>
-                <input type="text" name="ubicacion" id="ubicacion" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
-            </div>
+                <div class="form-group">
+                    <label class="form-label" for="condicion">Condición:</label>
+                    <select name="condicion" id="condicion" class="form-select" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="Nueva">Nueva</option>
+                        <option value="Usada">Usada</option>
+                        <option value="En reparación">En reparación</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="capacidadTrabajo">Capacidad de Trabajo:</label>
-                <input type="text" name="capacidadTrabajo" id="capacidadTrabajo" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
-            </div>
+                <div class="form-group">
+                    <label class="form-label">Disponibilidad:</label>
+                    <div class="radio-group">
+                        <input type="radio" name="disponibilidad" value="true" id="disponible" required>
+                        <label for="disponible">Disponible</label>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
-                    <span class="material-symbols-outlined icon">save</span>
-                    Guardar Máquina
-                </button>
-                <a th:href="@{/lista}" class="btn btn-secondary">
-                    <span class="material-symbols-outlined icon">arrow_back</span>
-                    Cancelar
-                </a>
-            </div>
+                        <input type="radio" name="disponibilidad" value="false" id="no-disponible">
+                        <label for="no-disponible">No Disponible</label>
+                    </div>
+                </div>
 
-            <div th:if="${_csrf != null}">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-            </div>
-        </form>
-    </div>
+                <div class="form-group">
+                    <label class="form-label" for="diaAdquisicion">Fecha de Adquisición:</label>
+                    <input type="date" name="diaAdquisicion" id="diaAdquisicion" class="form-input" required 
+                           max="2025-12-31" />
+                </div>
 
-    <script th:src="@{/js/machinery.js}"></script>
-</body>
+                <div class="form-group">
+                    <label class="form-label" for="costoAlquiler">Costo de Alquiler:</label>
+                    <input type="number" name="costoAlquiler" id="costoAlquiler" class="form-input" step="0.01" required min="0" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="ubicacion">Ubicación:</label>
+                    <input type="text" name="ubicacion" id="ubicacion" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="capacidadTrabajo">Capacidad de Trabajo:</label>
+                    <input type="text" name="capacidadTrabajo" id="capacidadTrabajo" class="form-input" required pattern="[A-Za-zÁ-ú\s]+" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined icon">save</span>
+                        Guardar Máquina
+                    </button>
+                    <a th:href="@{/lista}" class="btn btn-secondary">
+                        <span class="material-symbols-outlined icon">arrow_back</span>
+                        Cancelar
+                    </a>
+                </div>
+
+                <div th:if="${_csrf != null}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                </div>
+            </form>
+        </div>
+
+        <script th:src="@{/js/machinery.js}"></script>
+    </body>
 </html>

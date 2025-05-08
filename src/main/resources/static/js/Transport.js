@@ -171,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 customClass: {
                     popup: 'swal2-agrow-popup',
                     title: 'swal2-agrow-title',
-                    confirmButton: 'btn btn-success', // Cambiado a verde
-                    cancelButton: 'btn btn-danger'    // Cambiado a rojo
+                    confirmButton: 'btn btn-success', 
+                    cancelButton: 'btn btn-danger'    
                 },
                 buttonsStyling: false
             }).then(result => {

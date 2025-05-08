@@ -1,6 +1,6 @@
 package cr.ac.una.agrow.controller;
 
-import cr.ac.una.agrow.domain.machinery.Machinery;
+import cr.ac.una.agrow.domain.Machinery;
 import cr.ac.una.agrow.jpa.MachineryRepository;
 import cr.ac.una.agrow.service.MachineryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,7 @@ public class MachineryController {
     @Autowired
     private MachineryRepository machineryRepository;
 
+    //listado
     @GetMapping("/lista")
     public String listado(Model model) {
         List<Machinery> maquinas = machineryService.getAllMachinery();
@@ -34,6 +35,7 @@ public class MachineryController {
         return "machinery/lista_machinery";
     }
 
+    //guradar maquianria
     @PostMapping("/guardar")
     public ModelAndView agregarMachinery(
             @RequestParam("id") int id,
@@ -48,7 +50,7 @@ public class MachineryController {
         ModelAndView modelAndView = new ModelAndView("index");
 
         try {
-           
+
             LocalDate fechaAdquisicion = LocalDate.parse(diaAdquisicion);
 
             Machinery machinery = new Machinery(id, nombre, condicion, disponibilidad,

@@ -1,6 +1,6 @@
 package cr.ac.una.agrow.jpa;
 
-import cr.ac.una.agrow.domain.machinery.Machinery;
+import cr.ac.una.agrow.domain.Machinery;
 
 
 import java.util.List;

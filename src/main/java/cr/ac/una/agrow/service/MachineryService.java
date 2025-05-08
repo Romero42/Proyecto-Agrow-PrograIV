@@ -4,7 +4,7 @@
  */
 package cr.ac.una.agrow.service;
 
-import cr.ac.una.agrow.domain.machinery.Machinery;
+import cr.ac.una.agrow.domain.Machinery;
 import cr.ac.una.agrow.jpa.MachineryRepository;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +41,6 @@ public class MachineryService {
     @Transactional
     public Machinery saveMachineryDefinitivo(Machinery machinery) {
         try {
-            // ✅ Guardar en la base de datos
             return machineryRepository.save(machinery);
 
         } catch (DataAccessException e) {

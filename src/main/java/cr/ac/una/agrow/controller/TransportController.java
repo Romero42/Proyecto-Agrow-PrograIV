@@ -21,6 +21,7 @@ public class TransportController {
     @Autowired
     private TransportService transportService;
 
+    //guarda transporte
     @GetMapping("/list")
     public String listTransports(
             @RequestParam(required = false) String transport_type,
@@ -43,11 +44,11 @@ public class TransportController {
         return "transport/list";
     }
 
-    @GetMapping("/register")  // ← Nuevo método para mostrar el formulario
+    @GetMapping("/register")
     public String showRegisterForm(Model model) {
-        // Si necesitas inicializar algún dato en el formulario, hazlo aquí
-        model.addAttribute("transport", new Transport());  // Objeto vacío para el formulario
-        return "transport/register";  // Nombre de la plantilla Thymeleaf (register.html)
+
+        model.addAttribute("transport", new Transport());
+        return "transport/register";
     }
 
     @PostMapping("/register")
@@ -83,6 +84,7 @@ public class TransportController {
         }
     }
 
+    //muestra el de edicion
     @GetMapping("/editView")
     public String showEditForm(@RequestParam("idTransport") int idTransport, Model model) {
         Transport transport = transportService.getTransportById(idTransport)
@@ -93,6 +95,7 @@ public class TransportController {
         return "transport/edit";
     }
 
+    //edita trabsporte
     @PostMapping("/edit")
     public String editTransport(
             @RequestParam("idTransport") int idTransport,
@@ -137,6 +140,7 @@ public class TransportController {
         }
     }
 
+    // borra transporte
     @PostMapping("/delete")
     public String deleteTransport(
             @RequestParam("idTransport") int idTransport,
@@ -152,6 +156,7 @@ public class TransportController {
         return "redirect:/transport/list";
     }
 
+    //ver transporte
     @GetMapping("/view")
     public String viewTransport(@RequestParam("idTransport") int idTransport, Model model) {
         Optional<Transport> transportOpt = transportService.getTransportById(idTransport);
@@ -160,7 +165,6 @@ public class TransportController {
             model.addAttribute("transporte", transportOpt.get());
             return "transport/view";
         } else {
-            // Manejo de error si no se encuentra
             model.addAttribute("error", "Transporte no encontrado con ID: " + idTransport);
             return "errorPage";
         }

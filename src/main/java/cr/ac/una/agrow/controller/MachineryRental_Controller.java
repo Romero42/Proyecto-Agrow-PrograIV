@@ -1,6 +1,6 @@
 package cr.ac.una.agrow.controller;
 
-import cr.ac.una.agrow.domain.machinery.Machinery;
+import cr.ac.una.agrow.domain.Machinery;
 import cr.ac.una.agrow.domain.machineryRental;
 import cr.ac.una.agrow.service.MachineryService;
 import cr.ac.una.agrow.service.machineryR_Service;

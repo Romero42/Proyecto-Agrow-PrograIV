@@ -1,4 +1,4 @@
-package cr.ac.una.agrow.domain.machinery;
+package cr.ac.una.agrow.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;

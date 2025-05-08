@@ -34,7 +34,7 @@
                 <div class="form-group">
                     <label class="form-label" for="transport_type">Tipo de Transporte:</label>
                     <select id="transport_type" name="transport_type" class="form-select">
-                        <!-- No ponemos el "value" vacío en la primera opción -->
+
                         <option th:if="${transport.transportType == null}" value="" selected>Seleccione un tipo</option>
 
                         <!-- Las opciones del listado -->
@@ -94,7 +94,6 @@
             </form>
         </div>
 
-        <!-- Importa tu script personalizado -->
         <script th:src="@{/js/transport.js}"></script>
     </body>
 </html>

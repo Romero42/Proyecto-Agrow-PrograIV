@@ -1,112 +1,112 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<body>
+    <body>
 
-<div th:fragment="sidebar" class="sidebar">
+        <div th:fragment="sidebar" class="sidebar">
 
-    <div class="sidebar-header">
-        <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow"/>
-        <p>Crecimiento Agrícola</p>
-    </div>
+            <div class="sidebar-header">
+                <img th:src="@{/img/logo.svg}" alt="Agrow Logo" class="sidebar-logo" title="Logo de la empresa Agrow"/>
+                <p>Crecimiento Agrícola</p>
+            </div>
 
-    <!-- Sección Principal -->
-    <div class="sidebar-section">
-        <div class="sidebar-section-title">PRINCIPAL</div>
-        <div class="sidebar-menu">
-            <a th:href="@{/homeIndex}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">home</span>
-                Inicio
-            </a>
+            <!-- Sección Principal -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">PRINCIPAL</div>
+                <div class="sidebar-menu">
+                    <a th:href="@{/homeIndex}" th:classappend="${activeModule == 'home'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">home</span>
+                        Inicio
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sección de Gestión -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">GESTIÓN</div>
+                <div class="sidebar-menu">
+                    <!-- Enlace Suministros -->
+                    <a th:href="@{/supplies/list}" th:classappend="${activeModule == 'supply'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">inventory_2</span>
+                        Suministros
+                    </a>
+                    <!-- Enlace Productores -->
+                    <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''"
+                       th:if="${userType == 'Administrador'}">
+                        <span class="material-symbols-outlined icon">agriculture</span>
+                        Productores
+                    </a>
+                    <!-- Enlace Proveedores -->
+                    <a th:href="@{/suppliers/list}" th:classappend="${activeModule == 'supplier'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">local_shipping</span>
+                        Proveedores
+                    </a>
+                    <!-- Enlace Maquinaria -->
+                    <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">engineering</span>
+                        Maquinaria
+                    </a>
+
+                    <!-- Enlace AlquilerMaquinaria -->
+                    <a th:href="@{/rent/list}" th:classappend="${activeModule == 'machineryRental'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">key</span>
+                        Alquiler Maquinaria
+                    </a>
+
+                    <!-- Enlace Cosechas -->
+                    <a th:href="@{/harvests/list}" th:classappend="${activeModule == 'harvests'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">eco</span>
+                        Cosechas
+                    </a>
+
+                    <!-- Enlace Ventas -->
+                    <a th:href="@{/sales/select-producer}" th:classappend="${activeModule == 'sales'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">shopping_cart</span>
+                        Ventas
+                    </a>
+
+                    <!-- Enlace Solicitudes -->
+                    <a th:href="@{/requests/list}" th:classappend="${activeModule == 'requests'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">forum</span>
+                        Solicitudes
+                    </a>
+
+                    <!-- Enlace Reseñas -->
+                    <a th:href="@{/reviews/list}" th:classappend="${activeModule == 'review'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">rate_review</span>
+                        Reseñas
+                    </a>
+
+                    <!-- Enlace Transporte -->
+                    <a th:href="@{/transport/list}" th:classappend="${activeModule == 'transport'} ? ' active' : ''">
+                        <span class="material-symbols-outlined icon">local_shipping</span>
+                        Transporte
+                    </a>
+
+                    <!-- ===================================================== -->
+                    <!-- ENLACE CONDICIONAL PARA USUARIOS -->
+                    <!-- ===================================================== -->
+                    <a th:href="@{/user/list}"
+                       th:classappend="${activeModule == 'user'} ? ' active' : ''"
+                       th:if="${session.loggedInUser != null and session.loggedInUser.type == 'Administrador'}">
+                        <span class="material-symbols-outlined icon">person</span>
+                        Usuarios
+                    </a>
+                    <!-- ===================================================== -->
+
+                </div>
+            </div>
+
+            <!-- Sección de Usuario/Sesión -->
+            <div class="sidebar-section" style="margin-top: auto; padding-bottom: 15px;">
+                <div class="sidebar-section-title">SESIÓN</div>
+                <div class="sidebar-menu">
+                    <a th:href="@{/index/logout}">
+                        <span class="material-symbols-outlined icon">logout</span>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+
         </div>
-    </div>
-
-    <!-- Sección de Gestión -->
-    <div class="sidebar-section">
-        <div class="sidebar-section-title">GESTIÓN</div>
-        <div class="sidebar-menu">
-            <!-- Enlace Suministros -->
-            <a th:href="@{/supplies/list}" th:classappend="${activeModule == 'supply'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">inventory_2</span>
-                Suministros
-            </a>
-            <!-- Enlace Productores -->
-            <a th:href="@{/producers/list}" th:classappend="${activeModule == 'producer'} ? ' active' : ''"
-               th:if="${userType == 'Administrador'}">
-                <span class="material-symbols-outlined icon">agriculture</span>
-                Productores
-            </a>
-            <!-- Enlace Proveedores -->
-            <a th:href="@{/suppliers/list}" th:classappend="${activeModule == 'supplier'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">local_shipping</span>
-                Proveedores
-            </a>
-            <!-- Enlace Maquinaria -->
-            <a th:href="@{/lista}" th:classappend="${activeModule == 'machinery'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">engineering</span>
-                Maquinaria
-            </a>
-
-            <!-- Enlace AlquilerMaquinaria -->
-            <a th:href="@{/rent/list}" th:classappend="${activeModule == 'machineryRental'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">key</span>
-                Alquiler Maquinaria
-            </a>
-
-            <!-- Enlace Cosechas -->
-            <a th:href="@{/harvests/list}" th:classappend="${activeModule == 'harvests'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">eco</span>
-                Cosechas
-            </a>
-
-            <!-- Enlace Ventas -->
-            <a th:href="@{/sales/select-producer}" th:classappend="${activeModule == 'sales'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">shopping_cart</span>
-                Ventas
-            </a>
-
-            <!-- Enlace Solicitudes -->
-            <a th:href="@{/requests/list}" th:classappend="${activeModule == 'requests'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">forum</span>
-                Solicitudes
-            </a>
-
-            <!-- Enlace Reseñas -->
-            <a th:href="@{/reviews/list}" th:classappend="${activeModule == 'review'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">rate_review</span>
-                Reseñas
-            </a>
-            
-            <!-- Enlace Transporte -->
-            <a th:href="@{/transport/list}" th:classappend="${activeModule == 'transport'} ? ' active' : ''">
-                <span class="material-symbols-outlined icon">local_shipping</span>
-                Transporte
-            </a>
-
-            <!-- ===================================================== -->
-            <!-- ENLACE CONDICIONAL PARA USUARIOS -->
-            <!-- ===================================================== -->
-            <a th:href="@{/user/list}"
-               th:classappend="${activeModule == 'user'} ? ' active' : ''"
-               th:if="${session.loggedInUser != null and session.loggedInUser.type == 'Administrador'}">
-                <span class="material-symbols-outlined icon">person</span>
-                Usuarios
-            </a>
-            <!-- ===================================================== -->
-
-        </div>
-    </div>
-
-    <!-- Sección de Usuario/Sesión -->
-    <div class="sidebar-section" style="margin-top: auto; padding-bottom: 15px;">
-        <div class="sidebar-section-title">SESIÓN</div>
-        <div class="sidebar-menu">
-            <a th:href="@{/index/logout}">
-                <span class="material-symbols-outlined icon">logout</span>
-                Cerrar Sesión
-            </a>
-        </div>
-    </div>
-
-</div>
-</body>
+    </body>
 </html>
