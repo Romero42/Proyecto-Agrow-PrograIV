@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Información del Usuario - Agrow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="detail-container" th:if="${user != null}" th:object="${user}">
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div>
+                <h2 class="page-title" th:text="*{name}"></h2>
+                <p class="page-subtitle" style="margin-top: -5px;">Usuario: <span th:text="*{user}"></span></p>
+            </div>
+        </div>
+
+        <table class="detail-table">
+            <tr><td>Usuario:</td><td th:text="*{user}"></td></tr>
+            <tr><td>Contraseña:</td><td>••••••••••</td></tr>
+            <tr><td>Nombre:</td><td th:text="*{name}"></td></tr>
+            <tr><td>Correo:</td><td th:text="*{email}"></td></tr>
+            <tr><td>Teléfono:</td><td th:text="*{contactNumber}"></td></tr>
+            <tr><td>Tipo:</td><td th:text="*{type}"></td></tr>
+        </table>
+
+        <div class="detail-actions">
+            <a th:href="@{/user/update_user(id=*{id_User})}" class="btn btn-warning">
+                <span class="material-symbols-outlined icon">edit</span> Editar
+            </a>
+            <form th:action="@{/user/delete}" method="post" class="confirm-action" data-message="¿Eliminar este usuario?" data-title="Confirmar Eliminación">
+                <input type="hidden" name="id" th:value="*{id_User}" />
+                <button type="submit" class="btn btn-danger">
+                    <span class="material-symbols-outlined icon">delete</span> Eliminar
+                </button>
+            </form>
+            <a th:href="@{/user/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${user == null}" class="info-card">
+        <span class="material-symbols-outlined icon">person_off</span>
+        <h2>Usuario no encontrado</h2>
+        <p>El usuario solicitado no existe o fue eliminado.</p>
+        <a th:href="@{/user/list}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/user.js}"></script>
+</body>
+</html>

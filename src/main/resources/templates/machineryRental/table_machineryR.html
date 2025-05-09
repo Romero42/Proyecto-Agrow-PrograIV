@@ -1,0 +1,93 @@
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div class="info-card" th:if="${validate != null}" xmlns:th="http://www.w3.org/1999/xhtml">
+    <span class="material-symbols-outlined icon">info</span>
+    <h2 th:text="${validate}">No hay maquinaria en alquiler</h2>
+    <p>Intenta con otros filtros o <a th:href="@{/rent/saveView}">agrega nuevo alquiler</a>.</p>
+</div>
+
+<div th:unless="${rents == null or rents.isEmpty()}">
+    <div class="table-responsive" id="tableData">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre del rentador</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Maquina</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tempRent : ${rents}">
+                <td th:text="${tempRent.renterName}"></td>
+                <td th:text="${tempRent.address}"></td>
+                <td th:text="${tempRent.contactNumber}"></td>
+                <td>
+                    <a href="#"
+                       th:attr="data-id=${tempRent.id_maquina}"
+                       onclick="viewMaquina(this); return false;"
+                       th:text="${tempRent.id_maquina}">
+                    </a>
+                </td>
+                <td>
+                    <div class="action-buttons">
+
+                        <a th:href="@{/rent/view(id_machinaryrental=${tempRent.id_machinaryrental})}"
+                           class="btns view-btns" title="Ver Detalles"> <span
+                                class="material-symbols-outlined icon">visibility</span> </a>
+
+                        <a th:href="@{/rent/editView(id_machinaryrental=${tempRent.id_machinaryrental}, id_maquina=${tempRent.id_maquina})}"
+                           class="btns edit-btns" title="Editar"> <span
+                                class="material-symbols-outlined icon">edit</span>
+                        </a>
+
+                        <form th:action="@{/rent/delete}" method="get" class="confirm-action"
+                              data-message="¿Eliminar esta renta?" data-title="Confirmar Eliminación">
+                            <input type="hidden" name="id_machinaryrental"
+                                   th:value="${tempRent.id_machinaryrental}"/>
+                            <input type="hidden" name="id_maquina"
+                                   th:value="${tempRent.id_maquina}"/>
+                            <button type="submit" class="btns delete-btns" title="Eliminar"><span
+                                    class="material-symbols-outlined icon">delete</span></button>
+                        </form>
+
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<input type="hidden" id="useFilter" th:value="${useFilter}"/>
+<div th:if="${pag}">
+    <div class="pagination" th:unless="${rents == null || rents.isEmpty()}">
+        <ul>
+            <!-- Flecha izquierda -->
+            <li th:classappend="${currentPage == 0} ? 'disabled'">
+                <a th:if="${currentPage > 0}" href="#"
+                   th:attr="data-page=${currentPage - 1}, data-button=0"
+                   th:onclick="${useFilter} ? 'filterRent(this); return false;' : 'pageRent(this); return false;'">«</a>
+                <span th:unless="${currentPage > 0}">«</span>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                <a th:href="'#'"
+                   th:onclick="${useFilter} ? 'filterRent(this); return false;' : 'pageRent(this); return false;'"
+                   th:attr="data-page=${i}"
+                   th:text="${i + 1}"
+                >
+                </a>
+            </li>
+
+            <!-- Flecha derecha -->
+            <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a th:if="${currentPage < totalPages - 1}" href="#"
+                   th:attr="data-page=${currentPage + 1}, data-button=0"
+                   th:onclick="${useFilter} ? 'filterRent(this); return false;' : 'pageRent(this); return false;'">»</a>
+                <span th:unless="${currentPage < totalPages - 1}">»</span>
+            </li>
+        </ul>
+    </div>
+</div>

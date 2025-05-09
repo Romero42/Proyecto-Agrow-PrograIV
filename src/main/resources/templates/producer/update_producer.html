@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Actualizar Productor - Agrow</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div th:if="${producer != null}">
+                <form method="post"
+                      th:action="@{/producers/update}"
+                      th:object="${producer}"
+                      class="form-container confirm-action"
+                      data-message="¿Confirmar actualización de datos?"
+                      data-title="Actualizar Productor">
+
+                    <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
+                        <h1 class="page-title">Actualizar Productor</h1>
+                    </div>
+
+                    <!-- ID oculto para el update -->
+                    <input type="hidden" name="id_producer" th:value="*{id_producer}" />
+
+                     <div class="form-group">
+                        <label class="form-label">ID Productor:</label>
+                        <input class="form-input" type="text" th:value="*{id_producer}" readonly disabled/>
+                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="producerName">Nombre / Razón Social:</label>
+                        <input type="text" id="producerName" name="producerName" th:field="*{producerName}" class="form-input" required maxlength="50" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ. ]+$" title="Solo letras, puntos y espacios"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contactNumber">Teléfono:</label>
+                        <input type="tel" id="contactNumber" name="contactNumber" th:field="*{contactNumber}" class="form-input" required pattern="[246789]\d{7}" title="Número de 8 dígitos válido en CR"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="registrationDate">Fecha de Registro:</label>
+                        <input type="text" id="registrationDate" name="registrationDate" class="form-input date-picker-iso" th:value="*{getRegistrationDateForInput()}" placeholder="yyyy-mm-dd" title="Fecha de registro (obligatoria, no futura)" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="producerType">Tipo de Productor:</label>
+                        <select id="producerType" name="producerType" th:field="*{producerType}" class="form-select" required>
+                            <option value="" disabled>Seleccione...</option>
+                            <option value="Persona">Persona Física</option>
+                            <option value="Empresa">Empresa / Jurídica</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Correo Electrónico:</label>
+                        <input type="email" id="email" name="email" th:field="*{email}" class="form-input" required maxlength="100"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="city">Provincia:</label>
+                        <select id="city" name="city" th:field="*{city}" class="form-select" required>
+                            <option value="" disabled>Seleccione...</option>
+                            <option value="Alajuela">Alajuela</option> <option value="Heredia">Heredia</option> <option value="San Jose">San José</option> <option value="Limon">Limón</option> <option value="Cartago">Cartago</option> <option value="Puntarenas">Puntarenas</option> <option value="Guanacaste">Guanacaste</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="address">Dirección Detallada:</label>
+                        <input type="text" id="address" name="address" th:field="*{address}" class="form-input" required maxlength="150"/>
+                    </div>
+
+                    <div class="form-group">
+                         <label class="form-label">Estado:</label>
+                         <div>
+                             <label style="margin-right: 15px;"> <input type="radio" name="isActive" value="true" required th:checked="*{isActive}"> Activo </label>
+                             <label> <input type="radio" name="isActive" value="false" required th:checked="!*{isActive}"> Inactivo </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"> <span class="material-symbols-outlined icon">save</span> Actualizar Datos </button>
+                        <a th:href="@{/producers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">cancel</span> Cancelar </a>
+                    </div>
+                </form>
+            </div>
+
+            <div th:if="${producer == null}" class="info-card">
+                <span class="material-symbols-outlined icon">person_search</span>
+                <h2>Productor no encontrado</h2>
+                <p>El ID proporcionado no corresponde a un productor que se pueda editar.</p>
+                <a th:href="@{/producers/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/default.js}"></script>
+        <script th:src="@{/js/producer.js}"></script>
+    </body>
+</html>

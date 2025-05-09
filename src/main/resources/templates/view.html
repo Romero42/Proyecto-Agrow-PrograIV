@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Detalle de Reseña - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <style>
+            .review-detail-card {
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+            .review-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                border-bottom: 1px solid var(--border-light);
+                padding-bottom: 15px;
+            }
+            .reviewer-info {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .reviewer-avatar {
+                width: 50px;
+                height: 50px;
+                background-color: var(--primary-light);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--primary);
+                font-size: 24px;
+                font-weight: bold;
+            }
+            .reviewer-name {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .review-meta {
+                color: var(--text-secondary);
+                font-size: 14px;
+            }
+            .review-rating {
+                font-size: 24px;
+                color: var(--warning);
+                margin-bottom: 20px;
+            }
+            .review-type {
+                display: inline-block;
+                padding: 4px 10px;
+                background-color: var(--primary-light);
+                color: var(--primary);
+                border-radius: 4px;
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+            .review-content {
+                font-size: 16px;
+                line-height: 1.6;
+                color: var(--text-primary);
+                margin-bottom: 20px;
+                white-space: pre-line;
+                border-left: 3px solid var(--primary-light);
+                padding-left: 15px;
+            }
+            .review-status {
+                display: flex;
+                gap: 15px;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid var(--border-light);
+            }
+            .status-badge {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            .status-verified {
+                background-color: var(--primary-light);
+                color: var(--primary);
+            }
+            .status-recommended {
+                background-color: var(--success-light);
+                color: var(--success);
+            }
+            .status-not-verified {
+                background-color: var(--warning-light);
+                color: var(--warning);
+            }
+            .status-not-recommended {
+                background-color: var(--danger-light);
+                color: var(--danger);
+            }
+            .action-buttons {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+                justify-content: flex-end;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Detalle de Reseña</h1>
+                    <p class="page-subtitle">Información completa de la reseña #<span th:text="${review.reviewId}"></span></p>
+                </div>
+            </div>
+
+            <div class="review-detail-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar" th:text="${#strings.substring(review.reviewerName,0,1).toUpperCase()}">A</div>
+                        <div>
+                            <div class="reviewer-name" th:text="${review.reviewerName}">Nombre del Revisor</div>
+                            <div class="review-meta">
+                                <span th:text="${#temporals.format(review.reviewDate, 'dd MMMM yyyy')}">01 Enero 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div th:switch="${review.rating}">
+                            <span th:case="5">★★★★★ (5.0)</span>
+                            <span th:case="4.5">★★★★½ (4.5)</span>
+                            <span th:case="4">★★★★☆ (4.0)</span>
+                            <span th:case="3.5">★★★½☆ (3.5)</span>
+                            <span th:case="3">★★★☆☆ (3.0)</span>
+                            <span th:case="2.5">★★½☆☆ (2.5)</span>
+                            <span th:case="2">★★☆☆☆ (2.0)</span>
+                            <span th:case="1.5">★½☆☆☆ (1.5)</span>
+                            <span th:case="1">★☆☆☆☆ (1.0)</span>
+                            <span th:case="*" th:text="${review.rating}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-type" th:text="${review.reviewType}">Tipo de Reseña</div>
+
+                <div class="review-content" th:text="${review.comment}">
+                    Contenido del comentario...
+                </div>
+
+                <div class="review-status">
+                    <div th:class="${review.verified ? 'status-badge status-verified' : 'status-badge status-not-verified'}">
+                        <span class="material-symbols-outlined icon" th:text="${review.verified ? 'verified' : 'cancel'}"></span>
+                        <span th:text="${review.verified ? 'Verificada' : 'No Verificada'}"></span>
+                    </div>
+
+                    <div th:class="${review.recommendationStatus ? 'status-badge status-recommended' : 'status-badge status-not-recommended'}">
+                        <span class="material-symbols-outlined icon" th:text="${review.recommendationStatus ? 'thumb_up' : 'thumb_down'}"></span>
+                        <span th:text="${review.recommendationStatus ? 'Recomendado' : 'No Recomendado'}"></span>
+                    </div>
+                </div>
+
+                <div th:if="${review.idSale != null}" class="review-type">
+                    <p><strong>Venta asociada:</strong> <a th:href="@{/sales/view(idSale=${review.idSale})}" th:text="'#' + ${review.idSale} + ' - ' + ${review.reviewerName}" class="btn btn-primary"></a></p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a th:href="@{/reviews/edit(reviewId=${review.reviewId})}" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">edit</span> Editar
+                </a>
+                <form th:action="@{/reviews/delete}" method="post" class="confirm-action" data-message="¿Desea eliminar esta reseña?" data-title="Confirmar Eliminación" style="margin:0; padding:0; display:inline;">
+                    <input type="hidden" name="reviewId" th:value="${review.reviewId}" />
+                    <button type="submit" class="btn btn-danger">
+                        <span class="material-symbols-outlined icon">delete</span> Eliminar
+                    </button>
+                </form>
+                <a th:href="@{/reviews/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver
+                </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/default.js}"></script>
+    </body>
+</html>

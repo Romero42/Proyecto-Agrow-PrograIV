@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información del Productor - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div class="main-content">
+        <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+        <div class="detail-container" th:if="${producer != null}" th:object="${producer}">
+            <div class="detail-header">
+                <div class="detail-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                    <span class="material-symbols-outlined">agriculture</span>
+                </div>
+                <div>
+                    <h2 class="page-title" th:text="*{producerName}"></h2>
+                    <p class="page-subtitle" style="margin-top: -5px;">ID: <span th:text="*{id_producer}"></span></p>
+                </div>
+            </div>
+
+            <table class="detail-table">
+                <tr><td>ID Productor:</td><td th:text="*{id_producer}"></td></tr>
+                <tr><td>Nombre / Razón Social:</td><td th:text="*{producerName}"></td></tr>
+                <tr><td>Tipo de Productor:</td><td th:text="*{producerType}"></td></tr>
+                <tr><td>Teléfono:</td><td th:text="*{contactNumber}"></td></tr>
+                <tr><td>Correo Electrónico:</td><td th:text="*{email}"></td></tr>
+                <tr><td>Fecha de Registro:</td><td th:text="*{getFormattedRegistrationDate()}"></td></tr>
+                <tr><td>Provincia:</td><td th:text="*{city}"></td></tr>
+                <tr><td>Dirección Detallada:</td><td th:text="*{address}"></td></tr>
+                <tr>
+                    <td>Estado:</td>
+                    <td>
+                        <span class="status" th:classappend="*{isActive()} ? 'status-optimo' : 'status-bajo'" th:text="*{isActive()} ? 'Activo' : 'Inactivo'"></span>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="detail-actions">
+                <a th:href="@{/producers/edit(id_producer=*{id_producer})}" class="btn btn-warning">
+                    <span class="material-symbols-outlined icon">edit</span> Editar
+                </a>
+                <form th:action="@{/producers/delete}" method="post" class="confirm-action" data-message="¿Eliminar este productor?" data-title="Confirmar Eliminación">
+                    <input type="hidden" name="id_producer" th:value="*{id_producer}" />
+                    <button type="submit" class="btn btn-danger">
+                        <span class="material-symbols-outlined icon">delete</span> Eliminar
+                    </button>
+                </form>
+                <a th:href="@{/producers/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${producer == null}" class="info-card">
+            <span class="material-symbols-outlined icon">person_off</span>
+            <h2>Productor no encontrado</h2>
+            <p>El productor solicitado no existe o fue eliminado.</p>
+            <a th:href="@{/producers/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/producer.js}"></script>
+</body>
+</html>

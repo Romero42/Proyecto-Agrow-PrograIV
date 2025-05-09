@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Formulario de Reseña - Agrow</title>
+        <link rel="stylesheet" th:href="@{/css/common.css}" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+        <style>
+            /* Estilos para las estrellas de calificación */
+            .rating-stars {
+                display: flex;
+                gap: 5px;
+                font-size: 24px;
+                color: var(--border-light);
+                cursor: pointer;
+            }
+            .rating-stars .star {
+                transition: color 0.2s;
+            }
+            .rating-stars .star.selected,
+            .rating-stars .star:hover,
+            .rating-stars .star:hover ~ .star.selected:not(:hover) {
+                color: var(--warning);
+            }
+            .rating-stars .star-half {
+                position: relative;
+            }
+            .rating-stars .star-half:before {
+                content: '★';
+                position: absolute;
+                width: 50%;
+                overflow: hidden;
+                color: var(--warning);
+            }
+            .comment-container {
+                margin-top: 15px;
+            }
+            .comment-container textarea {
+                width: 100%;
+                min-height: 120px;
+                padding: 12px;
+                border: 1px solid var(--border-light);
+                border-radius: 6px;
+                resize: vertical;
+            }
+            .comment-container textarea:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px var(--primary-shadow);
+            }
+            .form-checkbox-group {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+                gap: 10px;
+            }
+            /* Estilos para campos con error */
+            .error-input {
+                border: 1px solid red !important;
+                box-shadow: 0 0 3px rgba(255, 0, 0, 0.5) !important;
+            }
+            .form-info.error {
+                color: red;
+                font-size: 0.9em;
+                margin-top: 4px;
+            }
+            /* Indicador de campo obligatorio */
+            .required-field::after {
+                content: " *";
+                color: red;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title" th:text="${review.reviewId != null ? 'Editar Reseña' : 'Registrar Nueva Reseña'}">Registrar Nueva Reseña</h1>
+                    <p class="page-subtitle">Completa el formulario con la información de la reseña</p>
+                </div>
+            </div>
+
+            <form th:action="@{/reviews/save}" th:object="${review}" method="post" class="form-container" id="reviewForm" novalidate>
+                <input type="hidden" th:field="*{reviewId}" />
+                
+                <!-- Comentario: Aquí está el campo para mostrar el ID de venta relacionada con la reseña -->
+                <!-- Este campo se agregará cuando se implemente la funcionalidad de relacionar reseñas con ventas -->
+                <div class="sale-id-info">
+                    <span class="sale-id-label">Codigo de Venta:</span>
+                    <span class="sale-id-value" th:text="${review.idSale != null ? review.idSale : 'No asociado'}">No asociado</span>
+                    <!-- Considera agregar un campo oculto si necesitas enviarlo al servidor -->
+                    <input type="hidden" th:field="*{idSale}" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field" for="reviewerName">Nombre del Revisor</label>
+                    <input type="text" th:field="*{reviewerName}" class="form-input" id="reviewerName" 
+                           placeholder="Nombre completo" maxlength="100" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ ]+" title="Solo se permiten letras y espacios" />
+                    <div class="form-info error" th:if="${#fields.hasErrors('reviewerName')}" th:errors="*{reviewerName}"></div>
+                    <div class="form-info error" id="reviewerNameError" style="display:none">El nombre del revisor es obligatorio</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label required-field" for="reviewType">Tipo de Reseña</label>
+                    <select th:field="*{reviewType}" class="form-select" id="reviewType" required>
+                        <option value="" selected disabled>Seleccione un tipo</option>
+                        <option value="Producto">Producto</option>
+                        <option value="Servicio">Servicio</option>
+                        <option value="Atención">Atención</option>
+                    </select>
+                    <div class="form-info error" th:if="${#fields.hasErrors('reviewType')}" th:errors="*{reviewType}"></div>
+                    <div class="form-info error" id="reviewTypeError" style="display:none">Debe seleccionar un tipo de reseña</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field">Calificación</label>
+                    <input type="hidden" th:field="*{rating}" id="ratingValue" required />
+                    <div class="rating-stars" id="ratingStars">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                    <div class="form-info">Selecciona de 1 a 5 estrellas</div>
+                    <div class="form-info error" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}"></div>
+                    <div class="form-info error" id="ratingError" style="display:none">Debe seleccionar una calificación</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required-field" for="reviewDate">Fecha de Reseña</label>
+                    <input type="text" th:field="*{reviewDate}" class="form-input" id="reviewDate" 
+                           placeholder="DD/MM/YYYY" required />
+                    <div class="form-info error" th:if="${#fields.hasErrors('reviewDate')}" th:errors="*{reviewDate}"></div>
+                    <div class="form-info error" id="reviewDateError" style="display:none">La fecha de reseña es obligatoria</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="comment">Comentario</label>
+                    <div class="comment-container">
+                        <textarea th:field="*{comment}" id="comment" placeholder="Escribe el comentario detallado aquí..." maxlength="500"></textarea>
+                    </div>
+                    <div class="form-info error" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}"></div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-checkbox-group">
+                        <input type="checkbox" th:field="*{verified}" id="verified" />
+                        <label for="verified">Reseña verificada</label>
+                    </div>
+                    <div class="form-info">Marcar si la reseña ha sido verificada</div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-checkbox-group">
+                        <input type="checkbox" th:field="*{recommendationStatus}" id="recommendationStatus" />
+                        <label for="recommendationStatus">Recomienda el producto/servicio</label>
+                    </div>
+                    <div class="form-info">Marcar si el cliente recomienda el producto o servicio</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined icon">save</span> Guardar
+                    </button>
+                    <a th:href="@{/reviews/list}" class="btn btn-secondary">
+                        <span class="material-symbols-outlined icon">close</span> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script th:src="@{/js/review.js}"></script>
+    </body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Listado de Suministros - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" th:text="${titulo}">Gestión de Suministros</h1>
+            <p class="page-subtitle">Visualiza, filtra y administra tus insumos. Total: <span th:text="${totalItems != null ? totalItems : 0}">0</span></p>
+        </div>
+        <a th:href="@{/supplies/form}" class="btn btn-primary">
+            <span class="material-symbols-outlined icon">add_box</span> Agregar Suministro
+        </a>
+    </div>
+
+    <form id="filter-form-supply" th:action="@{/supplies/table}" method="get" class="filter-section"> <!-- Action apunta a /table -->
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label" for="searchTerm">Buscar por Nombre</label>
+                <input type="text" id="searchTerm" name="searchTerm" th:value="${searchTerm}" class="filter-input" placeholder="Ej: Semillas..." maxlength="100" />
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="category">Categoría</label>
+                <select id="category" name="category" class="filter-input">
+                    <option value="" th:selected="${selectedCategory == null or selectedCategory == ''}">Todas</option>
+                    <option value="Semillas" th:selected="${#strings.equals(selectedCategory,'Semillas')}">Semillas</option>
+                    <option value="Fertilizantes" th:selected="${#strings.equals(selectedCategory,'Fertilizantes')}">Fertilizantes</option>
+                    <option value="Plaguicidas" th:selected="${#strings.equals(selectedCategory,'Plaguicidas')}">Plaguicidas</option>
+                    <option value="Herramientas" th:selected="${#strings.equals(selectedCategory,'Herramientas')}">Herramientas</option>
+                    <option value="Accesorios de riego" th:selected="${#strings.equals(selectedCategory,'Accesorios de riego')}">Accesorios de riego</option>
+                    <option value="Insumos orgánicos" th:selected="${#strings.equals(selectedCategory,'Insumos orgánicos')}">Insumos orgánicos</option>
+                    <option value="Otros" th:selected="${#strings.equals(selectedCategory,'Otros')}">Otros</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="supplierId">Proveedor</label>
+                <select id="supplierId" name="supplierId" class="filter-input">
+                    <option value="" th:selected="${selectedSupplierId == null}">Todos</option>
+                    <option th:each="supplier : ${suppliers}"
+                            th:value="${supplier.supplierIdentification}"
+                            th:text="${supplier.companyName + ' (' + supplier.supplierIdentification + ')'}"
+                            th:selected="${selectedSupplierId != null and selectedSupplierId == supplier.supplierIdentification}">
+                    </option>
+                </select>
+            </div>
+            <input type="hidden" name="page" value="0"> <!-- Asegurar que filtrar siempre va a la página 0 -->
+            <div class="filter-buttons">
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon">search</span> Filtrar
+                </button>
+                <a th:href="@{/supplies/list}" class="btn btn-secondary">
+                    <span class="material-symbols-outlined icon">refresh</span> Restablecer
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- El contenido de la tabla se carga aquí via AJAX -->
+    <div id="supply-list-content">
+        <!-- Incluye el fragmento inicial -->
+        <div th:replace="~{supply/table_supply :: supplyTable(loggedInUser=${loggedInUser})}"></div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a th:href="@{/homeIndex}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span> Volver a Inicio </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/Supply.js}"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Eliminar Productor - Agrow</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSS y Iconos Comunes -->
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+    <!-- Sidebar Común -->
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+
+         <!-- Mensajes Flash -->
+         <div id="swal-message"
+              th:data-mensaje="${mensaje}"
+              th:data-error="${error}">
+         </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Eliminar Productor</h1>
+        </div>
+
+        <!-- Sección de Búsqueda y Botón Eliminar -->
+        <div class="filter-section"> <!-- Reusando clase de filtro -->
+            <h2 class="page-subtitle" style="margin-bottom: 15px;">Buscar Productor por ID para Eliminar</h2>
+            <!-- Formulario para buscar (GET) -->
+            <form method="get" th:action="@{/producers/delete/search}" class="filter-row" style="align-items: flex-end;"> <!-- action apunta a búsqueda -->
+                <div class="filter-group">
+                    <label class="filter-label" for="idP_search">Código (ID) del Productor:</label>
+                    <!-- Input para buscar -->
+                    <input type="number" id="idP_search" name="idP" th:value="${id}" class="filter-input" required min="10000" max="99999" placeholder="Ingrese ID de 5 dígitos"/>
+                </div>
+                <div class="filter-buttons" style="padding-top: 0;"> <!-- Quitar padding superior extra -->
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined icon">search</span> Buscar
+                    </button>
+                    <!-- Botón para eliminar (POST) - Se habilita/muestra mejor si se encuentra productor -->
+                     <!-- Este botón se moverá a la sección de detalles si se encuentra -->
+                </div>
+            </form>
+        </div>
+
+        <!-- Sección de Detalles del Productor Encontrado (si existe) -->
+        <div th:if="${producer != null}" class="detail-container" style="margin-top: 20px;" th:object="${producer}">
+            <div class="detail-header">
+                 <div class="detail-icon" style="background-color: var(--danger-hover); color: white;"> <!-- Icono de peligro -->
+                    <span class="material-symbols-outlined">person_remove</span>
+                </div>
+                <div>
+                    <h2 class="page-title" style="color: var(--danger);">Confirmar Eliminación</h2>
+                    <p class="page-subtitle" style="margin-top: -5px;">Verifique los datos antes de eliminar a <strong th:text="*{producerName}"></strong> (ID: <span th:text="*{id_producer}"></span>)</p>
+                </div>
+            </div>
+            <!-- Tabla de Detalles (similar a information_producer) -->
+            <table class="detail-table">
+                 <tr><td>ID:</td><td th:text="*{id_producer}"></td></tr>
+                 <tr><td>Nombre:</td><td th:text="*{producerName}"></td></tr>
+                 <tr><td>Teléfono:</td><td th:text="*{contacNumber}"></td></tr>
+                 <tr><td>Tipo:</td><td th:text="*{producerType}"></td></tr>
+                 <tr><td>Correo:</td><td th:text="*{email}"></td></tr>
+                 <tr><td>Ciudad:</td><td th:text="*{city}"></td></tr>
+                 <tr><td>Dirección:</td><td th:text="*{address}"></td></tr>
+                 <tr><td>Estado:</td><td><span class="status" th:classappend="*{isActive()} ? 'status-optimo' : 'status-bajo'" th:text="*{isActive()} ? 'Activo' : 'Inactivo'"></span></td></tr>
+            </table>
+
+             <!-- Formulario de Eliminación Definitiva -->
+            <div class="detail-actions">
+                 <form th:action="@{/producers/delete}" method="post" class="confirm-action" data-message="¡Esta acción es irreversible! ¿Eliminar este productor?">
+                     <input type="hidden" name="idP" th:value="*{id_producer}" />
+                     <button type="submit" class="btn btn-danger">
+                         <span class="material-symbols-outlined icon">delete_forever</span> Eliminar Permanentemente
+                     </button>
+                 </form>
+                 <a th:href="@{/producers/list}" class="btn btn-secondary">
+                     <span class="material-symbols-outlined icon">cancel</span> Cancelar
+                 </a>
+            </div>
+        </div>
+
+        <!-- Mensaje si no se encontró el productor para eliminar -->
+        <div th:if="${producer == null and id != null}" class="dashboard-card" style="text-align: center; margin-top: 20px; background-color: var(--warning-light-alt); border-color: var(--warning);">
+             <span class="material-symbols-outlined icon" style="font-size: 40px; color: var(--warning-text-alt);">person_search</span>
+             <h2 class="dashboard-card-title">Productor no Encontrado</h2>
+             <p class="dashboard-card-description" th:text="'No se encontró ningún productor con el ID ' + ${id} + '.'"></p>
+        </div>
+
+
+        <!-- Link para volver al Listado General -->
+        <div style="margin-top: 20px;">
+            <a th:href="@{/producers/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+            </a>
+        </div>
+
+    </div> <!-- Fin .main-content -->
+
+    <!-- Scripts Comunes -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Base -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/default.js}"></script>
+    <script th:src="@{/js/producer.js}"></script>
+</body>
+</html>

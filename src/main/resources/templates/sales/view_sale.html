@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle de Venta - Agrow</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+    <div class="detail-container" th:if="${sale != null}" th:object="${sale}">
+        <div class="detail-header">
+            <div class="detail-icon" style="background-color: var(--success-light); color: var(--success-text);">
+                <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+            <div>
+                <h2 class="page-title" th:text="'Detalle de Venta ID: ' + *{idSale}"></h2>
+                <p class="page-subtitle" style="margin-top: -5px;">
+                    Realizada el <span th:text="*{getFormattedSaleDate()}"></span>
+                </p>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Cosecha Vendida</h3>
+        <table class="detail-table" th:if="*{harvest != null}">
+            <tr><td style="width: 30%;">ID Cosecha:</td><td th:text="*{harvest.idHarvest}"></td></tr>
+            <tr><td>Tipo:</td><td th:text="*{harvest.typeHarvest}"></td></tr>
+            <tr><td>Calidad:</td><td th:text="*{harvest.quality}"></td></tr>
+            <tr><td>Productor:</td><td th:text="${sale.harvest.id_producer}"></td></tr>
+        </table>
+        <p th:unless="*{harvest != null}">Información de cosecha no disponible.</p>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Detalles de la Transacción</h3>
+        <table class="detail-table">
+            <tr><td style="width: 30%;">Cantidad Vendida:</td><td class="numeric-display" th:text="*{#numbers.formatDecimal(quantitySold, 1, 0, 'POINT') + ' kg'}"></td></tr>
+            <tr><td>Precio por Kg:</td><td class="price-display" th:attr="data-value=*{pricePerUnitSold}"></td></tr>
+            <tr><td>Monto Total Venta:</td><td class="price-display" th:attr="data-value=*{totalSaleAmount}" style="font-weight: bold;"></td></tr>
+        </table>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary);">Información del Comprador</h3>
+        <table class="detail-table">
+            <tr><td style="width: 30%;">Nombre:</td><td th:text="*{buyerName}"></td></tr>
+            <tr><td>Teléfono:</td><td th:text="*{buyerPhone}"></td></tr>
+            <tr><td>Dirección:</td><td th:text="*{buyerAddress ?: '-'}"></td></tr>
+            <tr><td>Transporte:</td><td th:text="*{transportOption ?: '-'}"></td></tr>
+        </table>
+
+        <div class="detail-actions">
+            <a th:href="@{/sales/edit(idSale=*{idSale})}" class="btn btn-warning">
+                <span class="material-symbols-outlined icon">edit</span> Editar Venta
+            </a>
+            <a th:href="@{/sales/print-receipt(idSale=*{idSale})}"
+               class="btn btn-info confirm-action"
+               style="background-color: #28a745; color: #fff;"
+               title="Imprimir Recibo"
+               target="_blank"
+               data-message="¿Generar recibo para imprimir?"
+               data-title="Confirmar Impresión"
+               data-icon="info">
+                <span class="material-symbols-outlined icon">print</span> Imprimir Recibo
+            </a>
+            <form th:action="@{/sales/delete}" method="post" class="confirm-action"
+                  data-message="¿Está seguro que desea eliminar esta venta? El stock será devuelto a la cosecha."
+                  data-title="Confirmar Eliminación">
+                <input type="hidden" name="idSale" th:value="*{idSale}" />
+                <button type="submit" class="btn btn-danger">
+                    <span class="material-symbols-outlined icon">delete</span> Eliminar Venta
+                </button>
+            </form>
+            <a th:href="@{/sales/list}" class="btn btn-secondary">
+                <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado de Ventas
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${sale == null}" class="info-card">
+        <span class="material-symbols-outlined icon">error_outline</span>
+        <h2>Venta no encontrada</h2>
+        <p>La venta solicitada no existe o fue eliminada.</p>
+        <a th:href="@{/sales/list}" class="btn btn-secondary">
+            <span class="material-symbols-outlined icon">arrow_back</span> Volver al Listado
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/default.js}"></script>
+<script th:src="@{/js/Sales.js}"></script>
+</body>
+</html>

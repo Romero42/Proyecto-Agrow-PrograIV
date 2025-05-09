@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>listadomaquinariarentada</title>
+
+        <link rel="stylesheet" th:href="@{/css/common.css}"/>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"/>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
+    </head>
+    <body>
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+            <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Gestion de alquiler de maquinaria</h1>
+                    <p class="page-subtitle">Total de alquileres registrados: <span
+                            th:text="${rents != null ? rents.size() : 0}">0</span></p>
+                </div>
+                <a th:href="@{/rent/saveView}" class="btn btn-primary"> <span
+                        class="material-symbols-outlined icon">person_add</span> Agregar alquiler </a>
+            </div>
+
+            <div id="filter-form-rent" class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label" for="rentStartDay">Filtrar por rango:</label>
+                        <input type="text" id="rentStartDay" name="rentStartDay" class="form-input date-picker-iso"
+                               placeholder="yyyy-mm-dd"/>
+                    </div>
+
+                    <div class="filter-group">
+                        <input type="text" id="rentFinalDay" name="rentFinalDay" class="form-input date-picker-iso"
+                               placeholder="yyyy-mm-dd"/>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="id_maquina">Buscar por Código de maquina: </label>
+                        <input type="number" name="id_maquina" id="id_maquina" class="filter-input"
+                               placeholder="Código (dígitos)" min="10000" max="99999"/>
+                    </div>
+
+                    <div class="filter-buttons">
+                        <button type="submit" onclick="filterRent(this); return false;" class="btn btn-primary" th:attr="data-page=0"><span
+                                class="material-symbols-outlined icon">search</span>
+                            Filtrar
+                        </button>
+                        <a th:href="@{/rent/list}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">refresh</span>
+                            Restablecer </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tableData">
+
+                <div class="info-card" th:if="${validate != null}">
+                    <span class="material-symbols-outlined icon">info</span>
+                    <h2 th:text="${validate}">No hay maquinaria en alquiler</h2>
+                    <p>Intenta con otros filtros o <a th:href="@{/rent/saveView}">agrega nuevo alquiler</a>.</p>
+                </div>
+
+                <div class="table-container" th:unless="${rents == null or rents.isEmpty()}">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre del rentador</th>
+                                    <th>Dirección</th>
+                                    <th>Teléfono</th>
+                                    <th>Maquina</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tempRent : ${rents}">
+                                    <td th:text="${tempRent.renterName}"></td>
+                                    <td th:text="${tempRent.address}"></td>
+                                    <td th:text="${tempRent.contactNumber}"></td>
+
+                                    <td>
+                                        <a href="#"
+                                           th:attr="data-id=${tempRent.id_maquina}"
+                                           onclick="viewMaquina(this); return false;"
+                                           th:text="${tempRent.id_maquina}">
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <div class="action-buttons">
+
+                                            <a th:href="@{/rent/view(id_machinaryrental=${tempRent.id_machinaryrental})}"
+                                               class="btns view-btns" title="Ver Detalles"> <span
+                                                    class="material-symbols-outlined icon">visibility</span> </a>
+
+                                            <a th:href="@{/rent/editView(id_machinaryrental=${tempRent.id_machinaryrental}, id_maquina=${tempRent.id_maquina})}" 
+                                               class="btns edit-btns" title="Editar">
+                                                <span class="material-symbols-outlined icon">edit</span>
+                                            </a>
+
+                                            <form th:action="@{/rent/delete}" method="get" class="confirm-action" 
+                                                  data-message="¿Eliminar esta renta?" data-title="Confirmar Eliminación">
+                                                <input type="hidden" name="id_machinaryrental"
+                                                       th:value="${tempRent.id_machinaryrental}"/>
+                                                <input type="hidden" name="id_maquina"
+                                                       th:value="${tempRent.id_maquina}"/>
+                                                <button type="submit" class="btns delete-btns" title="Eliminar"><span
+                                                        class="material-symbols-outlined icon">delete</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pagination" th:unless="${rents.isEmpty()}">
+                    <ul>
+                        <!-- Flecha izquierda -->
+                        <li th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a th:if="${currentPage > 0}" href="#"
+                               th:attr="data-page=${currentPage - 1}, data-button=0"
+                               onclick="pageRent(this); return false;">«</a>
+                            <span th:unless="${currentPage > 0}">«</span>
+                        </li>
+
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a th:href="'#'"
+                               onclick="pageRent(this); return false;"
+                               th:attr="data-page=${i}"
+                               th:text="${i + 1}"
+                               >
+                            </a>
+                        </li>
+
+                        <!-- Flecha derecha -->
+                        <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a th:if="${currentPage < totalPages - 1}" href="#"
+                               th:attr="data-page=${currentPage + 1}, data-button=0"
+                               onclick="pageRent(this); return false;">»</a>
+                            <span th:unless="${currentPage < totalPages - 1}">»</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+
+            <div id="infoMaquina" class="center-ajax"></div>
+
+            <div style="margin-top: 20px;">
+                <a th:href="@{/homeIndex}" class="btn btn-secondary"> <span class="material-symbols-outlined icon">arrow_back</span>
+                    Volver a Inicio </a>
+            </div>
+
+        </div>
+
+
+        <script th:src="@{/js/machineryR.js}"></script>
+        <script th:src="@{/js/default.js}"></script>
+    </body>
+</html>
