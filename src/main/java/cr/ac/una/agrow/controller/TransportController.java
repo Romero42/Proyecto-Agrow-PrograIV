@@ -59,6 +59,7 @@ public class TransportController {
             @RequestParam(value = "driverPhone", required = false) String driverPhone,
             @RequestParam("vehiclePlate") String vehiclePlate,
             @RequestParam("transportCost") BigDecimal transportCost,
+            @RequestParam("status") String status, // cambio importante aquí
             RedirectAttributes redirectAttributes) {
         try {
             LocalDate transportDate = LocalDate.parse(transportDateStr);
@@ -71,7 +72,10 @@ public class TransportController {
             transport.setDriverPhone(driverPhone);
             transport.setVehiclePlate(vehiclePlate);
             transport.setTransportCost(transportCost);
-            transport.setDelivered(false);
+
+            // Lógica para determinar si está entregado
+            boolean delivered = "Entregado".equalsIgnoreCase(status);
+            transport.setDelivered(delivered); // sigue usando boolean internamente
 
             transportService.saveTransport(transport);
 
