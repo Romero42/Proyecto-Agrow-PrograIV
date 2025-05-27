@@ -77,11 +77,23 @@
                            th:value="${transport.transportCost}" placeholder="Ej: 150.50"/>
                 </div>
 
-                <div class="form-group form-checkbox">
-                    <input type="checkbox" id="delivered" name="delivered" 
-                           th:checked="${transport.delivered}" class="checkbox-input">
-                    <label for="delivered" class="checkbox-label">¿Entregado?</label>
+                <!-- Estado del Transporte (Requerido) -->
+                <div class="form-group">
+                    <label class="form-label">Estado del Transporte:</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label class="checkbox-label">
+                            <input type="radio" name="status" value="Entregado" required
+                                   th:checked="${transport.delivered} == true">
+                            Entregado
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="status" value="Pendiente"
+                                   th:checked="${transport.delivered} == false">
+                            Pendiente
+                        </label>
+                    </div>
                 </div>
+
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">

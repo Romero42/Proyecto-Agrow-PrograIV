@@ -60,6 +60,7 @@ public class TransportController {
             @RequestParam(value = "driverPhone", required = false) String driverPhone,
             @RequestParam("vehiclePlate") String vehiclePlate,
             @RequestParam("transportCost") BigDecimal transportCost,
+            @RequestParam("status") String status, // cambio importante aquí
             RedirectAttributes redirectAttributes) {
         try {
             LocalDate transportDate = LocalDate.parse(transportDateStr);
@@ -72,7 +73,10 @@ public class TransportController {
             transport.setDriverPhone(driverPhone);
             transport.setVehiclePlate(vehiclePlate);
             transport.setTransportCost(transportCost);
-            transport.setDelivered(false);
+
+            // Lógica para determinar si está entregado
+            boolean delivered = "Entregado".equalsIgnoreCase(status);
+            transport.setDelivered(delivered); // sigue usando boolean internamente
 
             transportService.saveTransport(transport);
 
@@ -95,7 +99,6 @@ public class TransportController {
         return "transport/edit";
     }
 
-    //edita trabsporte
     @PostMapping("/edit")
     public String editTransport(
             @RequestParam("idTransport") int idTransport,
@@ -106,7 +109,7 @@ public class TransportController {
             @RequestParam String vehicle_plate,
             @RequestParam BigDecimal transport_cost,
             @RequestParam String driver_phone,
-            @RequestParam(required = false, defaultValue = "false") boolean delivered,
+            @RequestParam String status, 
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -121,14 +124,15 @@ public class TransportController {
 
             LocalDate date = LocalDate.parse(transport_date);
 
+            // Asignación
             transport.setTransportDate(date);
             transport.setTransportType(transport_type);
             transport.setTransportCompany(transport_company);
             transport.setDriverName(driver_name);
             transport.setDriverPhone(driver_phone);
-            transport.setDelivered(delivered);
             transport.setVehiclePlate(vehicle_plate);
             transport.setTransportCost(transport_cost);
+            transport.setDelivered("Entregado".equalsIgnoreCase(status)); 
 
             transportService.updateTransport(transport);
 
