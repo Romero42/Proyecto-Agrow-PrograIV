@@ -312,9 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                swalAgrow.fire({
                    title: '¡Éxito!',
                    text: flash.dataset.mensaje,
-                   icon: 'success',
-                   timer: 2500,
-                   timerProgressBar: true
+                   icon: 'success'
                });
            }
            if (flash.dataset.error) {

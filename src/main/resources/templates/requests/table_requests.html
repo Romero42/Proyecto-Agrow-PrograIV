@@ -16,9 +16,9 @@
                 <thead>
                 <tr>
                     <th>Nombre</th>
-                    <th>Telefono</th>
                     <th>Tipo</th>
                     <th>Cantidad</th>
+                    <th>Teléfono</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -31,7 +31,7 @@
                     <td class="numeric-display"
                         th:text="${#numbers.formatDecimal(tempRequest.amount, 1, 0, 'POINT')}">
                     </td>
-                    <td th:text="${tempRequest.phone_number}"></td>
+                    <td th:text="${tempRequest.getFormattedPhoneNumber()}"></td>
                     <td th:text="${tempRequest.getFormattedDate()}"></td>
 
                     <!-- estilos de los estados -->
