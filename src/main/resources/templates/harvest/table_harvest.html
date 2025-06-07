@@ -19,7 +19,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Código</th>
                                 <th>Tipo</th>
                                 <th>Fecha Cosecha</th>
                                 <th>Total (kg)</th>
@@ -31,22 +30,24 @@
                         </thead>
                         <tbody>
                             <tr th:each="harvest : ${harvestList}">
-                                <td th:text="${harvest.idHarvest}"></td>
                                 <td th:text="${harvest.typeHarvest}"></td>
                                 <td th:text="${harvest.dateHarvested != null ? #temporals.format(harvest.dateHarvested, 'dd/MM/yyyy') : '-'}"></td>
                                 <td class="numeric-display" th:text="${#numbers.formatDecimal(harvest.quantityHarvested, 1, 0, 'POINT')}"></td>
                                 <td class="numeric-display"
-                                    th:text="${#numbers.formatDecimal(harvest.availableQuantity, 1, 0, 'POINT')}"
-                                    th:classappend="${harvest.availableQuantity <= 0} ? 'status-bajo' : ''">
+                                    th:text="${#numbers.formatDecimal(harvest.availableQuantity, 1, 0, 'POINT')}">
                                 </td>
                                 <td>
                                     <span class="status"
-                                          th:classappend="${#strings.equalsIgnoreCase(harvest.quality, 'Premium')} ? 'status-optimo' :
+                                          th:classappend="
+                                          ${harvest.availableQuantity <= 0} ? 'status-bajo' :
+                                          (${#strings.equalsIgnoreCase(harvest.quality, 'Premium')} ? 'status-optimo' :
                                           (${#strings.equalsIgnoreCase(harvest.quality, 'Estándar')} ? 'status-estandar' :
-                                          (${#strings.equalsIgnoreCase(harvest.quality, 'Secundaria')} ? 'status-bajo' : ''))"
+                                          (${#strings.equalsIgnoreCase(harvest.quality, 'Secundaria')} ? 'status-bajo' : '')))
+                                          "
                                           th:text="${harvest.quality}">
                                     </span>
                                 </td>
+
                                 <td th:text="${harvest.destiny}"></td>
                                 <td>
                                     <div class="action-buttons">
