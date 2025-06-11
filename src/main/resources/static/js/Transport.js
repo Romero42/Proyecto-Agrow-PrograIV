@@ -171,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 customClass: {
                     popup: 'swal2-agrow-popup',
                     title: 'swal2-agrow-title',
-                    confirmButton: 'btn btn-success', 
-                    cancelButton: 'btn btn-danger'    
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger'
                 },
                 buttonsStyling: false
             }).then(result => {
@@ -199,5 +199,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+    });
+    // Agrega esto al final del DOMContentLoaded, después de tus funciones existentes
+
+// === FUNCIONALIDAD DE PAGINACIÓN ===
+
+// Función para manejar la paginación
+    window.pageTransports = function (link) {
+        if (!link)
+            return;
+
+        const page = link.getAttribute('data-page');
+        const formData = new FormData(document.getElementById('filter-form-transport') || new FormData());
+        formData.set('page', page);
+
+        handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
+    };
+
+// Función para manejar peticiones AJAX
+    function handleAjaxRequest(url, contentDivId) {
+        const contentDiv = document.getElementById(contentDivId);
+        if (!contentDiv) {
+            console.error(`Contenedor '${contentDivId}' no encontrado.`);
+            swalAgrow.fire('Error', `Error interno: Contenedor '${contentDivId}' no encontrado.`, 'error');
+            return;
+        }
+
+        const loader = document.createElement('div');
+        loader.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="material-symbols-outlined" style="font-size: 40px; animation: spin 1.5s linear infinite;">autorenew</span><p>Cargando...</p></div>';
+        contentDiv.innerHTML = '';
+        contentDiv.appendChild(loader);
+        contentDiv.style.opacity = '0.7';
+
+        fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    contentDiv.innerHTML = html;
+                    contentDiv.style.opacity = '1';
+                    // Reaplicar cualquier listener necesario después de cargar nuevo contenido
+                })
+                .catch(error => {
+                    console.error(`Error al cargar contenido:`, error);
+                    swalAgrow.fire('Error', 'No se pudo cargar el contenido. Intente nuevamente.', 'error');
+                    contentDiv.innerHTML = `<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos. Por favor, actualice la página.</p></div>`;
+                    contentDiv.style.opacity = '1';
+                });
+    }
+
+// Event listeners para la paginación
+    document.addEventListener('click', function (event) {
+        // Manejo de paginación
+        const pgLink = event.target.closest('.pagination a[data-page]');
+        if (pgLink) {
+            event.preventDefault();
+            window.pageTransports(pgLink);
+        }
+
+        // Manejo de filtros (opcional, si quieres que el filtro use AJAX también)
+        const filterBtn = event.target.closest('#filter-form-transport button[type="submit"]');
+        if (filterBtn) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('filter-form-transport'));
+            formData.set('page', '0'); // Resetear a primera página al filtrar
+            handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
+        }
     });
 });
