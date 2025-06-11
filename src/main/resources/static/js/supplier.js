@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Configuración de SweetAlert (sin cambios)
+
     const swalAgrow = Swal.mixin({
         customClass: {
             popup: 'swal2-agrow-popup',
@@ -14,19 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonsStyling: false
     });
 
-    // Inicialización de Flatpickr (sin cambios)
+
     function initFlatpickr() {
         if (!window.flatpickr) {
             console.warn("La librería Flatpickr no está cargada.");
             return;
         }
-        // Selectores de fecha generales
+
         flatpickr('.date-picker-iso', { dateFormat: 'Y-m-d', allowInput: true, maxDate: 'today' });
         flatpickr('.date-picker-future-iso', { dateFormat: 'Y-m-d', allowInput: true, minDate: 'today' });
         flatpickr('.date-picker-dmy', { dateFormat: 'd/m/Y', allowInput: true });
 
-        // Lógica de rango de fechas para alquileres (sin cambios)
-        const start = document.querySelector("#rentStartDay");
+         const start = document.querySelector("#rentStartDay");
         const end = document.querySelector("#rentFinalDay");
         if (start && end) {
             try {
@@ -58,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initFlatpickr();
 
-    // Formato de moneda (CRC) (sin cambios)
+
     const formatColones = val => {
         const num = parseFloat(val);
         if (isNaN(num)) return '---';
@@ -69,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(num);
     };
 
-    // Aplicar formato de precios (sin cambios)
+
     function formatPrices() {
         document.querySelectorAll('.price-display').forEach(el => {
             const value = el.dataset.value || el.textContent;
@@ -78,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     formatPrices();
 
-    // Manejo de diálogos de confirmación (sin cambios)
+
     function attachConfirmHandlers() {
         document.querySelectorAll('.confirm-action').forEach(el => {
             if (el.dataset.confirmAttached) return;
@@ -160,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     attachConfirmHandlers();
 
-    // Petición AJAX genérica (sin cambios)
     function handleAjaxRequest(url, contentDivId) {
         const contentDiv = document.getElementById(contentDivId);
         if (!contentDiv) {
@@ -185,14 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(html => {
                 contentDiv.innerHTML = html;
                 contentDiv.style.opacity = '1';
-                formatPrices(); // Reaplicar formato después de AJAX
-                attachConfirmHandlers(); // Reaplicar confirmación
-                initFlatpickr(); // Reinicializar datepickers
-                attachDynamicEventListeners(); // Volver a adjuntar listeners dinámicos
-                // Recalcular total si es un formulario de venta
+                formatPrices();
+                attachConfirmHandlers();
+                initFlatpickr();
+                attachDynamicEventListeners();
+
                 if (document.getElementById('editSaleForm') || document.getElementById('saleForm')) {
-                     validateQuantityInput(); // Revalidar
-                     calculateAndDisplayTotalSale(); // Recalcular
+                     validateQuantityInput();
+                     calculateAndDisplayTotalSale();
                 }
             })
             .catch(error => {
@@ -207,66 +205,53 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // --- Funciones de Paginación ---
 
-// Corrección de la función de paginación para proveedores
 window.pageSuppliers = function(link) {
     if (!link) return;
-    const page = link.getAttribute('data-page'); // Obtener la página del enlace
-
-    // Usa el formulario de filtro si existe
+    const page = link.getAttribute('data-page');
     const form = document.getElementById('filter-form-supplier');
     const formData = form ? new FormData(form) : new FormData();
 
-    // Siempre establece la página solicitada
     formData.set('page', page);
 
-    // Asegurarse de incluir el término de búsqueda si existe
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam && !formData.has('search')) {
         formData.set('search', searchParam);
     }
 
-    console.log("Cargando página de proveedores:", page); // Depuración
-    console.log("URL:", `/suppliers/table?${new URLSearchParams(formData).toString()}`); // Depuración
-
-    // Llama a handleAjaxRequest con la URL del fragmento y el ID del contenedor
+    console.log("Cargando página de proveedores:", page);
+    console.log("URL:", `/suppliers/table?${new URLSearchParams(formData).toString()}`);
     handleAjaxRequest(
        `/suppliers/table?${new URLSearchParams(formData).toString()}`,
        'supplier-list-content'
     );
-    return false; // Prevenir comportamiento predeterminado del enlace
+    return false;
 };
-    // --- Eventos Dinámicos para Contenido AJAX ---
+
     function attachDynamicEventListeners() {
         document.body.addEventListener('submit', function(event) {
             const form = event.target.closest('form.filter-section');
             if (!form) return;
 
-            // Prevenir el envío normal del formulario
             event.preventDefault();
 
             let contentId, actionUrl;
 
-            // Determinar el contenedor y la URL según el ID del formulario
             if (form.id === 'filter-form-supplier') {
-                               contentId = 'supplier-list-content'; // ID del div que contendrá la tabla de proveedores
+                               contentId = 'supplier-list-content';
                                actionUrl = '/suppliers/table';
 
             } else {
                 console.warn('Formulario de filtro con ID no reconocido:', form.id);
-                return; // No hacer nada si el ID no coincide
+                return;
             }
 
             const formData = new FormData(form);
-            formData.set('page', '0'); // Al filtrar, siempre ir a la página 0
-
-            // Ejecutar la petición AJAX
+            formData.set('page', '0');
             handleAjaxRequest(`${actionUrl}?${new URLSearchParams(formData).toString()}`, contentId);
         });
 
-        // Listener para clicks en la paginación (sin cambios, debería funcionar si el container.id se detecta bien)
         document.body.addEventListener('click', function(event) {
             const pgLink = event.target.closest('.pagination a[data-page]');
             if (pgLink) {
@@ -274,15 +259,13 @@ window.pageSuppliers = function(link) {
                 const container = pgLink.closest('[id$="-list-content"]');
                 if (container) {
                     if (container.id === 'supplier-list-content'){
-                     window.pageSuppliers(pgLink); // Añadir para proveedores
+                     window.pageSuppliers(pgLink);
                     }
                 }
             }
         });
     }
-    attachDynamicEventListeners(); // Adjuntar listeners al cargar la página
-
-    // Manejo de mensajes
+    attachDynamicEventListeners();
     const flash = document.getElementById('swal-message');
     if (flash) {
         if (flash.dataset.mensaje) {
@@ -301,4 +284,4 @@ window.pageSuppliers = function(link) {
         }
     }
 
-}); // Fin de DOMContentLoaded
+});
