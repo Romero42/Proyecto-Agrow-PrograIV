@@ -3,7 +3,7 @@
 <body>
 
 <div th:fragment="transportListContent">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.0.19/sweetalert2.min.js"></script>
     <!-- Mostrar mensaje si no hay transportes -->
     <div class="info-card" th:if="${validate != null}">
         <span class="material-symbols-outlined icon">local_shipping</span>
@@ -34,7 +34,7 @@
                         <td th:text="${transport.transportCompany}"></td>
                         <td th:text="${transport.driverName}"></td>
                         <td th:text="${transport.vehiclePlate}"></td>
-                        <td th:text="${#numbers.formatDecimal(transport.transportCost, 1, 'COMMA', 2, 'POINT')} + ' ₡'"></td>
+                        <td th:text="' ₡'+${#numbers.formatDecimal(transport.transportCost, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td>
                             <span class="status"
                                   th:classappend="${transport.delivered} ? 'status-optimo' : 'status-bajo'"
@@ -43,19 +43,20 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <!-- CORREGIDO: Usar idTransport consistentemente -->
+                                <!-- Ver detalles -->
                                 <a th:href="@{/transport/view(idTransport=${transport.idTransport})}" class="btns view-btns" title="Ver Detalles">
                                     <span class="material-symbols-outlined icon">visibility</span>
                                 </a>
-                                <a th:href="@{/transport/edit(idTransport=${transport.idTransport})}" class="btns edit-btns" title="Editar">
+                                <!-- CORREGIDO: Cambiar /transport/edit por /transport/editView -->
+                                <a th:href="@{/transport/editView(idTransport=${transport.idTransport})}" class="btns edit-btns" title="Editar">
                                     <span class="material-symbols-outlined icon">edit</span>
                                 </a>
+                                <!-- Eliminar -->
                                 <form th:action="@{/transport/delete}" method="post"
                                       class="confirm-action"
                                       data-message="¿Eliminar este transporte?"
                                       data-title="Confirmar Eliminación"
                                       style="margin:0; padding:0; display:inline;">
-                                    <!-- CORREGIDO: Cambiar transportId por idTransport para ser consistente -->
                                     <input type="hidden" name="idTransport" th:value="${transport.idTransport}" />
                                     <button type="submit" class="btns delete-btns" title="Eliminar">
                                         <span class="material-symbols-outlined icon">delete</span>
@@ -69,7 +70,7 @@
         </div>
     </div>
 
-    <!-- Paginación - ELIMINAMOS onclick inline para usar event delegation -->
+    <!-- Paginación -->
     <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
         <ul>
             <!-- Anterior -->

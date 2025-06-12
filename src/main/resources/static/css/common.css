@@ -639,3 +639,272 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* Estilos adicionales para que SweetAlert2 se vea como en la imagen bonita */
+
+/* Mejorar el botón de confirmar */
+.btn-confirm {
+    background-color: var(--primary) !important;
+    color: var(--white) !important;
+    border: 1px solid var(--primary) !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    min-width: 100px !important;
+}
+
+.btn-confirm:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Mejorar el botón de cancelar */
+.btn-cancel-custom {
+    background-color: var(--white) !important;
+    color: var(--secondary) !important;
+    border: 1px solid var(--border-light) !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    min-width: 100px !important;
+}
+
+.btn-cancel-custom:hover {
+    background-color: var(--gray-lightest) !important;
+    color: var(--secondary-hover) !important;
+    border-color: var(--gray-light) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Mejorar el botón de éxito */
+.btn-success-custom {
+    background-color: var(--increase) !important;
+    color: var(--white) !important;
+    border: 1px solid var(--increase) !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    min-width: 100px !important;
+}
+
+.btn-success-custom:hover {
+    background-color: var(--increase-hover) !important;
+    border-color: var(--increase-hover) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Personalizar el contenedor del popup */
+.swal2-popup.swal2-agrow-popup {
+    font-family: 'Poppins', sans-serif !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    padding: 30px !important;
+    border: 1px solid var(--border-lighter) !important;
+}
+
+/* Mejorar el título */
+.swal2-title.swal2-agrow-title {
+    color: var(--title) !important;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    margin-bottom: 15px !important;
+}
+
+/* Mejorar el contenido del texto */
+.swal2-html-container {
+    font-size: 16px !important;
+    color: var(--subtitle) !important;
+    line-height: 1.6 !important;
+    margin-bottom: 20px !important;
+}
+
+/* Personalizar los iconos */
+.swal2-icon {
+    margin-bottom: 20px !important;
+    width: 80px !important;
+    height: 80px !important;
+    border-width: 4px !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: var(--warning) !important;
+    color: var(--warning) !important;
+}
+
+.swal2-icon.swal2-warning .swal2-icon-content {
+    color: var(--warning) !important;
+    font-size: 60px !important;
+    font-weight: 600 !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: var(--increase) !important;
+    color: var(--increase) !important;
+}
+
+.swal2-icon.swal2-success [class^="swal2-success-line"] {
+    background-color: var(--increase) !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(40, 167, 69, 0.3) !important;
+}
+
+/* Mejorar el contenedor de acciones/botones */
+.swal2-actions {
+    gap: 15px !important;
+    margin-top: 25px !important;
+    justify-content: center !important;
+}
+
+/* Quitar el fondo overlay si se ve feo */
+.swal2-container {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+    .swal2-popup.swal2-agrow-popup {
+        padding: 25px 20px !important;
+        margin: 20px !important;
+    }
+    
+    .swal2-actions {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .btn-confirm,
+    .btn-cancel-custom,
+    .btn-success-custom {
+        width: 100% !important;
+    }
+}
+/* Estados mejorados */
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status.delivered {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.pending {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Botones de acción mejorados */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btns {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-btns {
+    background: #ffc107;
+    color: #212529;
+}
+
+.edit-btns:hover {
+    background: #e0a800;
+    transform: scale(1.1);
+}
+
+.delete-btns {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-btns:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+.view-btns {
+    background: #17a2b8;
+    color: white;
+}
+
+.view-btns:hover {
+    background: #138496;
+    transform: scale(1.1);
+}
+
+.icon {
+    font-size: 1.2rem;
+}
+
+.price-display {
+    font-weight: 600;
+    color: #28a745;
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 10px;
+    }
+
+    .content-wrapper {
+        padding: 20px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    table {
+        font-size: 0.85rem;
+    }
+
+    th, td {
+        padding: 12px 8px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .btns {
+        width: 32px;
+        height: 32px;
+    }
+}

@@ -1,5 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // === MANEJO DE MENSAJES SWEETALERT ===
+    const swalMessage = document.getElementById('swal-message');
+    if (swalMessage) {
+        const mensaje = swalMessage.getAttribute('data-mensaje');
+        const error = swalMessage.getAttribute('data-error');
+        
+        if (mensaje) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: mensaje,
+                confirmButtonColor: '#28a745'
+            });
+        }
+        
+        if (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    }
+
+    // === MANEJO DE CONFIRMACIONES PARA ELEMENTOS CON CLASE CONFIRM-ACTION ===
+    const confirmElements = document.querySelectorAll('.confirm-action');
+    
+    confirmElements.forEach(element => {
+        element.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = this.getAttribute('data-title') || '¿Confirmar acción?';
+            const message = this.getAttribute('data-message') || '¿Estás seguro de que deseas continuar?';
+            
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#007bff',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Si es un formulario, enviarlo
+                    this.submit();
+                }
+            });
+        });
+    });
+
+    // === FUNCIONES DE CÁLCULO Y VALIDACIÓN ===
     function calculateAndDisplayTotalTransport() {
         const quantityInput = document.getElementById('quantityTransported');
         const priceInput = document.getElementById('pricePerUnitTransport');
@@ -200,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === FUNCIONALIDAD DE PAGINACIÓN ===
 
-    // Función para manejar peticiones AJAX
     function handleAjaxRequest(url, contentDivId) {
         const contentDiv = document.getElementById(contentDivId);
         if (!contentDiv) {
@@ -210,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('Cargando URL:', url);
 
-        // Mostrar loader
         const loader = document.createElement('div');
         loader.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="material-symbols-outlined" style="font-size: 40px; animation: spin 1.5s linear infinite;">autorenew</span><p>Cargando...</p></div>';
         contentDiv.innerHTML = '';
@@ -234,8 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('HTML recibido, longitud:', html.length);
             contentDiv.innerHTML = html;
             contentDiv.style.opacity = '1';
-            
-            // Actualizar el contador en el header
+
             updateTransportCounter();
         })
         .catch(error => {
@@ -250,29 +301,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Función para actualizar el contador de transportes
     function updateTransportCounter() {
-        // Buscar el elemento que muestra el total de elementos
         const totalItemsElement = document.querySelector('.page-subtitle span');
-        
         if (totalItemsElement) {
-            // El total viene del servidor, no necesitamos calcularlo aquí
             console.log('Contador actualizado desde el servidor');
         }
     }
 
-    // Función para manejar la paginación
     function pageTransport(link) {
         if (!link) return;
 
         const page = link.getAttribute('data-page');
         console.log('Cambiando a página:', page);
 
-        // Obtener filtros actuales
         const transportType = document.getElementById('transport_type')?.value || '';
         const delivered = document.getElementById('delivered')?.value || '';
 
-        // Construir URL con parámetros
         let url = `/transport/table?page=${page}`;
         if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
         if (delivered) url += `&delivered=${delivered}`;
@@ -281,12 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
         handleAjaxRequest(url, 'tableData');
     }
 
-    // Función para filtrar transportes
     function filterTransport() {
         const transportType = document.getElementById('transport_type')?.value || '';
         const delivered = document.getElementById('delivered')?.value || '';
 
-        let url = '/transport/table?page=0'; // Siempre empezar en página 0 al filtrar
+        let url = '/transport/table?page=0';
         if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
         if (delivered) url += `&delivered=${delivered}`;
 
@@ -296,59 +339,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === EVENT LISTENERS PARA PAGINACIÓN Y FILTROS ===
 
-    // Event listener para links de paginación (delegación de eventos)
     document.addEventListener('click', function(event) {
-        // Buscar si el click fue en un link de paginación
-        const paginationLink = event.target.closest('.pagination a[data-page]');
-        if (paginationLink) {
+        const link = event.target.closest('[data-page]');
+        if (link) {
             event.preventDefault();
-            pageTransport(paginationLink);
-            return;
+            pageTransport(link);
         }
     });
 
-    // Event listener para el botón de filtrar
-    const filterButton = document.querySelector('.filter-btn');
-    if (filterButton) {
-        filterButton.addEventListener('click', function(event) {
-            event.preventDefault();
-            filterTransport();
-        });
-    }
+    document.getElementById('transport_type')?.addEventListener('change', filterTransport);
+    document.getElementById('delivered')?.addEventListener('change', filterTransport);
 
-    // Event listeners para cambios en los filtros (filtrado automático)
-    const transportTypeSelect = document.getElementById('transport_type');
-    const deliveredSelect = document.getElementById('delivered');
-
-    if (transportTypeSelect) {
-        transportTypeSelect.addEventListener('change', function() {
-            console.log('Cambio en tipo de transporte:', this.value);
-            // Opcional: filtrar automáticamente al cambiar
-            // filterTransport();
-        });
-    }
-
-    if (deliveredSelect) {
-        deliveredSelect.addEventListener('change', function() {
-            console.log('Cambio en estado de entrega:', this.value);
-            // Opcional: filtrar automáticamente al cambiar
-            // filterTransport();
-        });
-    }
-
-    // Hacer las funciones disponibles globalmente por si se necesitan
-    window.pageTransport = pageTransport;
-    window.filterTransport = filterTransport;
-
-    console.log('Sistema de paginación de transportes inicializado correctamente');
 });
-
-// Añadir estilos CSS para la animación del loader
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
