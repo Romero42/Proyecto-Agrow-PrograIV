@@ -45,7 +45,7 @@
                     </a>
                     <form th:action="@{/transport/delete}" method="post" class="confirm-action" 
                           data-title="Confirmar Eliminación"
-                          data-message="¿Estás seguro de que deseas eliminar este transporte?">
+                          data-message="¿Estás seguro de que deseas eliminar este transporte? Esta acción no se puede deshacer.">
                         <input type="hidden" name="idTransport" th:value="*{idTransport}" />
                         <button type="submit" class="btn btn-danger">
                             <span class="material-symbols-outlined icon">delete</span> Eliminar

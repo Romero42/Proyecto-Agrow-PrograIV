@@ -22,23 +22,25 @@
             <div class="page-header">
                 <div>
                     <h1 class="page-title">Gestión de Transportes</h1>
-                    <p class="page-subtitle">Total de transportes registrados: <span th:text="${transportList != null ? transportList.size() : 0}">0</span></p>
+                    <!-- CORREGIDO: Usar totalItems en lugar de transportList.size() -->
+                    <p class="page-subtitle">Total de transportes registrados: <span th:text="${totalItems != null ? totalItems : 0}">0</span></p>
                 </div>
                 <a th:href="@{/transport/register}" class="btn btn-primary"> 
                     <span class="material-symbols-outlined icon">add</span> Agregar Transporte 
                 </a>
             </div>
 
+            <!-- CORREGIDO: Agregar ID al formulario de filtros -->
             <div id="filter-form-transport" class="filter-section">
                 <div class="filter-row">
                     <div class="filter-group">
                         <label class="filter-label" for="transport_type">Filtrar por tipo:</label>
-                        <select id="transport_type" name="transport_type" class="filter-input">
+                        <select id="transport_type" name="transport_type" class="filter-input" th:value="${transport_type}">
                             <option value="">Seleccione un tipo</option>
-                            <option value="Camión de carga">Camión de carga</option>
-                            <option value="Furgón de carga">Furgón de carga</option>
-                            <option value="Barco">Barco</option>
-                            <option value="Pickup de la empresa">Pickup de la empresa</option>
+                            <option value="Camión de carga" th:selected="${transport_type == 'Camión de carga'}">Camión de carga</option>
+                            <option value="Furgón de carga" th:selected="${transport_type == 'Furgón de carga'}">Furgón de carga</option>
+                            <option value="Barco" th:selected="${transport_type == 'Barco'}">Barco</option>
+                            <option value="Pickup de la empresa" th:selected="${transport_type == 'Pickup de la empresa'}">Pickup de la empresa</option>
                         </select>
                     </div>
 
@@ -46,13 +48,14 @@
                         <label class="filter-label" for="delivered">Estado:</label>
                         <select id="delivered" name="delivered" class="filter-input">
                             <option value="">Todos</option>
-                            <option value="true">Entregado</option>
-                            <option value="false">Pendiente</option>
+                            <option value="true" th:selected="${delivered == true}">Entregado</option>
+                            <option value="false" th:selected="${delivered == false}">Pendiente</option>
                         </select>
                     </div>
 
                     <div class="filter-buttons">
-                        <button type="submit" onclick="filterTransport(); return false;" class="btn btn-primary">
+                        <!-- CORREGIDO: Remover onclick inline -->
+                        <button type="button" class="btn btn-primary filter-btn">
                             <span class="material-symbols-outlined icon">search</span> Filtrar
                         </button>
                         <a th:href="@{/transport/list}" class="btn btn-secondary"> 
@@ -62,65 +65,10 @@
                 </div>
             </div>
 
+            <!-- Contenedor para la tabla que será actualizado por AJAX -->
             <div id="tableData">
-                <div class="info-card" th:if="${transportList != null and transportList.isEmpty()}">
-                    <span class="material-symbols-outlined icon">info</span>
-                    <h2>No hay transportes registrados</h2>
-                    <p>Intenta con otros filtros o <a th:href="@{/transport/register}">agrega un nuevo transporte</a>.</p>
-                </div>
-
-                <div class="table-container" th:unless="${transportList == null or transportList.isEmpty()}">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Fecha</th>
-                                    <th>Empresa</th>
-                                    <th>Conductor</th>
-                                    <th>Placa</th>
-                                    <th>Costo</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="transport : ${transportList}">
-                                    <td th:text="${transport.transportType}"></td>
-                                    <td th:text="${#temporals.format(transport.transportDate, 'dd/MM/yyyy')}"></td>
-                                    <td th:text="${transport.transportCompany}"></td>
-                                    <td th:text="${transport.driverName}"></td>
-                                    <td th:text="${transport.vehiclePlate}"></td>
-                                    <td th:text="${transport.transportCost != null} ? ${#numbers.formatCurrency(transport.transportCost)} : 'N/A'"></td>
-                                    <td>
-                                        <span th:if="${transport.delivered}" class="status delivered">Entregado</span>
-                                        <span th:if="${!transport.delivered}" class="status pending">Pendiente</span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a th:href="@{/transport/view(idTransport=${transport.idTransport})}"
-                                               class="btns view-btns" title="Ver Detalles">
-                                                <span class="material-symbols-outlined icon">visibility</span>
-                                            </a>
-                                            <a th:href="@{/transport/editView(idTransport=${transport.idTransport})}" 
-                                               class="btns edit-btns" title="Editar">
-                                                <span class="material-symbols-outlined icon">edit</span>
-                                            </a>
-                                            <form th:action="@{/transport/delete}" method="post" class="confirm-action"
-                                                  data-message="¿Eliminar este transporte?" data-title="Confirmar Eliminación"
-                                                  style="margin:0; padding:0; display:inline;">
-                                                <input type="hidden" name="idTransport" th:value="${transport.idTransport}"/>
-                                                <button type="submit" class="btns delete-btns" title="Eliminar">
-                                                    <span class="material-symbols-outlined icon">delete</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <!-- Incluir el fragmento de tabla inicial -->
+                <div th:replace="~{transport/table_transport :: transportListContent}"></div>
             </div>
 
             <div style="margin-top: 20px;">
@@ -131,19 +79,5 @@
         </div>
 
         <script th:src="@{/js/transport.js}"></script>
-        <script>
-            function filterTransport() {
-                const transportType = document.getElementById('transport_type').value;
-                const delivered = document.getElementById('delivered').value;
-
-                let url = '/transport/list?';
-                if (transportType)
-                    url += `transport_type=${transportType}&`;
-                if (delivered)
-                    url += `delivered=${delivered}`;
-
-                window.location.href = url;
-            }
-        </script>
-    </body>
+            </body>
 </html>

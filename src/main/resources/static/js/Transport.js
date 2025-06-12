@@ -1,5 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // === MANEJO DE MENSAJES SWEETALERT ===
+    const swalMessage = document.getElementById('swal-message');
+    if (swalMessage) {
+        const mensaje = swalMessage.getAttribute('data-mensaje');
+        const error = swalMessage.getAttribute('data-error');
+        
+        if (mensaje) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: mensaje,
+                confirmButtonColor: '#28a745'
+            });
+        }
+        
+        if (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    }
+
+    // === MANEJO DE CONFIRMACIONES PARA ELEMENTOS CON CLASE CONFIRM-ACTION ===
+    const confirmElements = document.querySelectorAll('.confirm-action');
+    
+    confirmElements.forEach(element => {
+        element.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = this.getAttribute('data-title') || '¿Confirmar acción?';
+            const message = this.getAttribute('data-message') || '¿Estás seguro de que deseas continuar?';
+            
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#007bff',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit(); // Solo se envía el formulario, sin mostrar mensaje de éxito
+                }
+            });
+        });
+    });
+
+    // === FUNCIONES DE CÁLCULO Y VALIDACIÓN ===
     function calculateAndDisplayTotalTransport() {
         const quantityInput = document.getElementById('quantityTransported');
         const priceInput = document.getElementById('pricePerUnitTransport');
@@ -21,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatColones(value) {
-        return value.toLocaleString('es-CR', {style: 'currency', currency: '₡'});
+        return value.toLocaleString('es-CR', {style: 'currency', currency: 'CRC'});
     }
 
     function validateQuantityInput() {
@@ -55,8 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return isValid;
     }
-
-    // === VALIDACIONES DE DATOS DE ENTRADA ===
 
     function validateTransportFormInputs() {
         const nameRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
@@ -115,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
+    // === INICIALIZACIÓN DE EVENT LISTENERS PARA FORMULARIOS ===
     const quantityTransportedInput = document.getElementById('quantityTransported');
     const pricePerUnitTransportInput = document.getElementById('pricePerUnitTransport');
 
@@ -128,8 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pricePerUnitTransportInput) {
         pricePerUnitTransportInput.addEventListener('input', calculateAndDisplayTotalTransport);
     }
-
-
 
     const confirmableForms = document.querySelectorAll('form.confirm-action');
 
@@ -177,51 +227,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 buttonsStyling: false
             }).then(result => {
                 if (result.isConfirmed) {
-                    const isDeleteForm = form.action.includes('/transport/delete');
-                    const successText = isDeleteForm
-                            ? 'El transporte ha sido eliminado correctamente.'
-                            : 'Los cambios se han guardado correctamente.';
-
-                    Swal.fire({
-                        title: 'ÉXITO',
-                        text: successText,
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar',
-                        customClass: {
-                            popup: 'swal2-agrow-popup',
-                            title: 'swal2-agrow-title',
-                            confirmButton: 'btn btn-confirm'
-                        },
-                        buttonsStyling: false
-                    }).then(() => {
-                        form.submit();
-                    });
+                    form.submit(); // No muestra un segundo mensaje, solo envía
                 }
             });
         });
     });
-    // Agrega esto al final del DOMContentLoaded, después de tus funciones existentes
 
-// === FUNCIONALIDAD DE PAGINACIÓN ===
+    // === FUNCIONALIDAD DE PAGINACIÓN ===
 
-// Función para manejar la paginación
-    window.pageTransports = function (link) {
-        if (!link)
-            return;
-
-        const page = link.getAttribute('data-page');
-        const formData = new FormData(document.getElementById('filter-form-transport') || new FormData());
-        formData.set('page', page);
-
-        handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
-    };
-
-// Función para manejar peticiones AJAX
     function handleAjaxRequest(url, contentDivId) {
         const contentDiv = document.getElementById(contentDivId);
         if (!contentDiv) {
             console.error(`Contenedor '${contentDivId}' no encontrado.`);
-            swalAgrow.fire('Error', `Error interno: Contenedor '${contentDivId}' no encontrado.`, 'error');
             return;
         }
 
@@ -231,42 +248,76 @@ document.addEventListener('DOMContentLoaded', () => {
         contentDiv.appendChild(loader);
         contentDiv.style.opacity = '0.7';
 
-        fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    contentDiv.innerHTML = html;
-                    contentDiv.style.opacity = '1';
-                    // Reaplicar cualquier listener necesario después de cargar nuevo contenido
-                })
-                .catch(error => {
-                    console.error(`Error al cargar contenido:`, error);
-                    swalAgrow.fire('Error', 'No se pudo cargar el contenido. Intente nuevamente.', 'error');
-                    contentDiv.innerHTML = `<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos. Por favor, actualice la página.</p></div>`;
-                    contentDiv.style.opacity = '1';
-                });
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+            contentDiv.style.opacity = '1';
+            updateTransportCounter();
+        })
+        .catch(error => {
+            console.error('Error al cargar contenido:', error);
+            contentDiv.innerHTML = `
+                <div class="info-card">
+                    <span class="material-symbols-outlined icon">error</span>
+                    <h2>Error de Carga</h2>
+                    <p>No se pudieron cargar los datos. Por favor, actualice la página.</p>
+                </div>`;
+            contentDiv.style.opacity = '1';
+        });
     }
 
-// Event listeners para la paginación
-    document.addEventListener('click', function (event) {
-        // Manejo de paginación
-        const pgLink = event.target.closest('.pagination a[data-page]');
-        if (pgLink) {
-            event.preventDefault();
-            window.pageTransports(pgLink);
+    function updateTransportCounter() {
+        const totalItemsElement = document.querySelector('.page-subtitle span');
+        if (totalItemsElement) {
+            console.log('Contador actualizado desde el servidor');
         }
+    }
 
-        // Manejo de filtros (opcional, si quieres que el filtro use AJAX también)
-        const filterBtn = event.target.closest('#filter-form-transport button[type="submit"]');
-        if (filterBtn) {
+    function pageTransport(link) {
+        if (!link) return;
+
+        const page = link.getAttribute('data-page');
+        const transportType = document.getElementById('transport_type')?.value || '';
+        const delivered = document.getElementById('delivered')?.value || '';
+
+        let url = `/transport/table?page=${page}`;
+        if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
+        if (delivered) url += `&delivered=${delivered}`;
+
+        handleAjaxRequest(url, 'tableData');
+    }
+
+    function filterTransport() {
+        const transportType = document.getElementById('transport_type')?.value || '';
+        const delivered = document.getElementById('delivered')?.value || '';
+
+        let url = '/transport/table?page=0';
+        if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
+        if (delivered) url += `&delivered=${delivered}`;
+
+        handleAjaxRequest(url, 'tableData');
+    }
+
+    document.addEventListener('click', function(event) {
+        const link = event.target.closest('[data-page]');
+        if (link) {
             event.preventDefault();
-            const formData = new FormData(document.getElementById('filter-form-transport'));
-            formData.set('page', '0'); // Resetear a primera página al filtrar
-            handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
+            pageTransport(link);
         }
     });
+
+    document.getElementById('transport_type')?.addEventListener('change', filterTransport);
+    document.getElementById('delivered')?.addEventListener('change', filterTransport);
+
 });

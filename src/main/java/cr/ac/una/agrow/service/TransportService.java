@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -121,6 +123,35 @@ public class TransportService {
         } catch (DataAccessException e) {
             LOG.log(Level.SEVERE, "Error al filtrar por tipo y estado", e);
             return Collections.emptyList();
+        }
+    }
+
+    // MÉTODOS DE PAGINACIÓN CORREGIDOS
+    @Transactional(readOnly = true)
+    public Page<Transport> getAllPaged(Pageable pageable) {
+        try {
+            return transportRepository.findAll(pageable);
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error al obtener transportes paginados", ex);
+            return Page.empty(pageable);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Transport> getFilteredTransportsPaged(String transportType, Boolean delivered, Pageable pageable) {
+        try {
+            if (transportType != null && delivered != null) {
+                return transportRepository.findByTransportTypeAndDelivered(transportType, delivered, pageable);
+            } else if (transportType != null) {
+                return transportRepository.findByTransportType(transportType, pageable);
+            } else if (delivered != null) {
+                return transportRepository.findByDelivered(delivered, pageable);
+            } else {
+                return transportRepository.findAll(pageable);
+            }
+        } catch (DataAccessException ex) {
+            LOG.log(Level.SEVERE, "Error al obtener transportes filtrados", ex);
+            return Page.empty(pageable);
         }
     }
 }
