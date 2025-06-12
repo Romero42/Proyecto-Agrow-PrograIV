@@ -56,8 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    // === VALIDACIONES DE DATOS DE ENTRADA ===
-
     function validateTransportFormInputs() {
         const nameRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
         const phoneRegex = /^[0-9]{8}$/;
@@ -115,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
+    // === INICIALIZACIÓN DE EVENT LISTENERS PARA FORMULARIOS ===
     const quantityTransportedInput = document.getElementById('quantityTransported');
     const pricePerUnitTransportInput = document.getElementById('pricePerUnitTransport');
 
@@ -128,8 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pricePerUnitTransportInput) {
         pricePerUnitTransportInput.addEventListener('input', calculateAndDisplayTotalTransport);
     }
-
-
 
     const confirmableForms = document.querySelectorAll('form.confirm-action');
 
@@ -200,73 +197,158 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
-    // Agrega esto al final del DOMContentLoaded, después de tus funciones existentes
 
-// === FUNCIONALIDAD DE PAGINACIÓN ===
+    // === FUNCIONALIDAD DE PAGINACIÓN ===
 
-// Función para manejar la paginación
-    window.pageTransports = function (link) {
-        if (!link)
-            return;
-
-        const page = link.getAttribute('data-page');
-        const formData = new FormData(document.getElementById('filter-form-transport') || new FormData());
-        formData.set('page', page);
-
-        handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
-    };
-
-// Función para manejar peticiones AJAX
+    // Función para manejar peticiones AJAX
     function handleAjaxRequest(url, contentDivId) {
         const contentDiv = document.getElementById(contentDivId);
         if (!contentDiv) {
             console.error(`Contenedor '${contentDivId}' no encontrado.`);
-            swalAgrow.fire('Error', `Error interno: Contenedor '${contentDivId}' no encontrado.`, 'error');
             return;
         }
 
+        console.log('Cargando URL:', url);
+
+        // Mostrar loader
         const loader = document.createElement('div');
         loader.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="material-symbols-outlined" style="font-size: 40px; animation: spin 1.5s linear infinite;">autorenew</span><p>Cargando...</p></div>';
         contentDiv.innerHTML = '';
         contentDiv.appendChild(loader);
         contentDiv.style.opacity = '0.7';
 
-        fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    contentDiv.innerHTML = html;
-                    contentDiv.style.opacity = '1';
-                    // Reaplicar cualquier listener necesario después de cargar nuevo contenido
-                })
-                .catch(error => {
-                    console.error(`Error al cargar contenido:`, error);
-                    swalAgrow.fire('Error', 'No se pudo cargar el contenido. Intente nuevamente.', 'error');
-                    contentDiv.innerHTML = `<div class="info-card"><span class="material-symbols-outlined icon">error</span><h2>Error de Carga</h2><p>No se pudieron cargar los datos. Por favor, actualice la página.</p></div>`;
-                    contentDiv.style.opacity = '1';
-                });
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('HTML recibido, longitud:', html.length);
+            contentDiv.innerHTML = html;
+            contentDiv.style.opacity = '1';
+            
+            // Actualizar el contador en el header
+            updateTransportCounter();
+        })
+        .catch(error => {
+            console.error('Error al cargar contenido:', error);
+            contentDiv.innerHTML = `
+                <div class="info-card">
+                    <span class="material-symbols-outlined icon">error</span>
+                    <h2>Error de Carga</h2>
+                    <p>No se pudieron cargar los datos. Por favor, actualice la página.</p>
+                </div>`;
+            contentDiv.style.opacity = '1';
+        });
     }
 
-// Event listeners para la paginación
-    document.addEventListener('click', function (event) {
-        // Manejo de paginación
-        const pgLink = event.target.closest('.pagination a[data-page]');
-        if (pgLink) {
-            event.preventDefault();
-            window.pageTransports(pgLink);
+    // Función para actualizar el contador de transportes
+    function updateTransportCounter() {
+        // Buscar el elemento que muestra el total de elementos
+        const totalItemsElement = document.querySelector('.page-subtitle span');
+        
+        if (totalItemsElement) {
+            // El total viene del servidor, no necesitamos calcularlo aquí
+            console.log('Contador actualizado desde el servidor');
         }
+    }
 
-        // Manejo de filtros (opcional, si quieres que el filtro use AJAX también)
-        const filterBtn = event.target.closest('#filter-form-transport button[type="submit"]');
-        if (filterBtn) {
+    // Función para manejar la paginación
+    function pageTransport(link) {
+        if (!link) return;
+
+        const page = link.getAttribute('data-page');
+        console.log('Cambiando a página:', page);
+
+        // Obtener filtros actuales
+        const transportType = document.getElementById('transport_type')?.value || '';
+        const delivered = document.getElementById('delivered')?.value || '';
+
+        // Construir URL con parámetros
+        let url = `/transport/table?page=${page}`;
+        if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
+        if (delivered) url += `&delivered=${delivered}`;
+
+        console.log('URL solicitada:', url);
+        handleAjaxRequest(url, 'tableData');
+    }
+
+    // Función para filtrar transportes
+    function filterTransport() {
+        const transportType = document.getElementById('transport_type')?.value || '';
+        const delivered = document.getElementById('delivered')?.value || '';
+
+        let url = '/transport/table?page=0'; // Siempre empezar en página 0 al filtrar
+        if (transportType) url += `&transport_type=${encodeURIComponent(transportType)}`;
+        if (delivered) url += `&delivered=${delivered}`;
+
+        console.log('Filtrando con URL:', url);
+        handleAjaxRequest(url, 'tableData');
+    }
+
+    // === EVENT LISTENERS PARA PAGINACIÓN Y FILTROS ===
+
+    // Event listener para links de paginación (delegación de eventos)
+    document.addEventListener('click', function(event) {
+        // Buscar si el click fue en un link de paginación
+        const paginationLink = event.target.closest('.pagination a[data-page]');
+        if (paginationLink) {
             event.preventDefault();
-            const formData = new FormData(document.getElementById('filter-form-transport'));
-            formData.set('page', '0'); // Resetear a primera página al filtrar
-            handleAjaxRequest(`/transport/table?${new URLSearchParams(formData).toString()}`, 'tableData');
+            pageTransport(paginationLink);
+            return;
         }
     });
+
+    // Event listener para el botón de filtrar
+    const filterButton = document.querySelector('.filter-btn');
+    if (filterButton) {
+        filterButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            filterTransport();
+        });
+    }
+
+    // Event listeners para cambios en los filtros (filtrado automático)
+    const transportTypeSelect = document.getElementById('transport_type');
+    const deliveredSelect = document.getElementById('delivered');
+
+    if (transportTypeSelect) {
+        transportTypeSelect.addEventListener('change', function() {
+            console.log('Cambio en tipo de transporte:', this.value);
+            // Opcional: filtrar automáticamente al cambiar
+            // filterTransport();
+        });
+    }
+
+    if (deliveredSelect) {
+        deliveredSelect.addEventListener('change', function() {
+            console.log('Cambio en estado de entrega:', this.value);
+            // Opcional: filtrar automáticamente al cambiar
+            // filterTransport();
+        });
+    }
+
+    // Hacer las funciones disponibles globalmente por si se necesitan
+    window.pageTransport = pageTransport;
+    window.filterTransport = filterTransport;
+
+    console.log('Sistema de paginación de transportes inicializado correctamente');
 });
+
+// Añadir estilos CSS para la animación del loader
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="transportListContent">
+
+    <!-- Mostrar mensaje si no hay transportes -->
+    <div class="info-card" th:if="${validate != null}">
+        <span class="material-symbols-outlined icon">local_shipping</span>
+        <h2 th:text="${validate}">No se encontraron transportes</h2>
+        <p>Intenta con otros filtros.</p>
+    </div>
+
+    <!-- Tabla de transportes -->
+    <div class="table-container" th:unless="${validate != null or transportList == null or transportList.isEmpty()}">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Empresa</th>
+                        <th>Conductor</th>
+                        <th>Placa</th>
+                        <th>Costo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="transport : ${transportList}">
+                        <td th:text="${transport.transportType}"></td>
+                        <td th:text="${#temporals.format(transport.transportDate, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${transport.transportCompany}"></td>
+                        <td th:text="${transport.driverName}"></td>
+                        <td th:text="${transport.vehiclePlate}"></td>
+                        <td th:text="${#numbers.formatDecimal(transport.transportCost, 1, 'COMMA', 2, 'POINT')} + ' ₡'"></td>
+                        <td>
+                            <span class="status"
+                                  th:classappend="${transport.delivered} ? 'status-optimo' : 'status-bajo'"
+                                  th:text="${transport.delivered ? 'Entregado' : 'Pendiente'}">
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <!-- CORREGIDO: Usar idTransport consistentemente -->
+                                <a th:href="@{/transport/view(idTransport=${transport.idTransport})}" class="btns view-btns" title="Ver Detalles">
+                                    <span class="material-symbols-outlined icon">visibility</span>
+                                </a>
+                                <a th:href="@{/transport/edit(idTransport=${transport.idTransport})}" class="btns edit-btns" title="Editar">
+                                    <span class="material-symbols-outlined icon">edit</span>
+                                </a>
+                                <form th:action="@{/transport/delete}" method="post"
+                                      class="confirm-action"
+                                      data-message="¿Eliminar este transporte?"
+                                      data-title="Confirmar Eliminación"
+                                      style="margin:0; padding:0; display:inline;">
+                                    <!-- CORREGIDO: Cambiar transportId por idTransport para ser consistente -->
+                                    <input type="hidden" name="idTransport" th:value="${transport.idTransport}" />
+                                    <button type="submit" class="btns delete-btns" title="Eliminar">
+                                        <span class="material-symbols-outlined icon">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginación - ELIMINAMOS onclick inline para usar event delegation -->
+    <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
+        <ul>
+            <!-- Anterior -->
+            <li th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                <a th:if="${currentPage > 0}" href="#"
+                   th:attr="data-page=${currentPage - 1}">«</a>
+                <span th:unless="${currentPage > 0}">«</span>
+            </li>
+
+            <!-- Números de página -->
+            <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                th:classappend="${i == currentPage} ? 'active' : ''">
+                <a th:if="${i != currentPage}" href="#"
+                   th:attr="data-page=${i}"
+                   th:text="${i + 1}"></a>
+                <span th:unless="${i != currentPage}" th:text="${i + 1}"></span>
+            </li>
+
+            <!-- Siguiente -->
+            <li th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">
+                <a th:if="${currentPage < totalPages - 1}" href="#"
+                   th:attr="data-page=${currentPage + 1}">»</a>
+                <span th:unless="${currentPage < totalPages - 1}">»</span>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

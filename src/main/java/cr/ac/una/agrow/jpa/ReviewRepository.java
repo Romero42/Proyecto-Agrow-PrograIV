@@ -21,6 +21,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     
     @Query("SELECT r FROM Review r WHERE " +
            "(:minRating IS NULL OR :minRating = '' OR r.rating >= CAST(:minRating AS int))")
+            
     Page<Review> findFilteredReviews(@Param("minRating") String minRating, Pageable pageable);
 
     
