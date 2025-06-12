@@ -37,7 +37,6 @@
 
                         <option th:if="${transport.transportType == null}" value="" selected>Seleccione un tipo</option>
 
-                        <!-- Las opciones del listado -->
                         <option th:each="type : ${transportTypes}" 
                                 th:value="${type}"
                                 th:text="${type}"

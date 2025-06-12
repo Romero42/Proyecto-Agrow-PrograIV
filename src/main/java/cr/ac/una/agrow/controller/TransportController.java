@@ -51,12 +51,10 @@ public class TransportController {
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
-        LOG.info("Solicitando tabla de transportes - Página: " + page + ", Tipo: " + transport_type + ", Entregado: " + delivered);
         
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
         Page<Transport> transportsPage = transportService.getFilteredTransportsPaged(transport_type, delivered, pageable);
         
-        LOG.info("Resultados obtenidos: " + transportsPage.getTotalElements() + " total, " + transportsPage.getContent().size() + " en esta página");
         
         prepareModelForView(model, transportsPage, transport_type, delivered, page);
         return "transport/table_transport :: transportListContent";
@@ -118,7 +116,7 @@ public class TransportController {
             @RequestParam("status") String status,
             RedirectAttributes redirectAttributes) {
         try {
-            // Verificar si la placa ya existe
+            
             Optional<Transport> existingTransport = transportService.findByVehiclePlate(vehiclePlate);
             if (existingTransport.isPresent()) {
                 redirectAttributes.addFlashAttribute("error", "Error: La placa " + vehiclePlate + " ya está en uso");
@@ -136,7 +134,7 @@ public class TransportController {
             transport.setVehiclePlate(vehiclePlate);
             transport.setTransportCost(transportCost);
 
-            // Lógica para determinar si está entregado
+          
             boolean delivered = "Entregado".equalsIgnoreCase(status);
             transport.setDelivered(delivered);
 
@@ -145,7 +143,6 @@ public class TransportController {
             redirectAttributes.addFlashAttribute("mensaje", "Transporte registrado exitosamente");
             return "redirect:/transport/list";
         } catch (Exception e) {
-            LOG.severe("Error al registrar transporte: " + e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Error al registrar transporte: " + e.getMessage());
             return "redirect:/transport/register";
         }
@@ -161,7 +158,6 @@ public class TransportController {
             model.addAttribute("transportTypes", Arrays.asList("Camión de carga", "Furgón de carga", "Pickup de la empresa", "Barco"));
             return "transport/edit";
         } catch (Exception e) {
-            LOG.severe("Error al cargar formulario de edición: " + e.getMessage());
             model.addAttribute("error", "Transporte no encontrado con ID: " + idTransport);
             return "redirect:/transport/list";
         }
@@ -184,7 +180,7 @@ public class TransportController {
             Transport transport = transportService.getTransportById(idTransport)
                     .orElseThrow(() -> new RuntimeException("Transporte no encontrado"));
 
-            // Verificar si la placa ya existe en otro registro
+            
             Optional<Transport> existingWithPlate = transportService.findByVehiclePlate(vehicle_plate);
             if (existingWithPlate.isPresent() && existingWithPlate.get().getIdTransport() != idTransport) {
                 redirectAttributes.addFlashAttribute("error", "Error: La placa " + vehicle_plate + " ya está en uso");
@@ -208,7 +204,6 @@ public class TransportController {
             redirectAttributes.addFlashAttribute("mensaje", "Transporte actualizado exitosamente");
             return "redirect:/transport/list";
         } catch (Exception e) {
-            LOG.severe("Error al actualizar transporte: " + e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Error al actualizar transporte: " + e.getMessage());
             return "redirect:/transport/editView?idTransport=" + idTransport;
         }
@@ -227,7 +222,6 @@ public class TransportController {
                 redirectAttributes.addFlashAttribute("error", "Transporte no encontrado");
             }
         } catch (Exception e) {
-            LOG.severe("Error al eliminar transporte: " + e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Error al eliminar transporte: " + e.getMessage());
         }
 
@@ -247,7 +241,6 @@ public class TransportController {
                 return "redirect:/transport/list";
             }
         } catch (Exception e) {
-            LOG.severe("Error al ver transporte: " + e.getMessage());
             model.addAttribute("error", "Error al cargar transporte: " + e.getMessage());
             return "redirect:/transport/list";
         }

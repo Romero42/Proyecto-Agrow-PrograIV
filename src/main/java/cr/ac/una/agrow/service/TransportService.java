@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 @Service
 public class TransportService {
 
-    private static final Logger LOG = Logger.getLogger(TransportService.class.getName());
 
     @Autowired
     private TransportRepository transportRepository;
@@ -29,7 +28,6 @@ public class TransportService {
         try {
             return transportRepository.save(transport);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al guardar el transporte", e);
             throw new RuntimeException("Error al guardar el transporte", e);
         }
     }
@@ -42,7 +40,6 @@ public class TransportService {
             }
             return transportRepository.save(transport);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al actualizar el transporte", e);
             throw new RuntimeException("Error al actualizar el transporte", e);
         }
     }
@@ -56,7 +53,6 @@ public class TransportService {
             transportRepository.deleteById(idTransport);
             return true;
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al eliminar el transporte", e);
             throw new RuntimeException("Error al eliminar el transporte", e);
         }
     }
@@ -66,7 +62,6 @@ public class TransportService {
         try {
             return transportRepository.findAll();
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al obtener todos los transportes", e);
             return Collections.emptyList();
         }
     }
@@ -81,7 +76,6 @@ public class TransportService {
         try {
             return transportRepository.findByVehiclePlate(vehiclePlate);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al buscar transporte por placa", e);
             return Optional.empty();
         }
     }
@@ -91,7 +85,6 @@ public class TransportService {
         try {
             return transportRepository.findByTransportDate(date);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al filtrar por fecha", e);
             return Collections.emptyList();
         }
     }
@@ -101,7 +94,6 @@ public class TransportService {
         try {
             return transportRepository.findByTransportType(transportType);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al filtrar por tipo", e);
             return Collections.emptyList();
         }
     }
@@ -111,7 +103,6 @@ public class TransportService {
         try {
             return transportRepository.findByDelivered(delivered);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al filtrar por estado de entrega", e);
             return Collections.emptyList();
         }
     }
@@ -121,18 +112,16 @@ public class TransportService {
         try {
             return transportRepository.findByTransportTypeAndDelivered(transportType, delivered);
         } catch (DataAccessException e) {
-            LOG.log(Level.SEVERE, "Error al filtrar por tipo y estado", e);
             return Collections.emptyList();
         }
     }
 
-    // MÉTODOS DE PAGINACIÓN CORREGIDOS
+    
     @Transactional(readOnly = true)
     public Page<Transport> getAllPaged(Pageable pageable) {
         try {
             return transportRepository.findAll(pageable);
         } catch (DataAccessException ex) {
-            LOG.log(Level.SEVERE, "Error al obtener transportes paginados", ex);
             return Page.empty(pageable);
         }
     }
@@ -150,7 +139,6 @@ public class TransportService {
                 return transportRepository.findAll(pageable);
             }
         } catch (DataAccessException ex) {
-            LOG.log(Level.SEVERE, "Error al obtener transportes filtrados", ex);
             return Page.empty(pageable);
         }
     }

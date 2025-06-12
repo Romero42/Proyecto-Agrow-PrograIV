@@ -30,7 +30,6 @@
                 </a>
             </div>
 
-            <!-- CORREGIDO: Agregar ID al formulario de filtros -->
             <div id="filter-form-transport" class="filter-section">
                 <div class="filter-row">
                     <div class="filter-group">
@@ -54,7 +53,6 @@
                     </div>
 
                     <div class="filter-buttons">
-                        <!-- CORREGIDO: Remover onclick inline -->
                         <button type="button" class="btn btn-primary filter-btn">
                             <span class="material-symbols-outlined icon">search</span> Filtrar
                         </button>
@@ -65,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Contenedor para la tabla que será actualizado por AJAX -->
             <div id="tableData">
                 <!-- Incluir el fragmento de tabla inicial -->
                 <div th:replace="~{transport/table_transport :: transportListContent}"></div>

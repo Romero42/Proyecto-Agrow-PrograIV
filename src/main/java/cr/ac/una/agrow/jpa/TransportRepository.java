@@ -13,8 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface TransportRepository extends JpaRepository<Transport, Integer> {
-    
-    // Métodos básicos de consulta
+
     List<Transport> findByTransportDate(LocalDate transportDate);
     
     List<Transport> findByTransportType(String transportType);
@@ -27,7 +26,7 @@ public interface TransportRepository extends JpaRepository<Transport, Integer> {
     
     List<Transport> findByTransportTypeAndDelivered(String transportType, boolean delivered);
     
-    // Métodos de paginación con ordenamiento por fecha descendente
+
     @Query("SELECT t FROM Transport t WHERE t.transportType = :transportType ORDER BY t.transportDate DESC, t.idTransport DESC")
     Page<Transport> findByTransportType(@Param("transportType") String transportType, Pageable pageable);
     
@@ -37,7 +36,7 @@ public interface TransportRepository extends JpaRepository<Transport, Integer> {
     @Query("SELECT t FROM Transport t WHERE t.transportType = :transportType AND t.delivered = :delivered ORDER BY t.transportDate DESC, t.idTransport DESC")
     Page<Transport> findByTransportTypeAndDelivered(@Param("transportType") String transportType, @Param("delivered") boolean delivered, Pageable pageable);
     
-    // Sobrescribir findAll para que también tenga ordenamiento
+
     @Query("SELECT t FROM Transport t ORDER BY t.transportDate DESC, t.idTransport DESC")
     Page<Transport> findAll(Pageable pageable);
 }
