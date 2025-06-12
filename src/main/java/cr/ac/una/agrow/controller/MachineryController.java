@@ -35,9 +35,8 @@ public class MachineryController {
         return "machinery/lista_machinery";
     }
 
-    //guradar maquianria
     @PostMapping("/guardar")
-    public ModelAndView agregarMachinery(
+    public String agregarMachinery(
             @RequestParam("id") int id,
             @RequestParam("nombre") String nombre,
             @RequestParam("condicion") String condicion,
@@ -45,31 +44,27 @@ public class MachineryController {
             @RequestParam("diaAdquisicion") String diaAdquisicion,
             @RequestParam("costoAlquiler") double costoAlquiler,
             @RequestParam("ubicacion") String ubicacion,
-            @RequestParam("capacidadTrabajo") String capacidadTrabajo) {
-
-        ModelAndView modelAndView = new ModelAndView("redirect:/lista");
+            @RequestParam("capacidadTrabajo") String capacidadTrabajo,
+            RedirectAttributes redirectAttributes) { // ← AGREGAR ESTO
 
         try {
-
             LocalDate fechaAdquisicion = LocalDate.parse(diaAdquisicion);
-
             Machinery machinery = new Machinery(id, nombre, condicion, disponibilidad,
                     fechaAdquisicion, costoAlquiler, ubicacion, capacidadTrabajo);
 
             if (machineryRepository.existsById(id)) {
-                modelAndView.addObject("error", "El ID ya existe, no se puede crear un nuevo registro con el mismo ID.");
+                redirectAttributes.addFlashAttribute("error", "El ID ya existe, no se puede crear un nuevo registro con el mismo ID.");
             } else {
                 machineryService.saveMachineryDefinitivo(machinery);
-                modelAndView.addObject("mensaje", "Maquinaria agregada correctamente");
+                redirectAttributes.addFlashAttribute("mensaje", "Maquinaria agregada correctamente");
             }
-
         } catch (RuntimeException e) {
-            modelAndView.addObject("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
-            modelAndView.addObject("error", "Error inesperado al guardar: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error inesperado al guardar: " + e.getMessage());
         }
 
-        return modelAndView;
+        return "redirect:/lista";
     }
 
     @GetMapping({"/formulario", "/form", "/create"})

@@ -639,3 +639,42 @@ body {
         transform: rotate(360deg);
     }
 }
+/* Agrega esto a tu CSS después de las otras clases .btn- */
+
+.btn-success { 
+  background-color: var(--increase); 
+  color: var(--white); 
+  border-color: var(--increase); 
+}
+
+.btn-success:hover { 
+  background-color: var(--increase-hover); 
+  border-color: var(--increase-hover); 
+  transform: translateY(-1px); 
+  box-shadow: 0 2px 4px var(--black-10); 
+}
+
+/* También agregar clases para botones outline si las necesitas */
+.btn-outline-success { 
+  background-color: transparent; 
+  color: var(--increase); 
+  border: 1px solid var(--increase); 
+}
+
+.btn-outline-success:hover { 
+  background-color: var(--increase); 
+  color: var(--white); 
+  border-color: var(--increase); 
+}
+
+.btn-outline-danger { 
+  background-color: transparent; 
+  color: var(--danger); 
+  border: 1px solid var(--danger); 
+}
+
+.btn-outline-danger:hover { 
+  background-color: var(--danger); 
+  color: var(--white); 
+  border-color: var(--danger); 
+}
