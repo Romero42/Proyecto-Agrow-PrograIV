@@ -16,9 +16,7 @@
             <!-- Mensajes de éxito/error -->
             <div id="swal-message" th:data-mensaje="${mensaje}" th:data-error="${error}"></div>
 
-            <form method="post" th:action="@{/guardar}" id="formAgregar" class="form-container confirm-action" 
-                  data-title="Confirmar Registro" 
-                  data-message="¿Confirmar y guardar nueva máquina?">
+            <form method="post" th:action="@{/guardar}" id="formAgregar" class="form-container">
 
                 <div class="page-header" style="border-bottom: none; margin-bottom: 15px;">
                     <h1 class="page-title">Agregar Nueva Máquina</h1>

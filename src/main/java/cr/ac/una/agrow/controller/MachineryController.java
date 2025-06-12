@@ -47,7 +47,7 @@ public class MachineryController {
             @RequestParam("ubicacion") String ubicacion,
             @RequestParam("capacidadTrabajo") String capacidadTrabajo) {
 
-        ModelAndView modelAndView = new ModelAndView("index");
+        ModelAndView modelAndView = new ModelAndView("redirect:/lista");
 
         try {
 
